@@ -16,10 +16,10 @@ The backend surface is broad and changes faster than hand-written SDK methods.
 Every language binding therefore exposes:
 
 - A shared request pipeline with JSON envelope unwrapping.
-- Named namespace clients such as `auth`, `inference`, `payments`, `feedback`,
-  and `agentIntegrations`.
-- Convenience helpers for common routes.
-- A raw request method for new backend endpoints before typed helpers land.
+- Typed namespace clients such as `auth`, `inference`, `payments`, `feedback`,
+  and `agentIntegrations`, with one method per deployed operation (193 across
+  18 namespaces).
+- A raw request method for new backend endpoints before typed methods land.
 
 The source of truth for deployed backend behavior is
 <https://api.tinyhumans.ai/swagger.json>. The local manifest at

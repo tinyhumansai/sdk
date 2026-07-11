@@ -10,8 +10,11 @@ const client = new TinyHumansClient({
   token: process.env.TINYHUMANS_TOKEN,
 });
 
-console.log(await client.health());
-console.log(await client.inference.get("/v1/models"));
+console.log(await client.health.check());
+console.log(await client.inference.listModels());
+// Typed methods per namespace, e.g.:
+await client.auth.sendEmailLink({ email: "you@example.com" });
+await client.payments.getCreditBalance();
 ```
 
 ## Python
@@ -25,8 +28,11 @@ client = TinyHumansClient(
     token=os.getenv("TINYHUMANS_TOKEN"),
 )
 
-print(client.health())
-print(client.inference.get("/v1/models"))
+print(client.health.check())
+print(client.inference.list_models())
+# Typed methods per namespace, e.g.:
+client.auth.send_email_link({"email": "you@example.com"})
+print(client.payments.get_credit_balance())
 ```
 
 ## Rust
@@ -39,8 +45,8 @@ let client = TinyHumansClient::new(
     std::env::var("TINYHUMANS_BASE_URL").unwrap_or_else(|_| "https://api.tinyhumans.ai".into()),
 ).with_token(std::env::var("TINYHUMANS_TOKEN").ok());
 
-println!("{:?}", client.health().await?);
-println!("{:?}", client.inference().get("/v1/models").await?);
+println!("{:?}", client.health().check().await?);
+println!("{:?}", client.inference().list_models().await?);
 # Ok(())
 # }
 ```

@@ -1,14 +1,14 @@
 # API Surface
 
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
-<https://api.tinyhumans.ai/swagger.json>. At the time this scaffold was written,
-the spec reports TinyHumans API `1.0.0` with 172 paths.
+<https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
+`1.0.0` with 172 paths. Each SDK exposes one typed method per operation —
+**193 operations across the 18 namespaces below**.
 
 | Namespace | Base path | Auth | Examples |
 | --- | --- | --- | --- |
-| `health` | `/`, `/swagger.json` | none | liveness, swagger |
-| `apiKeys` | `/api-keys` | bearer | create, list, revoke, usage |
-| `auth` | `/auth` | bearer | email login, OAuth, `GET /me`, integration tokens |
+| `health` | `/` | none | `check()` liveness |
+| `auth` | `/auth` | bearer | email login, OAuth, `me()`, integration tokens |
 | `inference` | `/openai` | bearer | `GET /v1/models`, chat completions, responses, transcription |
 | `agentIntegrations` | `/agent-integrations` | bearer | Composio, Parallel, media generation, maps, Apify, Twilio, crypto |
 | `payments` | `/payments` | bearer | Stripe, Coinbase, credits, transactions, plans |
@@ -23,6 +23,7 @@ the spec reports TinyHumans API `1.0.0` with 172 paths.
 | `investors` | `/investors` | none | deck lookup and event tracking |
 | `referral` | `/referral` | bearer | referral stats and claim |
 | `rewards` | `/rewards` | bearer | reward snapshot and Discord unlink |
+| `redirect` | `/r` | none | resolve short redirect codes |
 | `webhooks` | `/webhooks` | mixed | provider callbacks and webhook tunnels |
 
 Most JSON responses use the hosted-backend envelope:

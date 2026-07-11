@@ -32,7 +32,8 @@ const client = new TinyHumansClient({
   token: process.env.TINYHUMANS_TOKEN,
 });
 
-const models = await client.inference.get("/v1/models");
+const models = await client.inference.listModels();
+const me = await client.auth.me();
 ```
 
 ```python
@@ -43,7 +44,7 @@ client = TinyHumansClient(
     base_url="https://api.tinyhumans.ai",
     token=os.environ.get("TINYHUMANS_TOKEN"),
 )
-print(client.inference.get("/v1/models"))
+print(client.inference.list_models())
 ```
 
 ```rust
@@ -52,25 +53,26 @@ use tinyhumans_sdk::TinyHumansClient;
 # async fn run() -> Result<(), tinyhumans_sdk::Error> {
 let client = TinyHumansClient::new("https://api.tinyhumans.ai")
     .with_token(std::env::var("TINYHUMANS_TOKEN").ok());
-let models = client.inference().get("/v1/models").await?;
+let models = client.inference().list_models().await?;
 # Ok(())
 # }
 ```
 
 ## Backend Surface
 
-The current manifest is grounded in the deployed backend OpenAPI document:
-<https://api.tinyhumans.ai/swagger.json>. The live spec currently advertises
-TinyHumans API `1.0.0`, production and staging servers, and 172 paths. It
-captures the stable public domains:
+The SDKs are grounded in the deployed backend OpenAPI document:
+<https://api.tinyhumans.ai/swagger.json>. The live spec advertises TinyHumans
+API `1.0.0`, production and staging servers, and 172 paths. Every SDK provides
+one typed method per deployed operation — **193 operations across 18
+namespaces**:
 
 - Health and documentation: `/`, `/swagger.json`
-- Auth, API keys, and account state: `/auth`, `/api-keys`
+- Auth and account state: `/auth`
 - Inference and OpenAI-compatible routes: `/openai`
 - Agent integrations: `/agent-integrations`
 - Payments, credits, coupons, referrals, invites, and rewards
-- Feedback, teams, channels, mascots, rewards, announcements, and admin routes
-- Webhook ingress routes for provider callbacks
+- Feedback, teams, channels, mascots, announcements, investors, and admin routes
+- Redirects and webhook ingress routes for provider callbacks
 
-Each SDK exposes a `raw` request helper and named namespace clients so new
-backend endpoints can be used before a fully typed convenience method is added.
+Each SDK also exposes a `raw` request helper so newly deployed backend
+endpoints can be used before a typed method is added.
