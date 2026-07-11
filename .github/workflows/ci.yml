@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  typescript:
+    name: TypeScript SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build (regenerates CLI command table + tsc)
+        run: pnpm --filter @tinyhumansai/sdk build
+
+      - name: Lint / typecheck
+        run: pnpm --filter @tinyhumansai/sdk lint
+
+      - name: Test with coverage
+        run: pnpm --filter @tinyhumansai/sdk coverage
+
+  python:
+    name: Python SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install package + dev deps
+        working-directory: sdk/python
+        run: python -m pip install -e ".[dev]"
+
+      - name: Test with coverage (fails under 90%)
+        working-directory: sdk/python
+        run: python -m pytest
+
+  rust:
+    name: Rust SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # This job executes repo code (cargo build/test); don't persist the
+          # token in git config.
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: sdk/rust
+
+      - name: Check formatting
+        run: cargo fmt --check
+        working-directory: sdk/rust
+
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+        working-directory: sdk/rust
+
+      - name: Build
+        run: cargo build --all-targets
+        working-directory: sdk/rust
+
+      - name: Test
+        run: cargo test
+        working-directory: sdk/rust
+
+  manifest:
+    name: Manifest reachable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The deployed OpenAPI document is the source of truth for the SDK
+      # surface; fail fast if it becomes unreachable so drift is visible.
+      - name: Deployed swagger is reachable
+        run: curl -fsSL https://api.tinyhumans.ai/swagger.json > /dev/null
