@@ -24,7 +24,8 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "gen:cli": "node scripts/gen-cli-commands.mjs",
+    "build": "node scripts/gen-cli-commands.mjs && tsc",
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
