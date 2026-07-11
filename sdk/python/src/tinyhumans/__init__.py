@@ -1,7 +1,6 @@
 from .client import TinyHumansClient
 from .http import HttpClient, TinyHumansError
 
-from .api.admin import AdminApi
 from .api.agent_integrations import AgentIntegrationsApi
 from .api.announcements import AnnouncementsApi
 from .api.auth import AuthApi
@@ -24,7 +23,6 @@ __all__ = [
     "TinyHumansClient",
     "HttpClient",
     "TinyHumansError",
-    "AdminApi",
     "AgentIntegrationsApi",
     "AnnouncementsApi",
     "AuthApi",

@@ -1,6 +1,5 @@
 //! Typed namespace clients for the TinyHumans backend.
 
-pub mod admin;
 pub mod agent_integrations;
 pub mod announcements;
 pub mod auth;

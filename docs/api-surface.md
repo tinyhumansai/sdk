@@ -3,7 +3,7 @@
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
 `1.0.0` with 172 paths. Each SDK exposes one typed method per operation —
-**193 operations across the 18 namespaces below**.
+**156 operations across the 17 namespaces below**.
 
 | Namespace | Base path | Auth | Examples |
 | --- | --- | --- | --- |
@@ -16,7 +16,6 @@ The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 | `teams` | `/teams` | bearer | team list/detail/update, usage, invites, join |
 | `channels` | `/channels` | bearer | messages, reactions, typing, threads |
 | `mascots` | `/mascots` | mixed | catalog, render streams, meetings, Rive assets |
-| `admin` | `/admin` | bearer or service token | analytics, users, credits, content, audit logs |
 | `announcements` | `/announcements` | bearer | latest active announcement |
 | `coupons` | `/coupons` | bearer | redemption and coupon history |
 | `invite` | `/invite` | mixed | status, redemption, campaign invites |

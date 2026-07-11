@@ -1,6 +1,5 @@
 import { HttpClient, type TinyHumansClientOptions } from "./http.js";
 
-import { AdminApi } from "./api/admin.js";
 import { AgentIntegrationsApi } from "./api/agent-integrations.js";
 import { AnnouncementsApi } from "./api/announcements.js";
 import { AuthApi } from "./api/auth.js";
@@ -27,7 +26,6 @@ import { WebhooksApi } from "./api/webhooks.js";
 export class TinyHumansClient {
   readonly raw: HttpClient;
 
-  readonly admin: AdminApi;
   readonly agentIntegrations: AgentIntegrationsApi;
   readonly announcements: AnnouncementsApi;
   readonly auth: AuthApi;
@@ -49,7 +47,6 @@ export class TinyHumansClient {
   constructor(options: TinyHumansClientOptions) {
     this.raw = new HttpClient(options);
 
-    this.admin = new AdminApi(this.raw);
     this.agentIntegrations = new AgentIntegrationsApi(this.raw);
     this.announcements = new AnnouncementsApi(this.raw);
     this.auth = new AuthApi(this.raw);

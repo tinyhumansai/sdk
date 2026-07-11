@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from .http import HttpClient, Json
 
-from .api.admin import AdminApi
 from .api.agent_integrations import AgentIntegrationsApi
 from .api.announcements import AnnouncementsApi
 from .api.auth import AuthApi
@@ -50,7 +49,6 @@ class TinyHumansClient:
             timeout=timeout,
         )
 
-        self.admin = AdminApi(self.raw)
         self.agent_integrations = AgentIntegrationsApi(self.raw)
         self.announcements = AnnouncementsApi(self.raw)
         self.auth = AuthApi(self.raw)

@@ -2,7 +2,7 @@
 
 The TypeScript package ships the `tinyhumans` command. It mirrors the typed SDK:
 every namespace method is a `tinyhumans <namespace> <command>` subcommand
-(193 commands across 18 namespaces), with a `raw` escape hatch for anything not
+(156 commands across 17 namespaces), with a `raw` escape hatch for anything not
 yet typed.
 
 ## Discovering commands

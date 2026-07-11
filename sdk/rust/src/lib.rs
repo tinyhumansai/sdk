@@ -84,9 +84,6 @@ impl TinyHumansClient {
         &self.http
     }
 
-    pub fn admin(&self) -> api::admin::AdminApi<'_> {
-        api::admin::AdminApi::new(&self.http)
-    }
     pub fn agent_integrations(&self) -> api::agent_integrations::AgentIntegrationsApi<'_> {
         api::agent_integrations::AgentIntegrationsApi::new(&self.http)
     }

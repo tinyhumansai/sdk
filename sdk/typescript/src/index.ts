@@ -7,7 +7,6 @@ export type {
   TinyHumansClientOptions,
 } from "./http.js";
 
-export * from "./api/admin.js";
 export * from "./api/agent-integrations.js";
 export * from "./api/announcements.js";
 export * from "./api/auth.js";
