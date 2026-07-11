@@ -1,8 +1,10 @@
 #!/usr/bin/env node
-import { TinyHumansClient } from "./client.js";
+import { pathToFileURL } from "node:url";
+
+import { TinyHumansClient, type TinyHumansClientOptions } from "./index.js";
 import { COMMANDS, type CliCommand } from "./cli-commands.js";
 
-interface GlobalOptions {
+export interface GlobalOptions {
   baseUrl: string;
   token?: string;
   apiKey?: string;
@@ -11,7 +13,22 @@ interface GlobalOptions {
   pretty: boolean;
 }
 
+/** Injectable dependencies so `run` can be unit-tested without I/O. */
+export interface RunDeps {
+  createClient: (options: TinyHumansClientOptions) => TinyHumansClient;
+  readStdin: () => Promise<string | undefined>;
+  write: (line: string) => void;
+  env: Record<string, string | undefined>;
+}
+
 const RAW_VERBS = ["get", "post", "put", "patch", "delete"] as const;
+
+export const defaultDeps: RunDeps = {
+  createClient: (options) => new TinyHumansClient(options),
+  readStdin,
+  write: (line) => console.log(line),
+  env: process.env,
+};
 
 function topUsage(): string {
   const namespaces = [...new Set(COMMANDS.map((c) => c.namespace))].sort();
@@ -42,7 +59,7 @@ Argument model per command:
   query params      -> --query key=value (repeatable)`;
 }
 
-function commandSignature(cmd: CliCommand): string {
+export function commandSignature(cmd: CliCommand): string {
   const parts = cmd.params.map((p) =>
     p.role === "positional" ? `<${p.name}>` : p.role === "body" ? "--body JSON" : "--query k=v",
   );
@@ -50,7 +67,7 @@ function commandSignature(cmd: CliCommand): string {
   return `tinyhumans ${cmd.namespace} ${cmd.command} ${parts.join(" ")}\n  ${cmd.verb} ${cmd.path}${flags}`;
 }
 
-function listNamespace(namespace: string): string {
+export function listNamespace(namespace: string): string {
   const cmds = COMMANDS.filter((c) => c.namespace === namespace);
   if (cmds.length === 0) return `Unknown namespace: ${namespace}`;
   const lines = cmds.map((c) => {
@@ -62,31 +79,31 @@ function listNamespace(namespace: string): string {
   return `${namespace} commands (${cmds.length}):\n${lines.join("\n")}`;
 }
 
-async function main(): Promise<void> {
-  const argv = process.argv.slice(2);
+export async function run(argv: string[], deps: RunDeps = defaultDeps): Promise<void> {
   const { positionals, flags } = splitArgs(argv);
   const first = positionals[0];
+  const emit = (value: unknown, compact = false) => deps.write(format(value, compact));
 
   if (!first || first === "help" || (flags.help !== undefined && positionals.length === 0)) {
-    console.log(topUsage());
+    deps.write(topUsage());
     return;
   }
 
   if (first === "list") {
     if (flags.json !== undefined) {
-      print(COMMANDS, true);
+      emit(COMMANDS, true);
     } else {
       const grouped = [...new Set(COMMANDS.map((c) => c.namespace))]
         .sort()
         .map((ns) => listNamespace(ns))
         .join("\n\n");
-      console.log(grouped);
+      deps.write(grouped);
     }
     return;
   }
 
-  const options = resolveGlobals(flags);
-  const client = new TinyHumansClient({
+  const options = resolveGlobals(flags, deps.env);
+  const client = deps.createClient({
     baseUrl: options.baseUrl,
     token: options.token,
     apiKey: options.apiKey,
@@ -95,7 +112,7 @@ async function main(): Promise<void> {
   });
 
   if (first === "swagger") {
-    print(await client.swagger(), !options.pretty);
+    emit(await client.swagger(), !options.pretty);
     return;
   }
 
@@ -106,13 +123,13 @@ async function main(): Promise<void> {
       throw new Error(`Usage: tinyhumans raw <${RAW_VERBS.join("|")}> PATH [--body JSON]`);
     }
     const body = ["post", "put", "patch"].includes(verb)
-      ? parseJson(asStr(flags.body) ?? (await readStdin()))
+      ? parseJson(asStr(flags.body) ?? (await deps.readStdin()))
       : undefined;
     const result = await client.raw.request(verb.toUpperCase(), path, {
       body,
       unwrapEnvelope: !options.raw,
     });
-    print(result, !options.pretty);
+    emit(result, !options.pretty);
     return;
   }
 
@@ -124,7 +141,7 @@ async function main(): Promise<void> {
   }
   const commandName = positionals[1];
   if (!commandName) {
-    console.log(listNamespace(namespace));
+    deps.write(listNamespace(namespace));
     return;
   }
   const cmd = namespaceCmds.find((c) => c.command === commandName);
@@ -132,19 +149,20 @@ async function main(): Promise<void> {
     throw new Error(`Unknown command: ${namespace} ${commandName}\n\n${listNamespace(namespace)}`);
   }
   if (flags.help !== undefined) {
-    console.log(commandSignature(cmd));
+    deps.write(commandSignature(cmd));
     return;
   }
 
-  const result = await invoke(client, cmd, positionals.slice(2), flags);
-  print(result, !options.pretty);
+  const result = await invoke(client, cmd, positionals.slice(2), flags, deps.readStdin);
+  emit(result, !options.pretty);
 }
 
-async function invoke(
+export async function invoke(
   client: TinyHumansClient,
   cmd: CliCommand,
   positionalArgs: string[],
   flags: Flags,
+  readStdinFn: () => Promise<string | undefined> = readStdin,
 ): Promise<unknown> {
   const queue = [...positionalArgs];
   const args: unknown[] = [];
@@ -157,7 +175,7 @@ async function invoke(
       }
       args.push(value);
     } else if (param.role === "body") {
-      const body = parseJson(asStr(flags.body) ?? (await readStdin()));
+      const body = parseJson(asStr(flags.body) ?? (await readStdinFn()));
       args.push(body);
     } else {
       args.push(buildQuery(flags));
@@ -177,7 +195,7 @@ async function invoke(
   return method.apply(nsClient, args);
 }
 
-function buildQuery(flags: Flags): Record<string, unknown> | undefined {
+export function buildQuery(flags: Flags): Record<string, unknown> | undefined {
   const entries = flags.query;
   if (!entries) return undefined;
   const list = Array.isArray(entries) ? entries : [entries];
@@ -192,9 +210,9 @@ function buildQuery(flags: Flags): Record<string, unknown> | undefined {
   return Object.keys(query).length ? query : undefined;
 }
 
-type Flags = Record<string, string | string[] | undefined> & { help?: string; json?: string };
+export type Flags = Record<string, string | string[] | undefined> & { help?: string; json?: string };
 
-function splitArgs(argv: string[]): { positionals: string[]; flags: Flags } {
+export function splitArgs(argv: string[]): { positionals: string[]; flags: Flags } {
   const positionals: string[] = [];
   const flags: Flags = {};
   for (let i = 0; i < argv.length; i += 1) {
@@ -219,30 +237,31 @@ function splitArgs(argv: string[]): { positionals: string[]; flags: Flags } {
   return { positionals, flags };
 }
 
-function resolveGlobals(flags: Flags): GlobalOptions {
-  const str = (v: string | string[] | undefined): string | undefined =>
-    Array.isArray(v) ? v[0] : v;
+export function resolveGlobals(
+  flags: Flags,
+  env: Record<string, string | undefined> = process.env,
+): GlobalOptions {
   return {
-    baseUrl: str(flags["base-url"]) ?? process.env.TINYHUMANS_BASE_URL ?? "https://api.tinyhumans.ai",
-    token: str(flags.token) ?? process.env.TINYHUMANS_TOKEN,
-    apiKey: str(flags["api-key"]) ?? process.env.TINYHUMANS_API_KEY,
+    baseUrl: asStr(flags["base-url"]) ?? env.TINYHUMANS_BASE_URL ?? "https://api.tinyhumans.ai",
+    token: asStr(flags.token) ?? env.TINYHUMANS_TOKEN,
+    apiKey: asStr(flags["api-key"]) ?? env.TINYHUMANS_API_KEY,
     adminServiceToken:
-      str(flags["admin-service-token"]) ?? process.env.TINYHUMANS_ADMIN_SERVICE_TOKEN,
+      asStr(flags["admin-service-token"]) ?? env.TINYHUMANS_ADMIN_SERVICE_TOKEN,
     raw: flags.raw !== undefined,
     pretty: flags.json === undefined,
   };
 }
 
-function asStr(value: string | string[] | undefined): string | undefined {
+export function asStr(value: string | string[] | undefined): string | undefined {
   return Array.isArray(value) ? value[0] : value;
 }
 
-function parseJson(body: string | undefined): unknown {
+export function parseJson(body: string | undefined): unknown {
   if (!body || !body.trim()) return undefined;
   return JSON.parse(body);
 }
 
-function tryJson(value: string): unknown {
+export function tryJson(value: string): unknown {
   try {
     return JSON.parse(value);
   } catch {
@@ -258,15 +277,19 @@ async function readStdin(): Promise<string | undefined> {
   return text.trim() ? text : undefined;
 }
 
-function print(value: unknown, compact = false): void {
-  if (typeof value === "string") {
-    console.log(value);
-    return;
-  }
-  console.log(JSON.stringify(value, null, compact ? 0 : 2));
+export function format(value: unknown, compact = false): string {
+  if (typeof value === "string") return value;
+  return JSON.stringify(value, null, compact ? 0 : 2);
 }
 
-main().catch((error: unknown) => {
-  console.error(error instanceof Error ? error.message : String(error));
-  process.exitCode = 1;
-});
+/** True when this module was executed directly as the `tinyhumans` binary. */
+export function isMainEntry(argv1: string | undefined): boolean {
+  return !!argv1 && import.meta.url === pathToFileURL(argv1).href;
+}
+
+if (isMainEntry(process.argv[1])) {
+  run(process.argv.slice(2)).catch((error: unknown) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  });
+}

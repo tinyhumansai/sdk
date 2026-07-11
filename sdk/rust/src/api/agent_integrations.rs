@@ -22,7 +22,13 @@ impl<'a> AgentIntegrationsApi<'a> {
     /// Run an Apify actor.
     pub async fn run_apify_actor(&self, body: &Value) -> Result<Value, Error> {
         self.http
-            .send(Method::POST, "/agent-integrations/apify/run", &[], Some(body), true)
+            .send(
+                Method::POST,
+                "/agent-integrations/apify/run",
+                &[],
+                Some(body),
+                true,
+            )
             .await
     }
 
@@ -197,7 +203,13 @@ impl<'a> AgentIntegrationsApi<'a> {
     /// List supported chains for cross-chain swaps and bridges.
     pub async fn list_crypto_routes(&self) -> Result<Value, Error> {
         self.http
-            .send(Method::GET, "/agent-integrations/crypto/routes", &[], None, true)
+            .send(
+                Method::GET,
+                "/agent-integrations/crypto/routes",
+                &[],
+                None,
+                true,
+            )
             .await
     }
 
@@ -325,10 +337,7 @@ impl<'a> AgentIntegrationsApi<'a> {
     }
 
     /// List curated media-generation models.
-    pub async fn list_media_generation_models(
-        &self,
-        query: &[QueryParam],
-    ) -> Result<Value, Error> {
+    pub async fn list_media_generation_models(&self, query: &[QueryParam]) -> Result<Value, Error> {
         self.http
             .send(
                 Method::GET,
@@ -595,19 +604,19 @@ impl<'a> AgentIntegrationsApi<'a> {
             "/agent-integrations/twilio/webhooks/incoming-call/{}",
             enc(user_id)
         );
-        self.http.send(Method::POST, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::POST, &path, &[], Some(body), true)
+            .await
     }
 
     /// Twilio webhook for call status updates.
-    pub async fn twilio_status_webhook(
-        &self,
-        user_id: &str,
-        body: &Value,
-    ) -> Result<Value, Error> {
+    pub async fn twilio_status_webhook(&self, user_id: &str, body: &Value) -> Result<Value, Error> {
         let path = format!(
             "/agent-integrations/twilio/webhooks/status/{}",
             enc(user_id)
         );
-        self.http.send(Method::POST, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::POST, &path, &[], Some(body), true)
+            .await
     }
 }

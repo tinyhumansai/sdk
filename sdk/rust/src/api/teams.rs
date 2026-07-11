@@ -44,7 +44,9 @@ impl<'a> TeamsApi<'a> {
     /// Update team settings (admin only).
     pub async fn update_team(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
         let path = format!("/teams/{}", enc(team_id));
-        self.http.send(Method::PUT, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::PUT, &path, &[], Some(body), true)
+            .await
     }
 
     /// Get the team's current subscription plan.
@@ -56,19 +58,25 @@ impl<'a> TeamsApi<'a> {
     /// Create a Stripe billing portal session for the team.
     pub async fn create_billing_portal(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
         let path = format!("/teams/{}/billing/portal", enc(team_id));
-        self.http.send(Method::POST, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::POST, &path, &[], Some(body), true)
+            .await
     }
 
     /// Purchase a subscription plan for the team (creates a checkout session).
     pub async fn purchase_plan(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
         let path = format!("/teams/{}/billing/purchase", enc(team_id));
-        self.http.send(Method::POST, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::POST, &path, &[], Some(body), true)
+            .await
     }
 
     /// Create a shareable team invite.
     pub async fn create_invite(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
         let path = format!("/teams/{}/invites", enc(team_id));
-        self.http.send(Method::POST, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::POST, &path, &[], Some(body), true)
+            .await
     }
 
     /// List a team's invites.
@@ -80,7 +88,9 @@ impl<'a> TeamsApi<'a> {
     /// Send a team invite via email.
     pub async fn send_email_invite(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
         let path = format!("/teams/{}/invites/email", enc(team_id));
-        self.http.send(Method::POST, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::POST, &path, &[], Some(body), true)
+            .await
     }
 
     /// Revoke a team invite.
@@ -115,7 +125,9 @@ impl<'a> TeamsApi<'a> {
         body: &Value,
     ) -> Result<Value, Error> {
         let path = format!("/teams/{}/members/{}/role", enc(team_id), enc(user_id));
-        self.http.send(Method::PUT, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::PUT, &path, &[], Some(body), true)
+            .await
     }
 
     /// Switch the user's active team.

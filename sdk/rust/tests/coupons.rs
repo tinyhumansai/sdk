@@ -33,8 +33,7 @@ async fn list_coupons_sends_query() {
         .and(path("/coupons/admin"))
         .and(query_param("redeemed", "false"))
         .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(json!({"success": true, "data": []})),
+            ResponseTemplate::new(200).set_body_json(json!({"success": true, "data": []})),
         )
         .mount(&server)
         .await;

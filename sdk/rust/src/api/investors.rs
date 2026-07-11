@@ -24,6 +24,8 @@ impl<'a> InvestorsApi<'a> {
     /// Track an investor page event.
     pub async fn track_investor_event(&self, slug: &str, body: &Value) -> Result<Value, Error> {
         let path = format!("/investors/{}/events", enc(slug));
-        self.http.send(Method::POST, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::POST, &path, &[], Some(body), true)
+            .await
     }
 }

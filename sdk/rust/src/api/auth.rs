@@ -51,7 +51,9 @@ impl<'a> AuthApi<'a> {
 
     /// Get the currently authenticated user.
     pub async fn me(&self) -> Result<Value, Error> {
-        self.http.send(Method::GET, "/auth/me", &[], None, true).await
+        self.http
+            .send(Method::GET, "/auth/me", &[], None, true)
+            .await
     }
 
     /// List the user's connected third-party integrations.
@@ -74,7 +76,9 @@ impl<'a> AuthApi<'a> {
         body: &Value,
     ) -> Result<Value, Error> {
         let path = format!("/auth/integrations/{}/tokens", enc(integration_id));
-        self.http.send(Method::POST, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::POST, &path, &[], Some(body), true)
+            .await
     }
 
     /// OAuth provider callback endpoint (returns a redirect).

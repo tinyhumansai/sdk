@@ -17,7 +17,9 @@ impl<'a> MascotsApi<'a> {
 
     /// List available mascots.
     pub async fn list_mascots(&self) -> Result<Value, Error> {
-        self.http.send(Method::GET, "/mascots", &[], None, true).await
+        self.http
+            .send(Method::GET, "/mascots", &[], None, true)
+            .await
     }
 
     /// Interactive mascot library demo page.

@@ -19,7 +19,13 @@ impl<'a> PaymentsApi<'a> {
     /// Create a Coinbase Commerce charge.
     pub async fn create_coinbase_charge(&self, body: &Value) -> Result<Value, Error> {
         self.http
-            .send(Method::POST, "/payments/coinbase/charge", &[], Some(body), true)
+            .send(
+                Method::POST,
+                "/payments/coinbase/charge",
+                &[],
+                Some(body),
+                true,
+            )
             .await
     }
 
@@ -36,7 +42,13 @@ impl<'a> PaymentsApi<'a> {
     /// Get Stripe auto-recharge settings for top-up credits.
     pub async fn get_auto_recharge(&self) -> Result<Value, Error> {
         self.http
-            .send(Method::GET, "/payments/credits/auto-recharge", &[], None, true)
+            .send(
+                Method::GET,
+                "/payments/credits/auto-recharge",
+                &[],
+                None,
+                true,
+            )
             .await
     }
 
@@ -89,7 +101,9 @@ impl<'a> PaymentsApi<'a> {
             "/payments/credits/auto-recharge/cards/{}",
             enc(payment_method_id)
         );
-        self.http.send(Method::PATCH, &path, &[], Some(body), true).await
+        self.http
+            .send(Method::PATCH, &path, &[], Some(body), true)
+            .await
     }
 
     /// Delete a saved Stripe card for auto recharge.
@@ -111,35 +125,65 @@ impl<'a> PaymentsApi<'a> {
     /// Create a credit top-up payment.
     pub async fn create_credit_top_up(&self, body: &Value) -> Result<Value, Error> {
         self.http
-            .send(Method::POST, "/payments/credits/top-up", &[], Some(body), true)
+            .send(
+                Method::POST,
+                "/payments/credits/top-up",
+                &[],
+                Some(body),
+                true,
+            )
             .await
     }
 
     /// Handle canceled credit top-up (callback).
     pub async fn get_credit_top_up_cancel(&self) -> Result<Value, Error> {
         self.http
-            .send(Method::GET, "/payments/credits/top-up/cancel", &[], None, true)
+            .send(
+                Method::GET,
+                "/payments/credits/top-up/cancel",
+                &[],
+                None,
+                true,
+            )
             .await
     }
 
     /// Handle successful credit top-up (callback).
     pub async fn get_credit_top_up_success(&self, query: &[QueryParam]) -> Result<Value, Error> {
         self.http
-            .send(Method::GET, "/payments/credits/top-up/success", query, None, true)
+            .send(
+                Method::GET,
+                "/payments/credits/top-up/success",
+                query,
+                None,
+                true,
+            )
             .await
     }
 
     /// Get paginated credit transaction history.
     pub async fn list_credit_transactions(&self, query: &[QueryParam]) -> Result<Value, Error> {
         self.http
-            .send(Method::GET, "/payments/credits/transactions", query, None, true)
+            .send(
+                Method::GET,
+                "/payments/credits/transactions",
+                query,
+                None,
+                true,
+            )
             .await
     }
 
     /// Public Stripe Checkout redirect target (browser hand-off).
     pub async fn get_stripe_checkout_return(&self, query: &[QueryParam]) -> Result<Value, Error> {
         self.http
-            .send(Method::GET, "/payments/stripe/checkout/return", query, None, true)
+            .send(
+                Method::GET,
+                "/payments/stripe/checkout/return",
+                query,
+                None,
+                true,
+            )
             .await
     }
 
@@ -167,14 +211,26 @@ impl<'a> PaymentsApi<'a> {
     /// Stripe Customer Portal return page.
     pub async fn get_stripe_portal_return(&self) -> Result<Value, Error> {
         self.http
-            .send(Method::GET, "/payments/stripe/portal/return", &[], None, true)
+            .send(
+                Method::GET,
+                "/payments/stripe/portal/return",
+                &[],
+                None,
+                true,
+            )
             .await
     }
 
     /// Create a Stripe Checkout Session for subscription purchase.
     pub async fn purchase_stripe_plan(&self, body: &Value) -> Result<Value, Error> {
         self.http
-            .send(Method::POST, "/payments/stripe/purchasePlan", &[], Some(body), true)
+            .send(
+                Method::POST,
+                "/payments/stripe/purchasePlan",
+                &[],
+                Some(body),
+                true,
+            )
             .await
     }
 }

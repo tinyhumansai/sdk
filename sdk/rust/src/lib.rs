@@ -189,7 +189,11 @@ impl HttpClient {
                 body: value,
             });
         }
-        Ok(if unwrap { unwrap_envelope(value) } else { value })
+        Ok(if unwrap {
+            unwrap_envelope(value)
+        } else {
+            value
+        })
     }
 
     /// Convenience GET on the raw client (unwraps the envelope).
