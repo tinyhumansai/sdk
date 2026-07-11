@@ -1,8 +1,37 @@
+//! Rust SDK for the TinyHumans backend.
+//!
+//! [`TinyHumansClient`] exposes one typed namespace accessor per backend area,
+//! each with one method per deployed operation. [`TinyHumansClient::raw`] is the
+//! escape hatch for routes not yet surfaced as typed methods.
+
+use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{Client as ReqwestClient, Method};
-use serde::Serialize;
 use serde_json::Value;
 use url::Url;
+
+pub mod api;
+
+/// Bytes left un-encoded by `encodeURIComponent`: the unreserved set
+/// `A-Z a-z 0-9 - _ . ! ~ * ' ( )`.
+const COMPONENT: &AsciiSet = &NON_ALPHANUMERIC
+    .remove(b'-')
+    .remove(b'_')
+    .remove(b'.')
+    .remove(b'!')
+    .remove(b'~')
+    .remove(b'*')
+    .remove(b'\'')
+    .remove(b'(')
+    .remove(b')');
+
+/// Percent-encode a single path segment (parity with `encodeURIComponent`).
+pub fn enc(value: &str) -> String {
+    utf8_percent_encode(value, COMPONENT).to_string()
+}
+
+/// A query parameter pair. `None` values are skipped when the request is built.
+pub type QueryParam = (&'static str, Option<String>);
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
@@ -43,84 +72,71 @@ impl TinyHumansClient {
         self
     }
 
-    pub async fn health(&self) -> Result<Value, Error> {
-        self.http.get("/").await
-    }
-
+    /// Fetch the deployed OpenAPI document (not enveloped).
     pub async fn swagger(&self) -> Result<Value, Error> {
-        self.http.get_unwrapped("/swagger.json", false).await
+        self.http
+            .send(Method::GET, "/swagger.json", &[], None, false)
+            .await
     }
 
+    /// Raw HTTP escape hatch for routes without a typed method yet.
     pub fn raw(&self) -> &HttpClient {
         &self.http
     }
 
-    pub fn api_keys(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/api-keys")
+    pub fn admin(&self) -> api::admin::AdminApi<'_> {
+        api::admin::AdminApi::new(&self.http)
     }
-
-    pub fn auth(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/auth")
+    pub fn agent_integrations(&self) -> api::agent_integrations::AgentIntegrationsApi<'_> {
+        api::agent_integrations::AgentIntegrationsApi::new(&self.http)
     }
-
-    pub fn inference(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/openai")
+    pub fn announcements(&self) -> api::announcements::AnnouncementsApi<'_> {
+        api::announcements::AnnouncementsApi::new(&self.http)
     }
-
-    pub fn agent_integrations(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/agent-integrations")
+    pub fn auth(&self) -> api::auth::AuthApi<'_> {
+        api::auth::AuthApi::new(&self.http)
     }
-
-    pub fn payments(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/payments")
+    pub fn channels(&self) -> api::channels::ChannelsApi<'_> {
+        api::channels::ChannelsApi::new(&self.http)
     }
-
-    pub fn feedback(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/feedback")
+    pub fn coupons(&self) -> api::coupons::CouponsApi<'_> {
+        api::coupons::CouponsApi::new(&self.http)
     }
-
-    pub fn teams(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/teams")
+    pub fn feedback(&self) -> api::feedback::FeedbackApi<'_> {
+        api::feedback::FeedbackApi::new(&self.http)
     }
-
-    pub fn channels(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/channels")
+    pub fn health(&self) -> api::health::HealthApi<'_> {
+        api::health::HealthApi::new(&self.http)
     }
-
-    pub fn mascots(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/mascots")
+    pub fn inference(&self) -> api::inference::InferenceApi<'_> {
+        api::inference::InferenceApi::new(&self.http)
     }
-
-    pub fn admin(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/admin")
+    pub fn investors(&self) -> api::investors::InvestorsApi<'_> {
+        api::investors::InvestorsApi::new(&self.http)
     }
-
-    pub fn announcements(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/announcements")
+    pub fn invite(&self) -> api::invite::InviteApi<'_> {
+        api::invite::InviteApi::new(&self.http)
     }
-
-    pub fn coupons(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/coupons")
+    pub fn mascots(&self) -> api::mascots::MascotsApi<'_> {
+        api::mascots::MascotsApi::new(&self.http)
     }
-
-    pub fn invite(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/invite")
+    pub fn payments(&self) -> api::payments::PaymentsApi<'_> {
+        api::payments::PaymentsApi::new(&self.http)
     }
-
-    pub fn investors(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/investors")
+    pub fn redirect(&self) -> api::redirect::RedirectApi<'_> {
+        api::redirect::RedirectApi::new(&self.http)
     }
-
-    pub fn referral(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/referral")
+    pub fn referral(&self) -> api::referral::ReferralApi<'_> {
+        api::referral::ReferralApi::new(&self.http)
     }
-
-    pub fn rewards(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/rewards")
+    pub fn rewards(&self) -> api::rewards::RewardsApi<'_> {
+        api::rewards::RewardsApi::new(&self.http)
     }
-
-    pub fn webhooks(&self) -> NamespaceClient<'_> {
-        NamespaceClient::new(&self.http, "/webhooks")
+    pub fn teams(&self) -> api::teams::TeamsApi<'_> {
+        api::teams::TeamsApi::new(&self.http)
+    }
+    pub fn webhooks(&self) -> api::webhooks::WebhooksApi<'_> {
+        api::webhooks::WebhooksApi::new(&self.http)
     }
 }
 
@@ -144,48 +160,20 @@ impl HttpClient {
         }
     }
 
-    pub async fn get(&self, path: &str) -> Result<Value, Error> {
-        self.request(Method::GET, path, Option::<&Value>::None).await
-    }
-
-    pub async fn post<T: Serialize + ?Sized>(&self, path: &str, body: &T) -> Result<Value, Error> {
-        self.request(Method::POST, path, Some(body)).await
-    }
-
-    pub async fn put<T: Serialize + ?Sized>(&self, path: &str, body: &T) -> Result<Value, Error> {
-        self.request(Method::PUT, path, Some(body)).await
-    }
-
-    pub async fn patch<T: Serialize + ?Sized>(&self, path: &str, body: &T) -> Result<Value, Error> {
-        self.request(Method::PATCH, path, Some(body)).await
-    }
-
-    pub async fn delete(&self, path: &str) -> Result<Value, Error> {
-        self.request(Method::DELETE, path, Option::<&Value>::None).await
-    }
-
-    pub async fn get_unwrapped(&self, path: &str, unwrap_envelope: bool) -> Result<Value, Error> {
-        self.request_unwrapped(Method::GET, path, Option::<&Value>::None, unwrap_envelope)
-            .await
-    }
-
-    async fn request<T: Serialize + ?Sized>(
+    /// Core request primitive used by every typed namespace method.
+    ///
+    /// - `query` pairs with a `None` value are omitted.
+    /// - `body` is sent as JSON when present.
+    /// - `unwrap` controls whether a `{success,data}` envelope is unwrapped.
+    pub async fn send(
         &self,
         method: Method,
         path: &str,
-        body: Option<&T>,
+        query: &[QueryParam],
+        body: Option<&Value>,
+        unwrap: bool,
     ) -> Result<Value, Error> {
-        self.request_unwrapped(method, path, body, true).await
-    }
-
-    async fn request_unwrapped<T: Serialize + ?Sized>(
-        &self,
-        method: Method,
-        path: &str,
-        body: Option<&T>,
-        unwrap_envelope: bool,
-    ) -> Result<Value, Error> {
-        let url = self.url(path)?;
+        let url = self.url(path, query)?;
         let mut request = self.client.request(method, url).headers(self.headers()?);
         if let Some(body) = body {
             request = request.json(body);
@@ -193,7 +181,7 @@ impl HttpClient {
         let response = request.send().await?;
         let status = response.status();
         let text = response.text().await?;
-        let body = if text.is_empty() {
+        let value = if text.is_empty() {
             Value::Null
         } else {
             serde_json::from_str(&text).unwrap_or(Value::String(text))
@@ -201,23 +189,37 @@ impl HttpClient {
         if !status.is_success() {
             return Err(Error::Status {
                 status: status.as_u16(),
-                body,
+                body: value,
             });
         }
-        Ok(if unwrap_envelope {
-            unwrap(body)
-        } else {
-            body
-        })
+        Ok(if unwrap { unwrap_envelope(value) } else { value })
     }
 
-    fn url(&self, path: &str) -> Result<Url, Error> {
+    /// Convenience GET on the raw client (unwraps the envelope).
+    pub async fn get(&self, path: &str) -> Result<Value, Error> {
+        self.send(Method::GET, path, &[], None, true).await
+    }
+
+    /// Convenience POST on the raw client (unwraps the envelope).
+    pub async fn post(&self, path: &str, body: &Value) -> Result<Value, Error> {
+        self.send(Method::POST, path, &[], Some(body), true).await
+    }
+
+    fn url(&self, path: &str, query: &[QueryParam]) -> Result<Url, Error> {
         let normalized = if path.starts_with('/') {
             path.to_owned()
         } else {
             format!("/{path}")
         };
-        Ok(Url::parse(&format!("{}{}", self.base_url, normalized))?)
+        let mut url = Url::parse(&format!("{}{}", self.base_url, normalized))?;
+        let pairs: Vec<(&str, String)> = query
+            .iter()
+            .filter_map(|(k, v)| v.as_ref().map(|v| (*k, v.clone())))
+            .collect();
+        if !pairs.is_empty() {
+            url.query_pairs_mut().extend_pairs(pairs);
+        }
+        Ok(url)
     }
 
     fn headers(&self) -> Result<HeaderMap, Error> {
@@ -241,49 +243,7 @@ impl HttpClient {
     }
 }
 
-pub struct NamespaceClient<'a> {
-    http: &'a HttpClient,
-    base_path: &'static str,
-}
-
-impl<'a> NamespaceClient<'a> {
-    fn new(http: &'a HttpClient, base_path: &'static str) -> Self {
-        Self { http, base_path }
-    }
-
-    pub async fn get(&self, path: &str) -> Result<Value, Error> {
-        self.http.get(&self.path(path)).await
-    }
-
-    pub async fn post<T: Serialize + ?Sized>(&self, path: &str, body: &T) -> Result<Value, Error> {
-        self.http.post(&self.path(path), body).await
-    }
-
-    pub async fn put<T: Serialize + ?Sized>(&self, path: &str, body: &T) -> Result<Value, Error> {
-        self.http.put(&self.path(path), body).await
-    }
-
-    pub async fn patch<T: Serialize + ?Sized>(&self, path: &str, body: &T) -> Result<Value, Error> {
-        self.http.patch(&self.path(path), body).await
-    }
-
-    pub async fn delete(&self, path: &str) -> Result<Value, Error> {
-        self.http.delete(&self.path(path)).await
-    }
-
-    fn path(&self, path: &str) -> String {
-        let suffix = if path == "/" {
-            ""
-        } else if path.starts_with('/') {
-            path
-        } else {
-            return format!("{}/{}", self.base_path, path);
-        };
-        format!("{}{}", self.base_path, suffix)
-    }
-}
-
-fn unwrap(body: Value) -> Value {
+fn unwrap_envelope(body: Value) -> Value {
     match body {
         Value::Object(mut map) if map.get("success") == Some(&Value::Bool(true)) => {
             map.remove("data").unwrap_or(Value::Object(map))
