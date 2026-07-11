@@ -1,37 +1,34 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-from typing import Any
-
 from .http import HttpClient, Json
 
-
-@dataclass(slots=True)
-class NamespaceClient:
-    http: HttpClient
-    base_path: str
-
-    def get(self, path: str = "/", **kwargs: Any) -> Json:
-        return self.http.get(self._path(path), **kwargs)
-
-    def post(self, path: str = "/", body: Any = None, **kwargs: Any) -> Json:
-        return self.http.post(self._path(path), body=body, **kwargs)
-
-    def put(self, path: str = "/", body: Any = None, **kwargs: Any) -> Json:
-        return self.http.put(self._path(path), body=body, **kwargs)
-
-    def patch(self, path: str = "/", body: Any = None, **kwargs: Any) -> Json:
-        return self.http.patch(self._path(path), body=body, **kwargs)
-
-    def delete(self, path: str = "/", **kwargs: Any) -> Json:
-        return self.http.delete(self._path(path), **kwargs)
-
-    def _path(self, path: str) -> str:
-        suffix = "" if path == "/" else path if path.startswith("/") else f"/{path}"
-        return f"{self.base_path}{suffix}" or "/"
+from .api.admin import AdminApi
+from .api.agent_integrations import AgentIntegrationsApi
+from .api.announcements import AnnouncementsApi
+from .api.auth import AuthApi
+from .api.channels import ChannelsApi
+from .api.coupons import CouponsApi
+from .api.feedback import FeedbackApi
+from .api.health import HealthApi
+from .api.inference import InferenceApi
+from .api.investors import InvestorsApi
+from .api.invite import InviteApi
+from .api.mascots import MascotsApi
+from .api.payments import PaymentsApi
+from .api.redirect import RedirectApi
+from .api.referral import ReferralApi
+from .api.rewards import RewardsApi
+from .api.teams import TeamsApi
+from .api.webhooks import WebhooksApi
 
 
 class TinyHumansClient:
+    """Typed client for the TinyHumans backend.
+
+    Each attribute is a namespace client exposing one method per deployed
+    operation. ``raw`` is the escape hatch for routes not yet surfaced.
+    """
+
     def __init__(
         self,
         *,
@@ -52,26 +49,26 @@ class TinyHumansClient:
             unwrap_envelope=unwrap_envelope,
             timeout=timeout,
         )
-        self.api_keys = NamespaceClient(self.raw, "/api-keys")
-        self.auth = NamespaceClient(self.raw, "/auth")
-        self.inference = NamespaceClient(self.raw, "/openai")
-        self.agent_integrations = NamespaceClient(self.raw, "/agent-integrations")
-        self.payments = NamespaceClient(self.raw, "/payments")
-        self.feedback = NamespaceClient(self.raw, "/feedback")
-        self.teams = NamespaceClient(self.raw, "/teams")
-        self.channels = NamespaceClient(self.raw, "/channels")
-        self.mascots = NamespaceClient(self.raw, "/mascots")
-        self.admin = NamespaceClient(self.raw, "/admin")
-        self.announcements = NamespaceClient(self.raw, "/announcements")
-        self.coupons = NamespaceClient(self.raw, "/coupons")
-        self.invite = NamespaceClient(self.raw, "/invite")
-        self.investors = NamespaceClient(self.raw, "/investors")
-        self.referral = NamespaceClient(self.raw, "/referral")
-        self.rewards = NamespaceClient(self.raw, "/rewards")
-        self.webhooks = NamespaceClient(self.raw, "/webhooks")
 
-    def health(self) -> Json:
-        return self.raw.get("/")
+        self.admin = AdminApi(self.raw)
+        self.agent_integrations = AgentIntegrationsApi(self.raw)
+        self.announcements = AnnouncementsApi(self.raw)
+        self.auth = AuthApi(self.raw)
+        self.channels = ChannelsApi(self.raw)
+        self.coupons = CouponsApi(self.raw)
+        self.feedback = FeedbackApi(self.raw)
+        self.health = HealthApi(self.raw)
+        self.inference = InferenceApi(self.raw)
+        self.investors = InvestorsApi(self.raw)
+        self.invite = InviteApi(self.raw)
+        self.mascots = MascotsApi(self.raw)
+        self.payments = PaymentsApi(self.raw)
+        self.redirect = RedirectApi(self.raw)
+        self.referral = ReferralApi(self.raw)
+        self.rewards = RewardsApi(self.raw)
+        self.teams = TeamsApi(self.raw)
+        self.webhooks = WebhooksApi(self.raw)
 
     def swagger(self) -> Json:
+        """Fetch the deployed OpenAPI document (not enveloped)."""
         return self.raw.get("/swagger.json", unwrap_envelope=False)
