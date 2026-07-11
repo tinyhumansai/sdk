@@ -1,82 +1,75 @@
-import { HttpClient, type RequestOptions, type TinyHumansClientOptions } from "./http.js";
+import { HttpClient, type TinyHumansClientOptions } from "./http.js";
 
-export class NamespaceClient {
-  constructor(
-    private readonly http: HttpClient,
-    private readonly basePath: string,
-  ) {}
+import { AdminApi } from "./api/admin.js";
+import { AgentIntegrationsApi } from "./api/agent-integrations.js";
+import { AnnouncementsApi } from "./api/announcements.js";
+import { AuthApi } from "./api/auth.js";
+import { ChannelsApi } from "./api/channels.js";
+import { CouponsApi } from "./api/coupons.js";
+import { FeedbackApi } from "./api/feedback.js";
+import { HealthApi } from "./api/health.js";
+import { InferenceApi } from "./api/inference.js";
+import { InvestorsApi } from "./api/investors.js";
+import { InviteApi } from "./api/invite.js";
+import { MascotsApi } from "./api/mascots.js";
+import { PaymentsApi } from "./api/payments.js";
+import { RedirectApi } from "./api/redirect.js";
+import { ReferralApi } from "./api/referral.js";
+import { RewardsApi } from "./api/rewards.js";
+import { TeamsApi } from "./api/teams.js";
+import { WebhooksApi } from "./api/webhooks.js";
 
-  get<T = unknown>(path = "/", options?: RequestOptions): Promise<T> {
-    return this.http.get<T>(this.path(path), options);
-  }
-
-  post<T = unknown>(path = "/", body?: unknown, options?: RequestOptions): Promise<T> {
-    return this.http.post<T>(this.path(path), body, options);
-  }
-
-  put<T = unknown>(path = "/", body?: unknown, options?: RequestOptions): Promise<T> {
-    return this.http.put<T>(this.path(path), body, options);
-  }
-
-  patch<T = unknown>(path = "/", body?: unknown, options?: RequestOptions): Promise<T> {
-    return this.http.patch<T>(this.path(path), body, options);
-  }
-
-  delete<T = unknown>(path = "/", options?: RequestOptions): Promise<T> {
-    return this.http.delete<T>(this.path(path), options);
-  }
-
-  private path(path: string): string {
-    const suffix = path === "/" ? "" : path.startsWith("/") ? path : `/${path}`;
-    return `${this.basePath}${suffix || ""}` || "/";
-  }
-}
-
+/**
+ * Typed client for the TinyHumans backend. Each property is a namespace client
+ * exposing one method per deployed operation. `raw` is the escape hatch for
+ * routes not yet surfaced as typed methods.
+ */
 export class TinyHumansClient {
   readonly raw: HttpClient;
-  readonly apiKeys: NamespaceClient;
-  readonly auth: NamespaceClient;
-  readonly inference: NamespaceClient;
-  readonly agentIntegrations: NamespaceClient;
-  readonly payments: NamespaceClient;
-  readonly feedback: NamespaceClient;
-  readonly teams: NamespaceClient;
-  readonly channels: NamespaceClient;
-  readonly mascots: NamespaceClient;
-  readonly admin: NamespaceClient;
-  readonly announcements: NamespaceClient;
-  readonly coupons: NamespaceClient;
-  readonly invite: NamespaceClient;
-  readonly investors: NamespaceClient;
-  readonly referral: NamespaceClient;
-  readonly rewards: NamespaceClient;
-  readonly webhooks: NamespaceClient;
+
+  readonly admin: AdminApi;
+  readonly agentIntegrations: AgentIntegrationsApi;
+  readonly announcements: AnnouncementsApi;
+  readonly auth: AuthApi;
+  readonly channels: ChannelsApi;
+  readonly coupons: CouponsApi;
+  readonly feedback: FeedbackApi;
+  readonly health: HealthApi;
+  readonly inference: InferenceApi;
+  readonly investors: InvestorsApi;
+  readonly invite: InviteApi;
+  readonly mascots: MascotsApi;
+  readonly payments: PaymentsApi;
+  readonly redirect: RedirectApi;
+  readonly referral: ReferralApi;
+  readonly rewards: RewardsApi;
+  readonly teams: TeamsApi;
+  readonly webhooks: WebhooksApi;
 
   constructor(options: TinyHumansClientOptions) {
     this.raw = new HttpClient(options);
-    this.apiKeys = new NamespaceClient(this.raw, "/api-keys");
-    this.auth = new NamespaceClient(this.raw, "/auth");
-    this.inference = new NamespaceClient(this.raw, "/openai");
-    this.agentIntegrations = new NamespaceClient(this.raw, "/agent-integrations");
-    this.payments = new NamespaceClient(this.raw, "/payments");
-    this.feedback = new NamespaceClient(this.raw, "/feedback");
-    this.teams = new NamespaceClient(this.raw, "/teams");
-    this.channels = new NamespaceClient(this.raw, "/channels");
-    this.mascots = new NamespaceClient(this.raw, "/mascots");
-    this.admin = new NamespaceClient(this.raw, "/admin");
-    this.announcements = new NamespaceClient(this.raw, "/announcements");
-    this.coupons = new NamespaceClient(this.raw, "/coupons");
-    this.invite = new NamespaceClient(this.raw, "/invite");
-    this.investors = new NamespaceClient(this.raw, "/investors");
-    this.referral = new NamespaceClient(this.raw, "/referral");
-    this.rewards = new NamespaceClient(this.raw, "/rewards");
-    this.webhooks = new NamespaceClient(this.raw, "/webhooks");
+
+    this.admin = new AdminApi(this.raw);
+    this.agentIntegrations = new AgentIntegrationsApi(this.raw);
+    this.announcements = new AnnouncementsApi(this.raw);
+    this.auth = new AuthApi(this.raw);
+    this.channels = new ChannelsApi(this.raw);
+    this.coupons = new CouponsApi(this.raw);
+    this.feedback = new FeedbackApi(this.raw);
+    this.health = new HealthApi(this.raw);
+    this.inference = new InferenceApi(this.raw);
+    this.investors = new InvestorsApi(this.raw);
+    this.invite = new InviteApi(this.raw);
+    this.mascots = new MascotsApi(this.raw);
+    this.payments = new PaymentsApi(this.raw);
+    this.redirect = new RedirectApi(this.raw);
+    this.referral = new ReferralApi(this.raw);
+    this.rewards = new RewardsApi(this.raw);
+    this.teams = new TeamsApi(this.raw);
+    this.webhooks = new WebhooksApi(this.raw);
   }
 
-  health<T = unknown>(): Promise<T> {
-    return this.raw.get<T>("/");
-  }
-
+  /** Fetch the deployed OpenAPI document (not enveloped). */
   swagger<T = unknown>(): Promise<T> {
     return this.raw.get<T>("/swagger.json", { unwrapEnvelope: false });
   }

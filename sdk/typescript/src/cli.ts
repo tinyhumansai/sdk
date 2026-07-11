@@ -41,7 +41,7 @@ async function main(): Promise<void> {
 
   let result: unknown;
   if (command === "health") {
-    result = await client.health();
+    result = await client.health.check();
   } else if (command === "swagger") {
     result = await client.swagger();
   } else if (["get", "post", "put", "patch", "delete"].includes(command)) {
