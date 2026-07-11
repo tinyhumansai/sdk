@@ -1,0 +1,182 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "name": "tinyhumans-backend",
+  "version": "0.1.0",
+  "description": "TinyHumans backend namespace manifest derived from the deployed Swagger/OpenAPI contract.",
+  "source": {
+    "type": "openapi",
+    "url": "https://api.tinyhumans.ai/swagger.json",
+    "title": "TinyHumans API",
+    "version": "1.0.0",
+    "pathCount": 172,
+    "servers": [
+      "https://api.tinyhumans.ai/",
+      "https://staging-api.tinyhumans.ai/",
+      "http://localhost:5005"
+    ]
+  },
+  "envelope": {
+    "success": "boolean",
+    "data": "any",
+    "error": "string | object"
+  },
+  "auth": {
+    "bearerToken": "Authorization: Bearer <token>",
+    "apiKey": "x-api-key: <key>",
+    "adminServiceToken": "x-admin-service-token: <token>"
+  },
+  "namespaces": [
+    {
+      "name": "health",
+      "basePath": "",
+      "auth": "none",
+      "summary": "Liveness and OpenAPI specification.",
+      "tags": ["Health"],
+      "routes": ["GET /", "GET /swagger.json"]
+    },
+    {
+      "name": "apiKeys",
+      "basePath": "/api-keys",
+      "auth": "bearer",
+      "summary": "Create, list, revoke, and inspect usage for user API keys.",
+      "tags": ["API Keys"],
+      "routes": ["POST /", "GET /", "DELETE /", "GET /usage"]
+    },
+    {
+      "name": "auth",
+      "basePath": "/auth",
+      "auth": "bearer",
+      "summary": "Email login, OAuth connect/callback, current user, channel link tokens, and integration tokens.",
+      "tags": ["Auth"],
+      "routes": [
+        "POST /email/send-link",
+        "GET /email/verify",
+        "POST /login-token/consume",
+        "GET /me",
+        "GET /integrations",
+        "POST /integrations/:integrationId/tokens",
+        "DELETE /integrations/:integrationId"
+      ]
+    },
+    {
+      "name": "inference",
+      "basePath": "/openai",
+      "auth": "bearer",
+      "summary": "OpenAI-compatible TinyHumans inference and model routes.",
+      "tags": ["Inference"],
+      "routes": ["GET /v1/models", "POST /v1/chat/completions", "POST /v1/completions", "POST /v1/audio/transcriptions", "POST /v1/audio/speech", "POST /v1/embeddings"]
+    },
+    {
+      "name": "agentIntegrations",
+      "basePath": "/agent-integrations",
+      "auth": "bearer",
+      "summary": "Provider-backed agent tools: Composio, Parallel, media generation, financial APIs, maps, Apify, Tenor, Twilio, crypto, and pricing.",
+      "tags": ["Agent Integrations"],
+      "routes": ["GET /pricing", "GET /composio/toolkits", "POST /parallel/*", "POST /media-generation/*", "GET /crypto/routes", "POST /crypto/swap"]
+    },
+    {
+      "name": "payments",
+      "basePath": "/payments",
+      "auth": "bearer",
+      "summary": "Stripe, Coinbase, credit balance, transactions, top-ups, plans, portal, and auto-recharge.",
+      "tags": ["Payment", "Credits"],
+      "routes": ["GET /stripe/plans", "POST /stripe/purchasePlan", "GET /stripe/currentPlan", "POST /coinbase/charge", "GET /credits/balance", "GET /credits/transactions"]
+    },
+    {
+      "name": "feedback",
+      "basePath": "/feedback",
+      "auth": "bearer",
+      "summary": "Feedback list/create/detail/vote/comment/status routes.",
+      "tags": ["Feedback"],
+      "routes": ["GET /", "POST /", "GET /:id", "POST /:id/vote", "POST /:id/comments", "PATCH /:id/status"]
+    },
+    {
+      "name": "teams",
+      "basePath": "/teams",
+      "auth": "bearer",
+      "summary": "Team membership, usage, invites, join flow, updates, and removals.",
+      "tags": ["Teams"],
+      "routes": ["GET /", "GET /me/usage", "GET /:teamId", "PUT /:teamId", "POST /join"]
+    },
+    {
+      "name": "channels",
+      "basePath": "/channels",
+      "auth": "bearer",
+      "summary": "Channel messages, reactions, typing, and threads.",
+      "tags": ["Channels"],
+      "routes": ["POST /:channel/messages", "DELETE /:channel/messages/:messageId", "POST /:channel/reactions", "POST /:channel/typing", "POST /:channel/threads", "GET /:channel/threads"]
+    },
+    {
+      "name": "mascots",
+      "basePath": "/mascots",
+      "auth": "mixed",
+      "summary": "Mascot catalog, render streams, meetings, and Rive assets.",
+      "tags": ["Mascots"],
+      "routes": ["GET /", "GET /demo", "GET /render", "GET /render/events/:botId", "GET /:id/riv", "POST /join-meeting", "GET /meetings", "GET /:id"]
+    },
+    {
+      "name": "admin",
+      "basePath": "/admin",
+      "auth": "bearer | adminServiceToken",
+      "summary": "Analytics, content management, users, credits, audit logs, and admin write routes.",
+      "tags": ["Admin/Analytics", "Admin/Announcements", "Admin/Investors", "Admin Users", "Admin Management", "Admin/Coupons", "Admin/Mascots"],
+      "routes": ["GET /analytics/*", "GET /users/:userId", "GET /audit-logs", "POST /coupons", "POST /announcements", "POST /users/:userId/credits"]
+    },
+    {
+      "name": "announcements",
+      "basePath": "/announcements",
+      "auth": "bearer",
+      "summary": "Signed-in user announcement feed.",
+      "tags": ["Announcements"],
+      "routes": ["GET /latest"]
+    },
+    {
+      "name": "coupons",
+      "basePath": "/coupons",
+      "auth": "bearer",
+      "summary": "Coupon redemption and current-user coupon history.",
+      "tags": ["Coupons"],
+      "routes": ["POST /redeem", "GET /me", "POST /admin", "GET /admin", "DELETE /admin/:couponId"]
+    },
+    {
+      "name": "invite",
+      "basePath": "/invite",
+      "auth": "mixed",
+      "summary": "Invite validation, redemption, user invite codes, and campaign invites.",
+      "tags": ["Invite"],
+      "routes": ["GET /status", "GET /my-codes", "POST /redeem", "POST /campaign", "GET /campaign", "DELETE /campaign/:codeId"]
+    },
+    {
+      "name": "investors",
+      "basePath": "/investors",
+      "auth": "none",
+      "summary": "Investor page lookup and event tracking.",
+      "tags": ["Investors"],
+      "routes": ["GET /:slug", "POST /:slug/events"]
+    },
+    {
+      "name": "referral",
+      "basePath": "/referral",
+      "auth": "bearer",
+      "summary": "Referral stats and claim flow.",
+      "tags": ["Referral"],
+      "routes": ["GET /stats", "POST /claim"]
+    },
+    {
+      "name": "rewards",
+      "basePath": "/rewards",
+      "auth": "bearer",
+      "summary": "User rewards snapshot and Discord unlinking.",
+      "tags": ["Rewards"],
+      "routes": ["GET /me", "DELETE /discord"]
+    },
+    {
+      "name": "webhooks",
+      "basePath": "/webhooks",
+      "auth": "mixed",
+      "summary": "Provider webhooks and user webhook tunnel management.",
+      "tags": ["Webhooks", "Payments"],
+      "routes": ["POST /composio", "POST /core", "GET /core", "GET /core/:id", "PATCH /core/:id", "DELETE /core/:id", "POST /discord", "POST /telegram", "POST /payments/coinbase", "POST /payments/stripe"]
+    }
+  ]
+}
