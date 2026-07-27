@@ -9,8 +9,16 @@ async fn get_latest_announcements_unwraps_envelope() {
     Mock::given(method("GET"))
         .and(path("/announcements/latest"))
         .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(json!({"success": true, "data": {"id": "a_1"}})),
+            ResponseTemplate::new(200).set_body_json(json!({"success": true, "data": {
+                "id": "a_1",
+                "title": "Maintenance",
+                "body": "Scheduled maintenance",
+                "severity": "INFO",
+                "cta": null,
+                "startsAt": null,
+                "expiresAt": null,
+                "createdAt": "2026-07-27T00:00:00Z"
+            }})),
         )
         .mount(&server)
         .await;
@@ -22,5 +30,5 @@ async fn get_latest_announcements_unwraps_envelope() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"id": "a_1"}));
+    assert_eq!(result.unwrap().id, "a_1");
 }

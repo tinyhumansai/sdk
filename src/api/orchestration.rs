@@ -18,6 +18,31 @@ pub struct RunRequest {
     pub options: Option<Value>,
 }
 
+/// Current hosted steering directive and its recent predecessors.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SteeringResponse {
+    pub active: Option<ActiveSteeringDirective>,
+    #[serde(default)]
+    pub history: Vec<SteeringHistoryEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct ActiveSteeringDirective {
+    pub directive: String,
+    pub consumed_cycles: u32,
+    pub max_cycles: u32,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SteeringHistoryEntry {
+    pub directive: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
+}
+
 pub struct OrchestrationApi<'a> {
     http: &'a HttpClient,
 }
@@ -77,6 +102,14 @@ impl<'a> OrchestrationApi<'a> {
                 true,
             )
             .await
+    }
+    /// Get the active hosted steering directive and recent directive history.
+    pub async fn steering(&self) -> Result<SteeringResponse, Error> {
+        let value = self
+            .http
+            .send(Method::GET, "/orchestration/v1/steering", &[], None, true)
+            .await?;
+        serde_json::from_value(value).map_err(Error::Decode)
     }
     pub async fn submit_world_diff(
         &self,

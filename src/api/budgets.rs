@@ -1,7 +1,7 @@
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 
+use super::types::DynamicResponse;
 use crate::{enc, Error, HttpClient};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -35,30 +35,36 @@ impl<'a> BudgetsApi<'a> {
     pub fn new(http: &'a HttpClient) -> Self {
         Self { http }
     }
-    pub async fn get(&self) -> Result<Value, Error> {
+    pub async fn get(&self) -> Result<DynamicResponse, Error> {
         self.http
             .send(Method::GET, "/budgets", &[], None, true)
             .await
+            .map(Into::into)
     }
-    pub async fn create_seat(&self, request: &CreateSeatRequest) -> Result<Value, Error> {
+    pub async fn create_seat(&self, request: &CreateSeatRequest) -> Result<DynamicResponse, Error> {
         let body = serde_json::to_value(request).expect("seat request is serializable");
         self.http
             .send(Method::POST, "/budgets/seats", &[], Some(&body), true)
             .await
+            .map(Into::into)
     }
     pub async fn update_seat(
         &self,
         seat_id: &str,
         request: &UpdateSeatRequest,
-    ) -> Result<Value, Error> {
+    ) -> Result<DynamicResponse, Error> {
         let path = format!("/budgets/seats/{}", enc(seat_id));
         let body = serde_json::to_value(request).expect("seat request is serializable");
         self.http
             .send(Method::PATCH, &path, &[], Some(&body), true)
             .await
+            .map(Into::into)
     }
-    pub async fn delete_seat(&self, seat_id: &str) -> Result<Value, Error> {
+    pub async fn delete_seat(&self, seat_id: &str) -> Result<DynamicResponse, Error> {
         let path = format!("/budgets/seats/{}", enc(seat_id));
-        self.http.send(Method::DELETE, &path, &[], None, true).await
+        self.http
+            .send(Method::DELETE, &path, &[], None, true)
+            .await
+            .map(Into::into)
     }
 }

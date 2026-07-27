@@ -1,8 +1,8 @@
 //! Service health check.
 
 use reqwest::Method;
-use serde_json::Value;
 
+use super::types::DynamicResponse;
 use crate::{Error, HttpClient};
 
 /// Typed client for the health-check route.
@@ -16,7 +16,10 @@ impl<'a> HealthApi<'a> {
     }
 
     /// Health check endpoint. Returns server uptime and status information.
-    pub async fn check(&self) -> Result<Value, Error> {
-        self.http.send(Method::GET, "/", &[], None, true).await
+    pub async fn check(&self) -> Result<DynamicResponse, Error> {
+        self.http
+            .send(Method::GET, "/", &[], None, true)
+            .await
+            .map(Into::into)
     }
 }

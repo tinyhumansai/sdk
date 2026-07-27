@@ -10,7 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let health = client.health().check().await?;
     if health.get("online").and_then(|value| value.as_bool()) != Some(true) {
-        return Err(format!("unexpected health payload from {base_url}: {health}").into());
+        return Err(format!("unexpected health payload from {base_url}: {health:?}").into());
     }
 
     match client.api_keys().list().await {

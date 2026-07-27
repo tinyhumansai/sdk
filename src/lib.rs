@@ -45,6 +45,8 @@ pub enum Error {
     Status { status: u16, body: Value },
     #[error("invalid header value: {0}")]
     Header(#[from] reqwest::header::InvalidHeaderValue),
+    #[error("response decoding failed: {0}")]
+    Decode(#[from] serde_json::Error),
     #[error("route is intentionally not exposed by the SDK: {0} {1}")]
     RouteNotExposed(String, String),
 }
@@ -194,6 +196,19 @@ impl HttpClient {
         } else {
             value
         })
+    }
+
+    /// Send a request and deserialize the unwrapped response into a concrete DTO.
+    pub async fn send_typed<T: serde::de::DeserializeOwned>(
+        &self,
+        method: Method,
+        path: &str,
+        query: &[QueryParam],
+        body: Option<&Value>,
+        unwrap: bool,
+    ) -> Result<T, Error> {
+        let value = self.send(method, path, query, body, unwrap).await?;
+        Ok(serde_json::from_value(value)?)
     }
 
     /// Convenience GET on the raw client (unwraps the envelope).

@@ -6,6 +6,42 @@
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::ops::{Deref, DerefMut};
+
+/// Forward-compatible response for an operation whose success schema is not
+/// documented by the backend OpenAPI contract.
+///
+/// This newtype keeps the uncertainty visible in the API while allowing new
+/// backend fields to pass through without an SDK release.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(transparent)]
+pub struct DynamicResponse(pub Value);
+
+impl Deref for DynamicResponse {
+    type Target = Value;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for DynamicResponse {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl From<Value> for DynamicResponse {
+    fn from(value: Value) -> Self {
+        Self(value)
+    }
+}
+
+impl PartialEq<Value> for DynamicResponse {
+    fn eq(&self, other: &Value) -> bool {
+        self.0 == *other
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]

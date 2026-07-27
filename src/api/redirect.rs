@@ -1,8 +1,8 @@
 //! Short-link resolution.
 
 use reqwest::Method;
-use serde_json::Value;
 
+use super::types::DynamicResponse;
 use crate::{enc, Error, HttpClient};
 
 /// Typed client for the `/r/*` short-link routes.
@@ -16,8 +16,11 @@ impl<'a> RedirectApi<'a> {
     }
 
     /// Redirect a short link code to its original URL (returns a 302 redirect).
-    pub async fn resolve_redirect(&self, code: &str) -> Result<Value, Error> {
+    pub async fn resolve_redirect(&self, code: &str) -> Result<DynamicResponse, Error> {
         let path = format!("/r/{}", enc(code));
-        self.http.send(Method::GET, &path, &[], None, true).await
+        self.http
+            .send(Method::GET, &path, &[], None, true)
+            .await
+            .map(Into::into)
     }
 }

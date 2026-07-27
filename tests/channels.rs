@@ -1,4 +1,8 @@
 use serde_json::json;
+use tinyhumans_sdk::api::channels::{
+    AddReactionRequest, ChannelIdentifier, CreateThreadRequest, SendMessageRequest, ThreadAction,
+    UpdateThreadRequest,
+};
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -20,7 +24,20 @@ async fn send_message_posts_to_channel() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .channels()
-        .send_message("telegram", &json!({"text": "hi"}))
+        .send_message(
+            "telegram",
+            &SendMessageRequest {
+                text: Some("hi".into()),
+                parse_mode: None,
+                photo_url: None,
+                sticker_file_id: None,
+                animation_url: None,
+                channel_id: None,
+                buttons: vec![],
+                reply_to_message_id: None,
+                thread_id: None,
+            },
+        )
         .await
         .unwrap();
     assert_eq!(result, json!({"messageId": 7}));
@@ -57,7 +74,14 @@ async fn add_reaction_posts() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .channels()
-        .add_reaction("discord", &json!({"messageId": "m_1", "emoji": "star"}))
+        .add_reaction(
+            "discord",
+            &AddReactionRequest {
+                message_id: ChannelIdentifier::String("m_1".into()),
+                emoji: "star".into(),
+                chat_id: None,
+            },
+        )
         .await
         .unwrap();
     assert_eq!(result, json!({"ok": true}));
@@ -76,7 +100,7 @@ async fn create_thread_posts() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .channels()
-        .create_thread("telegram", &json!({"title": "t"}))
+        .create_thread("telegram", &CreateThreadRequest { title: "t".into() })
         .await
         .unwrap();
     assert_eq!(result, json!({"id": "th_1"}));
@@ -114,7 +138,13 @@ async fn update_thread_patches() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .channels()
-        .update_thread("telegram", "th_1", &json!({"action": "close"}))
+        .update_thread(
+            "telegram",
+            "th_1",
+            &UpdateThreadRequest {
+                action: ThreadAction::Close,
+            },
+        )
         .await
         .unwrap();
     assert_eq!(result, json!({"status": "closed"}));
