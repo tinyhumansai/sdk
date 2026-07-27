@@ -157,3 +157,54 @@ async fn caller_supplied_default_headers_are_sent_on_every_request() {
     let result = client.auth().me().await.unwrap();
     assert_eq!(result, json!({"id": "u_1"}));
 }
+
+// The backend signals a failed operation with `{success:false, error, ...}`,
+// sometimes on an HTTP 200. Unwrapping must surface that as an error rather
+// than handing the caller the failure envelope as if it were data.
+#[tokio::test]
+async fn unsuccessful_envelope_on_http_200_is_an_error() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/auth/me"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": false,
+            "error": "session expired",
+            "errorCode": "SESSION_EXPIRED",
+            "details": {"hint": "re-authenticate"},
+        })))
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let err = client.auth().me().await.unwrap_err();
+    match err {
+        Error::Envelope {
+            error,
+            error_code,
+            details,
+        } => {
+            assert_eq!(error, "session expired");
+            assert_eq!(error_code.as_deref(), Some("SESSION_EXPIRED"));
+            assert_eq!(details, json!({"hint": "re-authenticate"}));
+        }
+        other => panic!("expected Error::Envelope, got {other:?}"),
+    }
+}
+
+// A successful envelope whose `data` is absent still yields the remaining
+// fields, and `success` itself is not leaked into the returned value.
+#[tokio::test]
+async fn successful_envelope_without_data_drops_the_success_flag() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/auth/me"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(json!({"success": true, "jwt": "abc"})),
+        )
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let result = client.auth().me().await.unwrap();
+    assert_eq!(result, json!({"jwt": "abc"}));
+}

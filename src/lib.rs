@@ -49,6 +49,17 @@ pub enum Error {
     Decode(#[from] serde_json::Error),
     #[error("route is intentionally not exposed by the SDK: {0} {1}")]
     RouteNotExposed(String, String),
+    /// The response carried a `{success:false, ...}` envelope.
+    ///
+    /// The backend does not always pair an unsuccessful envelope with a
+    /// non-2xx status, so this is distinct from [`Error::Status`]: the
+    /// transport succeeded and the operation did not.
+    #[error("backend reported failure: {error}")]
+    Envelope {
+        error: String,
+        error_code: Option<String>,
+        details: Value,
+    },
 }
 
 #[derive(Clone)]
@@ -227,11 +238,11 @@ impl HttpClient {
                 body: value,
             });
         }
-        Ok(if unwrap {
+        if unwrap {
             unwrap_envelope(value)
         } else {
-            value
-        })
+            Ok(value)
+        }
     }
 
     /// Send a request and deserialize the unwrapped response into a concrete DTO.
@@ -284,7 +295,7 @@ impl HttpClient {
                 body: value,
             });
         }
-        Ok(unwrap_envelope(value))
+        unwrap_envelope(value)
     }
 
     /// Send a request whose successful response is binary rather than JSON.
@@ -346,12 +357,43 @@ impl HttpClient {
     }
 }
 
-fn unwrap_envelope(body: Value) -> Value {
-    match body {
-        Value::Object(mut map) if map.get("success") == Some(&Value::Bool(true)) => {
-            map.remove("data").unwrap_or(Value::Object(map))
+/// Unwrap the hosted-backend `{success, data}` envelope.
+///
+/// `success: false` becomes [`Error::Envelope`] rather than a successful
+/// value: the backend pairs a failed operation with an unsuccessful envelope
+/// that is not always accompanied by a non-2xx status, so returning it as data
+/// would hand the caller `{success: false, error: "..."}` where a result is
+/// expected.
+///
+/// A successful envelope with no `data` key yields the remaining fields with
+/// `success` removed, so envelopes that inline their payload (`{success, jwt}`)
+/// do not leak the flag into the caller's value.
+fn unwrap_envelope(body: Value) -> Result<Value, Error> {
+    let Value::Object(mut map) = body else {
+        return Ok(body);
+    };
+    match map.get("success").and_then(Value::as_bool) {
+        Some(true) => {
+            if let Some(data) = map.remove("data") {
+                return Ok(data);
+            }
+            map.remove("success");
+            Ok(Value::Object(map))
         }
-        other => other,
+        Some(false) => Err(Error::Envelope {
+            error: map
+                .get("error")
+                .or_else(|| map.get("message"))
+                .and_then(Value::as_str)
+                .unwrap_or("request unsuccessful")
+                .to_owned(),
+            error_code: map
+                .get("errorCode")
+                .and_then(Value::as_str)
+                .map(str::to_owned),
+            details: map.get("details").cloned().unwrap_or(Value::Null),
+        }),
+        None => Ok(Value::Object(map)),
     }
 }
 
