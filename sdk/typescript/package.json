@@ -8,6 +8,9 @@
     "type": "git",
     "url": "https://github.com/tinyhumansai/sdk"
   },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com"
+  },
   "files": [
     "dist",
     "README.md"

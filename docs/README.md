@@ -9,6 +9,7 @@ through TypeScript, Python, Rust, and a CLI.
 - [Authentication](auth.md): bearer tokens, API keys, and headers shared
   across SDKs.
 - [CLI](cli.md): `tinyhumans` command usage.
+- [Releasing](RELEASING.md): GitHub Packages and GitHub Release distribution.
 
 ## Design
 
