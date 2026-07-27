@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..http import Json
+from ..types import FeedbackIngest
 from ._base import ApiNamespace, enc
 
 __all__ = ["FeedbackApi"]
@@ -15,9 +16,11 @@ class FeedbackApi(ApiNamespace):
         """Submit feedback or a bug report (LLM-moderated, rate-limited)."""
         return self._http.post("/feedback", body=body, **kwargs)
 
-    def list_feedback(
-        self, query: dict[str, Any] | None = None, **kwargs: Any
-    ) -> Json:
+    def ingest(self, body: FeedbackIngest, **kwargs: Any) -> Json:
+        """Ingest feedback from another TinyHumans product."""
+        return self._http.post("/feedback/ingest", body=body, **kwargs)
+
+    def list_feedback(self, query: dict[str, Any] | None = None, **kwargs: Any) -> Json:
         """List feedback on the public board."""
         merged = self._merge_query(query, kwargs.pop("query", None))
         return self._http.get("/feedback", query=merged, **kwargs)

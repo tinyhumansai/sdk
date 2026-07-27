@@ -18,3 +18,9 @@ class RewardsApi(ApiNamespace):
     def get_my_rewards(self, **kwargs: Any) -> Json:
         """Get the authenticated user's backend-backed rewards snapshot."""
         return self._http.get("/rewards/me", **kwargs)
+
+    def claim(self, reward_type: str, **kwargs: Any) -> Json:
+        """Claim a reward or achievement."""
+        return self._http.post(
+            "/rewards/claim", body={"rewardType": reward_type}, **kwargs
+        )

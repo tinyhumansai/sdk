@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any
 
 from ..http import Json
+from ..types import FileUpload, HistoryUpload
 from ._base import ApiNamespace, enc
 
 __all__ = ["AgentIntegrationsApi"]
@@ -12,6 +13,72 @@ class AgentIntegrationsApi(ApiNamespace):
     """Agent integrations: Apify, Composio, crypto swaps/bridges, financial APIs,
     Google Places, media generation, Parallel web research, Recall calendar,
     Tenor GIFs, and Twilio voice."""
+
+    # --- File storage and history rewards ---
+
+    def upload_file(self, body: FileUpload, **kwargs: Any) -> Json:
+        return self._http.post(
+            "/agent-integrations/file-storage/files", body=body, **kwargs
+        )
+
+    def list_files(self, query: dict[str, Any] | None = None, **kwargs: Any) -> Json:
+        merged = self._merge_query(query, kwargs.pop("query", None))
+        return self._http.get(
+            "/agent-integrations/file-storage/files", query=merged, **kwargs
+        )
+
+    def get_file_storage_usage(self, **kwargs: Any) -> Json:
+        return self._http.get("/agent-integrations/file-storage/usage", **kwargs)
+
+    def get_file(self, file_id: str, **kwargs: Any) -> Json:
+        return self._http.get(
+            f"/agent-integrations/file-storage/files/{enc(file_id)}", **kwargs
+        )
+
+    def update_file_visibility(
+        self, file_id: str, visibility: str, **kwargs: Any
+    ) -> Json:
+        return self._http.patch(
+            f"/agent-integrations/file-storage/files/{enc(file_id)}",
+            body={"visibility": visibility},
+            **kwargs,
+        )
+
+    def delete_file(self, file_id: str, **kwargs: Any) -> Json:
+        return self._http.delete(
+            f"/agent-integrations/file-storage/files/{enc(file_id)}", **kwargs
+        )
+
+    def download_file(self, file_id: str, **kwargs: Any) -> Json:
+        return self._http.get(
+            f"/agent-integrations/file-storage/files/{enc(file_id)}/download",
+            **kwargs,
+        )
+
+    def create_file_link(
+        self, file_id: str, expires_in_seconds: int = 3600, **kwargs: Any
+    ) -> Json:
+        return self._http.post(
+            f"/agent-integrations/file-storage/files/{enc(file_id)}/link",
+            body={"expiresInSeconds": expires_in_seconds},
+            **kwargs,
+        )
+
+    def get_public_file(self, file_id: str, **kwargs: Any) -> Json:
+        return self._http.get(
+            f"/agent-integrations/file-storage/public/{enc(file_id)}", **kwargs
+        )
+
+    def upload_history(self, body: HistoryUpload, **kwargs: Any) -> Json:
+        return self._http.post(
+            "/agent-integrations/history-rewards/uploads", body=body, **kwargs
+        )
+
+    def claim_history_reward(self, **kwargs: Any) -> Json:
+        return self._http.post("/agent-integrations/history-rewards/claim", **kwargs)
+
+    def get_history_reward_status(self, **kwargs: Any) -> Json:
+        return self._http.get("/agent-integrations/history-rewards/status", **kwargs)
 
     # --- Apify ---
 
@@ -29,7 +96,9 @@ class AgentIntegrationsApi(ApiNamespace):
         """Get results from a completed Apify actor run."""
         merged = self._merge_query(query, kwargs.pop("query", None))
         return self._http.get(
-            f"/agent-integrations/apify/runs/{enc(run_id)}/results", query=merged, **kwargs
+            f"/agent-integrations/apify/runs/{enc(run_id)}/results",
+            query=merged,
+            **kwargs,
         )
 
     # --- Composio ---
@@ -59,15 +128,6 @@ class AgentIntegrationsApi(ApiNamespace):
     def list_composio_toolkits(self, **kwargs: Any) -> Json:
         """List Composio toolkits available to users."""
         return self._http.get("/agent-integrations/composio/toolkits", **kwargs)
-
-    def refresh_composio_toolkits(
-        self, query: dict[str, Any] | None = None, **kwargs: Any
-    ) -> Json:
-        """Refresh the cached Composio toolkit catalog (admin)."""
-        merged = self._merge_query(query, kwargs.pop("query", None))
-        return self._http.post(
-            "/agent-integrations/composio/toolkits/refresh", query=merged, **kwargs
-        )
 
     def list_composio_tools(
         self, query: dict[str, Any] | None = None, **kwargs: Any

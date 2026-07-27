@@ -7,7 +7,6 @@ from urllib.error import HTTPError
 from urllib.parse import urlencode, urljoin
 from urllib.request import Request, urlopen
 
-
 Json = dict[str, Any] | list[Any] | str | int | float | bool | None
 
 
@@ -42,19 +41,29 @@ class HttpClient:
         data: bytes | None = None
         if body is not None:
             request_headers.setdefault("content-type", "application/json")
-            data = body.encode("utf-8") if isinstance(body, str) else json.dumps(body).encode("utf-8")
+            data = (
+                body.encode("utf-8")
+                if isinstance(body, str)
+                else json.dumps(body).encode("utf-8")
+            )
 
-        request = Request(url, data=data, headers=request_headers, method=method.upper())
+        request = Request(
+            url, data=data, headers=request_headers, method=method.upper()
+        )
         try:
             with urlopen(request, timeout=self.timeout) as response:
-                parsed = _read_body(response.read(), response.headers.get_content_type())
+                parsed = _read_body(
+                    response.read(), response.headers.get_content_type()
+                )
                 if response.status == 204:
                     return None
                 return self._unwrap(parsed, unwrap_envelope)
         except HTTPError as error:
             parsed = _read_body(error.read(), error.headers.get_content_type())
             message = parsed.get("error") if isinstance(parsed, dict) else None
-            raise TinyHumansError(error.code, parsed, str(message) if message else None) from error
+            raise TinyHumansError(
+                error.code, parsed, str(message) if message else None
+            ) from error
 
     def get(self, path: str, **kwargs: Any) -> Json:
         return self.request("GET", path, **kwargs)
@@ -98,8 +107,15 @@ class HttpClient:
         return merged
 
     def _unwrap(self, body: Json, unwrap_envelope: bool | None) -> Json:
-        should_unwrap = self.unwrap_envelope if unwrap_envelope is None else unwrap_envelope
-        if should_unwrap and isinstance(body, dict) and body.get("success") is True and "data" in body:
+        should_unwrap = (
+            self.unwrap_envelope if unwrap_envelope is None else unwrap_envelope
+        )
+        if (
+            should_unwrap
+            and isinstance(body, dict)
+            and body.get("success") is True
+            and "data" in body
+        ):
             return body["data"]
         return body
 
