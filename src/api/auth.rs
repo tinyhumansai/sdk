@@ -1,9 +1,8 @@
 //! Auth and account state: magic-link login, OAuth, current user, and tokens.
 
 use reqwest::Method;
-use serde_json::Value;
 
-use super::types::{EmailLinkRequest, IntegrationTokenRequest, LoginTokenRequest};
+use super::types::{DynamicResponse, EmailLinkRequest, IntegrationTokenRequest, LoginTokenRequest};
 use crate::{enc, Error, HttpClient, QueryParam};
 
 /// Typed client for the `/auth/*` routes.
@@ -17,16 +16,21 @@ impl<'a> AuthApi<'a> {
     }
 
     /// Create a short-lived token to link a Telegram or Discord account.
-    pub async fn create_channel_link_token(&self, channel: &str) -> Result<Value, Error> {
+    pub async fn create_channel_link_token(&self, channel: &str) -> Result<DynamicResponse, Error> {
         let path = format!("/auth/channels/{}/link-token", enc(channel));
-        self.http.send(Method::POST, &path, &[], None, true).await
+        self.http
+            .send_typed(Method::POST, &path, &[], None, true)
+            .await
     }
 
     /// Send a magic link for email login.
-    pub async fn send_email_link(&self, request: &EmailLinkRequest) -> Result<Value, Error> {
+    pub async fn send_email_link(
+        &self,
+        request: &EmailLinkRequest,
+    ) -> Result<DynamicResponse, Error> {
         let body = serde_json::to_value(request).expect("email link request is serializable");
         self.http
-            .send(
+            .send_typed(
                 Method::POST,
                 "/auth/email/send-link",
                 &[],
@@ -37,18 +41,21 @@ impl<'a> AuthApi<'a> {
     }
 
     /// Verify a magic link and complete email login (302 redirect).
-    pub async fn verify_email(&self, token: &str) -> Result<Value, Error> {
+    pub async fn verify_email(&self, token: &str) -> Result<DynamicResponse, Error> {
         let query: [QueryParam; 1] = [("token", Some(token.to_string()))];
         self.http
-            .send(Method::GET, "/auth/email/verify", &query, None, true)
+            .send_typed(Method::GET, "/auth/email/verify", &query, None, true)
             .await
     }
 
     /// Consume a one-time login token, exchanging it for a session.
-    pub async fn consume_login_token(&self, request: &LoginTokenRequest) -> Result<Value, Error> {
+    pub async fn consume_login_token(
+        &self,
+        request: &LoginTokenRequest,
+    ) -> Result<DynamicResponse, Error> {
         let body = serde_json::to_value(request).expect("login token request is serializable");
         self.http
-            .send(
+            .send_typed(
                 Method::POST,
                 "/auth/login-token/consume",
                 &[],
@@ -59,23 +66,25 @@ impl<'a> AuthApi<'a> {
     }
 
     /// Get the currently authenticated user.
-    pub async fn me(&self) -> Result<Value, Error> {
+    pub async fn me(&self) -> Result<DynamicResponse, Error> {
         self.http
-            .send(Method::GET, "/auth/me", &[], None, true)
+            .send_typed(Method::GET, "/auth/me", &[], None, true)
             .await
     }
 
     /// List the user's connected third-party integrations.
-    pub async fn list_integrations(&self) -> Result<Value, Error> {
+    pub async fn list_integrations(&self) -> Result<DynamicResponse, Error> {
         self.http
-            .send(Method::GET, "/auth/integrations", &[], None, true)
+            .send_typed(Method::GET, "/auth/integrations", &[], None, true)
             .await
     }
 
     /// Disconnect a third-party integration.
-    pub async fn delete_integration(&self, integration_id: &str) -> Result<Value, Error> {
+    pub async fn delete_integration(&self, integration_id: &str) -> Result<DynamicResponse, Error> {
         let path = format!("/auth/integrations/{}", enc(integration_id));
-        self.http.send(Method::DELETE, &path, &[], None, true).await
+        self.http
+            .send_typed(Method::DELETE, &path, &[], None, true)
+            .await
     }
 
     /// Issue an access token for a connected integration.
@@ -83,19 +92,21 @@ impl<'a> AuthApi<'a> {
         &self,
         integration_id: &str,
         request: &IntegrationTokenRequest,
-    ) -> Result<Value, Error> {
+    ) -> Result<DynamicResponse, Error> {
         let body =
             serde_json::to_value(request).expect("integration token request is serializable");
         let path = format!("/auth/integrations/{}/tokens", enc(integration_id));
         self.http
-            .send(Method::POST, &path, &[], Some(&body), true)
+            .send_typed(Method::POST, &path, &[], Some(&body), true)
             .await
     }
 
     /// OAuth provider callback endpoint (returns a redirect).
-    pub async fn oauth_callback(&self, provider: &str) -> Result<Value, Error> {
+    pub async fn oauth_callback(&self, provider: &str) -> Result<DynamicResponse, Error> {
         let path = format!("/auth/{}/callback", enc(provider));
-        self.http.send(Method::GET, &path, &[], None, true).await
+        self.http
+            .send_typed(Method::GET, &path, &[], None, true)
+            .await
     }
 
     /// Start an OAuth connect flow for a provider.
@@ -103,14 +114,22 @@ impl<'a> AuthApi<'a> {
         &self,
         provider: &str,
         query: &[QueryParam],
-    ) -> Result<Value, Error> {
+    ) -> Result<DynamicResponse, Error> {
         let path = format!("/auth/{}/connect", enc(provider));
-        self.http.send(Method::GET, &path, query, None, true).await
+        self.http
+            .send_typed(Method::GET, &path, query, None, true)
+            .await
     }
 
     /// Start an OAuth login flow for a provider (returns a redirect).
-    pub async fn oauth_login(&self, provider: &str, query: &[QueryParam]) -> Result<Value, Error> {
+    pub async fn oauth_login(
+        &self,
+        provider: &str,
+        query: &[QueryParam],
+    ) -> Result<DynamicResponse, Error> {
         let path = format!("/auth/{}/login", enc(provider));
-        self.http.send(Method::GET, &path, query, None, true).await
+        self.http
+            .send_typed(Method::GET, &path, query, None, true)
+            .await
     }
 }

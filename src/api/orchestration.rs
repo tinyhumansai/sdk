@@ -1,4 +1,6 @@
-use super::types::{ContinueRunRequest, OrchestrationEventRequest, SubmitWorldDiffRequest};
+use super::types::{
+    ContinueRunRequest, DynamicResponse, OrchestrationEventRequest, SubmitWorldDiffRequest,
+};
 use crate::{enc, Error, HttpClient, QueryParam};
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
@@ -50,29 +52,39 @@ impl<'a> OrchestrationApi<'a> {
     pub fn new(http: &'a HttpClient) -> Self {
         Self { http }
     }
-    async fn body<T: Serialize>(&self, path: &str, body: &T) -> Result<Value, Error> {
+    async fn body<T: Serialize>(&self, path: &str, body: &T) -> Result<DynamicResponse, Error> {
         let body = serde_json::to_value(body).expect("request is serializable");
         self.http
-            .send(Method::POST, path, &[], Some(&body), true)
+            .send_typed(Method::POST, path, &[], Some(&body), true)
             .await
     }
-    pub async fn events(&self, request: &OrchestrationEventRequest) -> Result<Value, Error> {
+    pub async fn events(
+        &self,
+        request: &OrchestrationEventRequest,
+    ) -> Result<DynamicResponse, Error> {
         self.body("/orchestration/v1/events", request).await
     }
-    pub async fn run(&self, request: &RunRequest) -> Result<Value, Error> {
+    pub async fn run(&self, request: &RunRequest) -> Result<DynamicResponse, Error> {
         self.body("/orchestration/v1/run", request).await
     }
-    pub async fn continue_run(&self, request: &ContinueRunRequest) -> Result<Value, Error> {
+    pub async fn continue_run(
+        &self,
+        request: &ContinueRunRequest,
+    ) -> Result<DynamicResponse, Error> {
         self.body("/orchestration/v1/run/continue", request).await
     }
-    pub async fn list_sessions(&self, query: &[QueryParam]) -> Result<Value, Error> {
+    pub async fn list_sessions(&self, query: &[QueryParam]) -> Result<DynamicResponse, Error> {
         self.http
-            .send(Method::GET, "/orchestration/v1/sessions", query, None, true)
+            .send_typed(Method::GET, "/orchestration/v1/sessions", query, None, true)
             .await
     }
-    pub async fn session_messages(&self, id: &str, query: &[QueryParam]) -> Result<Value, Error> {
+    pub async fn session_messages(
+        &self,
+        id: &str,
+        query: &[QueryParam],
+    ) -> Result<DynamicResponse, Error> {
         self.http
-            .send(
+            .send_typed(
                 Method::GET,
                 &format!("/orchestration/v1/sessions/{}/messages", enc(id)),
                 query,
@@ -81,9 +93,9 @@ impl<'a> OrchestrationApi<'a> {
             )
             .await
     }
-    pub async fn session_state(&self, id: &str) -> Result<Value, Error> {
+    pub async fn session_state(&self, id: &str) -> Result<DynamicResponse, Error> {
         self.http
-            .send(
+            .send_typed(
                 Method::GET,
                 &format!("/orchestration/v1/sessions/{}/state", enc(id)),
                 &[],
@@ -92,9 +104,9 @@ impl<'a> OrchestrationApi<'a> {
             )
             .await
     }
-    pub async fn world_diff(&self, query: &[QueryParam]) -> Result<Value, Error> {
+    pub async fn world_diff(&self, query: &[QueryParam]) -> Result<DynamicResponse, Error> {
         self.http
-            .send(
+            .send_typed(
                 Method::GET,
                 "/orchestration/v1/world-diff",
                 query,
@@ -107,14 +119,14 @@ impl<'a> OrchestrationApi<'a> {
     pub async fn steering(&self) -> Result<SteeringResponse, Error> {
         let value = self
             .http
-            .send(Method::GET, "/orchestration/v1/steering", &[], None, true)
+            .send_typed(Method::GET, "/orchestration/v1/steering", &[], None, true)
             .await?;
         serde_json::from_value(value).map_err(Error::Decode)
     }
     pub async fn submit_world_diff(
         &self,
         request: &SubmitWorldDiffRequest,
-    ) -> Result<Value, Error> {
+    ) -> Result<DynamicResponse, Error> {
         self.body("/orchestration/v1/world-diff", request).await
     }
 }

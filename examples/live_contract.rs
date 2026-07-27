@@ -20,7 +20,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Ok(value) => {
             return Err(
-                format!("/api-keys unexpectedly allowed unauthenticated access: {value}").into(),
+                format!("/api-keys unexpectedly allowed unauthenticated access: {value:?}").into(),
             )
         }
     }
