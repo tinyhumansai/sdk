@@ -9,7 +9,6 @@ from .api.coupons import CouponsApi
 from .api.feedback import FeedbackApi
 from .api.health import HealthApi
 from .api.inference import InferenceApi
-from .api.investors import InvestorsApi
 from .api.invite import InviteApi
 from .api.mascots import MascotsApi
 from .api.payments import PaymentsApi
@@ -31,7 +30,6 @@ __all__ = [
     "FeedbackApi",
     "HealthApi",
     "InferenceApi",
-    "InvestorsApi",
     "InviteApi",
     "MascotsApi",
     "PaymentsApi",

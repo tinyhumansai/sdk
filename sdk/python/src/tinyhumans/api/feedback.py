@@ -9,7 +9,7 @@ __all__ = ["FeedbackApi"]
 
 
 class FeedbackApi(ApiNamespace):
-    """Public feedback board: submit, browse, read, vote, comment, and update status."""
+    """Public feedback board: submit, browse, read, vote, and comment."""
 
     def create_feedback(self, body: dict[str, Any], **kwargs: Any) -> Json:
         """Submit feedback or a bug report (LLM-moderated, rate-limited)."""
@@ -29,12 +29,6 @@ class FeedbackApi(ApiNamespace):
     def comment_feedback(self, id: str, body: dict[str, Any], **kwargs: Any) -> Json:
         """Comment on a feedback item."""
         return self._http.post(f"/feedback/{enc(id)}/comments", body=body, **kwargs)
-
-    def update_feedback_status(
-        self, id: str, body: dict[str, Any], **kwargs: Any
-    ) -> Json:
-        """Update a feedback item's status (admin only)."""
-        return self._http.patch(f"/feedback/{enc(id)}/status", body=body, **kwargs)
 
     def vote_feedback(self, id: str, body: dict[str, Any], **kwargs: Any) -> Json:
         """Up/down-vote a feedback item (value 0 retracts)."""

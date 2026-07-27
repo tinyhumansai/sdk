@@ -117,13 +117,12 @@ def test_auth_headers_reach_server(server_url: str) -> None:
         base_url=server_url,
         token="tok",
         api_key="key",
-        admin_service_token="admin",
         headers={"x-custom": "c"},
     )
     data = http.get("/echo")
     assert data["headers"]["authorization"] == "Bearer tok"
     assert data["headers"]["x-api-key"] == "key"
-    assert data["headers"]["x-admin-service-token"] == "admin"
+    assert "x-admin-service-token" not in data["headers"]
     assert data["headers"]["x-custom"] == "c"
 
 

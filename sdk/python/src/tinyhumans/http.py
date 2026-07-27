@@ -23,7 +23,6 @@ class HttpClient:
     base_url: str
     token: str | None = None
     api_key: str | None = None
-    admin_service_token: str | None = None
     headers: dict[str, str] | None = None
     unwrap_envelope: bool = True
     timeout: float = 30.0
@@ -96,8 +95,6 @@ class HttpClient:
             merged["authorization"] = f"Bearer {self.token}"
         if self.api_key:
             merged["x-api-key"] = self.api_key
-        if self.admin_service_token:
-            merged["x-admin-service-token"] = self.admin_service_token
         return merged
 
     def _unwrap(self, body: Json, unwrap_envelope: bool | None) -> Json:

@@ -10,7 +10,6 @@ from .api.coupons import CouponsApi
 from .api.feedback import FeedbackApi
 from .api.health import HealthApi
 from .api.inference import InferenceApi
-from .api.investors import InvestorsApi
 from .api.invite import InviteApi
 from .api.mascots import MascotsApi
 from .api.payments import PaymentsApi
@@ -34,7 +33,6 @@ class TinyHumansClient:
         base_url: str,
         token: str | None = None,
         api_key: str | None = None,
-        admin_service_token: str | None = None,
         headers: dict[str, str] | None = None,
         unwrap_envelope: bool = True,
         timeout: float = 30.0,
@@ -43,7 +41,6 @@ class TinyHumansClient:
             base_url=base_url,
             token=token,
             api_key=api_key,
-            admin_service_token=admin_service_token,
             headers=headers,
             unwrap_envelope=unwrap_envelope,
             timeout=timeout,
@@ -57,7 +54,6 @@ class TinyHumansClient:
         self.feedback = FeedbackApi(self.raw)
         self.health = HealthApi(self.raw)
         self.inference = InferenceApi(self.raw)
-        self.investors = InvestorsApi(self.raw)
         self.invite = InviteApi(self.raw)
         self.mascots = MascotsApi(self.raw)
         self.payments = PaymentsApi(self.raw)

@@ -28,12 +28,6 @@ class TeamsApi(ApiNamespace):
         """Get details for a single team."""
         return self._http.get(f"/teams/{enc(team_id)}", **kwargs)
 
-    def update_team(
-        self, team_id: str, body: dict[str, Any], **kwargs: Any
-    ) -> Json:
-        """Update team settings (admin only)."""
-        return self._http.put(f"/teams/{enc(team_id)}", body=body, **kwargs)
-
     def get_billing_plan(self, team_id: str, **kwargs: Any) -> Json:
         """Get the team's current subscription plan."""
         return self._http.get(f"/teams/{enc(team_id)}/billing/plan", **kwargs)
@@ -89,22 +83,6 @@ class TeamsApi(ApiNamespace):
     def list_members(self, team_id: str, **kwargs: Any) -> Json:
         """List a team's members."""
         return self._http.get(f"/teams/{enc(team_id)}/members", **kwargs)
-
-    def remove_member(
-        self, team_id: str, user_id: str, **kwargs: Any
-    ) -> Json:
-        """Remove a member from the team (admin only)."""
-        return self._http.delete(
-            f"/teams/{enc(team_id)}/members/{enc(user_id)}", **kwargs
-        )
-
-    def update_member_role(
-        self, team_id: str, user_id: str, body: dict[str, Any], **kwargs: Any
-    ) -> Json:
-        """Change a member's role (admin only)."""
-        return self._http.put(
-            f"/teams/{enc(team_id)}/members/{enc(user_id)}/role", body=body, **kwargs
-        )
 
     def switch_team(self, team_id: str, **kwargs: Any) -> Json:
         """Switch the user's active team."""

@@ -45,18 +45,6 @@ def test_get_team() -> None:
     assert http.last["path"] == "/teams/t%201%2Fx"
 
 
-def test_update_team() -> None:
-    http = RecordingHttp({"data": {}})
-    api = TeamsApi(http)
-
-    api.update_team("t_1", {"name": "New"})
-
-    call = http.last
-    assert call["method"] == "PUT"
-    assert call["path"] == "/teams/t_1"
-    assert call["body"] == {"name": "New"}
-
-
 def test_get_billing_plan() -> None:
     http = RecordingHttp({"data": {}})
     api = TeamsApi(http)
@@ -153,28 +141,6 @@ def test_list_members() -> None:
 
     assert http.last["method"] == "GET"
     assert http.last["path"] == "/teams/t_1/members"
-
-
-def test_remove_member() -> None:
-    http = RecordingHttp({"data": {}})
-    api = TeamsApi(http)
-
-    api.remove_member("t_1", "u_1")
-
-    assert http.last["method"] == "DELETE"
-    assert http.last["path"] == "/teams/t_1/members/u_1"
-
-
-def test_update_member_role() -> None:
-    http = RecordingHttp({"data": {}})
-    api = TeamsApi(http)
-
-    api.update_member_role("t_1", "u_1", {"role": "admin"})
-
-    call = http.last
-    assert call["method"] == "PUT"
-    assert call["path"] == "/teams/t_1/members/u_1/role"
-    assert call["body"] == {"role": "admin"}
 
 
 def test_switch_team() -> None:

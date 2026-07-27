@@ -18,7 +18,6 @@ NAMESPACES = [
     "feedback",
     "health",
     "inference",
-    "investors",
     "invite",
     "mascots",
     "payments",
@@ -42,7 +41,7 @@ def test_raw_is_http_client() -> None:
 
 def test_all_namespaces_present() -> None:
     client = _client()
-    assert len(NAMESPACES) == 17
+    assert len(NAMESPACES) == 16
     for name in NAMESPACES:
         assert hasattr(client, name), name
         assert getattr(client, name) is not None
@@ -61,7 +60,6 @@ def test_constructor_forwards_options() -> None:
         base_url="https://api.tinyhumans.ai",
         token="tok",
         api_key="key",
-        admin_service_token="admin",
         headers={"x-custom": "c"},
         unwrap_envelope=False,
         timeout=12.5,
@@ -69,7 +67,6 @@ def test_constructor_forwards_options() -> None:
     raw = client.raw
     assert raw.token == "tok"
     assert raw.api_key == "key"
-    assert raw.admin_service_token == "admin"
     assert raw.headers == {"x-custom": "c"}
     assert raw.unwrap_envelope is False
     assert raw.timeout == 12.5
