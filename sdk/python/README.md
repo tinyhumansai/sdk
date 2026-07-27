@@ -12,10 +12,16 @@ client = TinyHumansClient(
     token="...",
 )
 
-print(client.auth.get("/me"))
-print(client.inference.get("/v1/models"))
+print(client.api_keys.list())
+print(client.medulla.list_sessions())
 ```
 
-The Python SDK is dependency-free for the first scaffold and uses the standard
-library `urllib` stack. It exposes the same namespace clients as the TypeScript
-SDK plus `client.raw` for newly deployed routes.
+The SDK is dependency-free and uses the standard-library `urllib` stack.
+Namespace clients cover the deployed public API, including API keys, budgets,
+Medulla, OpenCompany, orchestration, file storage, and history rewards.
+Successful response envelopes are unwrapped by default; pass
+`unwrap_envelope=False` to a method or use `client.raw` when the full response
+or a newly deployed route is needed.
+
+Only user JWT and API-key credentials are first-class options. Administrative
+routes and service-token headers are intentionally not exposed.
