@@ -10,7 +10,8 @@
     "version": "1.0.0",
     "pathCount": 205,
     "totalOperationCount": 235,
-    "operationCount": 182,
+    "operationCount": 187,
+    "supplementalOperationCount": 5,
     "excludedAdminOperationCount": 35,
     "excludedWebhookOperationCount": 18,
     "servers": [
@@ -33,9 +34,10 @@
       "name": "agentIntegrations",
       "basePath": "/agent-integrations",
       "auth": "mixed",
-      "operationCount": 57,
+      "operationCount": 61,
       "tags": [
-        "Agent Integrations"
+        "Agent Integrations",
+        "OpenHuman parity"
       ],
       "routes": [
         "DELETE /agent-integrations/composio/connections/{connectionId}",
@@ -44,6 +46,7 @@
         "GET /agent-integrations/apify/runs/{runId}",
         "GET /agent-integrations/apify/runs/{runId}/results",
         "GET /agent-integrations/composio/connections",
+        "GET /agent-integrations/composio/github/repos",
         "GET /agent-integrations/composio/toolkits",
         "GET /agent-integrations/composio/tools",
         "GET /agent-integrations/composio/triggers",
@@ -94,6 +97,9 @@
         "POST /agent-integrations/recall-calendar/connect",
         "POST /agent-integrations/recall-calendar/disconnect",
         "POST /agent-integrations/tenor/search",
+        "POST /agent-integrations/tinyfish/agent/run",
+        "POST /agent-integrations/tinyfish/fetch",
+        "POST /agent-integrations/tinyfish/search",
         "POST /agent-integrations/twilio/call"
       ]
     },
@@ -322,14 +328,16 @@
       "name": "orchestration",
       "basePath": "/orchestration",
       "auth": "bearer",
-      "operationCount": 8,
+      "operationCount": 9,
       "tags": [
+        "OpenHuman parity",
         "Orchestration"
       ],
       "routes": [
         "GET /orchestration/v1/sessions",
         "GET /orchestration/v1/sessions/{id}/messages",
         "GET /orchestration/v1/sessions/{id}/state",
+        "GET /orchestration/v1/steering",
         "GET /orchestration/v1/world-diff",
         "POST /orchestration/v1/events",
         "POST /orchestration/v1/run",

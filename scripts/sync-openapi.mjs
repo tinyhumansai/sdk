@@ -26,6 +26,16 @@ const namespaceOverrides = new Map([
   ["r", "redirect"],
 ]);
 
+// Public backend calls implemented and exercised by OpenHuman but not yet
+// described by the deployed Swagger document.
+const SUPPLEMENTAL_PUBLIC_OPERATIONS = [
+  ["GET", "/agent-integrations/composio/github/repos"],
+  ["POST", "/agent-integrations/tinyfish/agent/run"],
+  ["POST", "/agent-integrations/tinyfish/fetch"],
+  ["POST", "/agent-integrations/tinyfish/search"],
+  ["GET", "/orchestration/v1/steering"],
+];
+
 function parseArgs(argv) {
   const options = { check: false, input: undefined };
   for (let index = 0; index < argv.length; index += 1) {
@@ -129,6 +139,19 @@ function buildManifest(spec) {
     }
   }
 
+  for (const [method, path] of SUPPLEMENTAL_PUBLIC_OPERATIONS) {
+    publicOperations.push({
+      method,
+      namespace: namespaceFor(path),
+      operation: {
+        summary: "Public operation implemented by the OpenHuman backend client",
+        security: [{ bearerAuth: [] }],
+        tags: ["OpenHuman parity"],
+      },
+      path,
+    });
+  }
+
   const grouped = Map.groupBy(publicOperations, ({ namespace }) => namespace);
   const namespaces = [...grouped.entries()]
     .sort(([left], [right]) => left.localeCompare(right))
@@ -159,6 +182,7 @@ function buildManifest(spec) {
       pathCount: Object.keys(spec.paths ?? {}).length,
       totalOperationCount,
       operationCount: publicOperations.length,
+      supplementalOperationCount: SUPPLEMENTAL_PUBLIC_OPERATIONS.length,
       excludedAdminOperationCount,
       excludedWebhookOperationCount,
       servers: (spec.servers ?? []).map(({ url }) => url),
