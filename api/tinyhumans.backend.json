@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "tinyhumans-backend",
   "version": "0.2.0",
-  "description": "TinyHumans public backend namespace manifest derived from the deployed Swagger/OpenAPI contract. Administrative operations are intentionally excluded.",
+  "description": "TinyHumans public backend namespace manifest derived from the deployed Swagger/OpenAPI contract. Administrative and webhook operations are intentionally excluded.",
   "source": {
     "type": "openapi",
     "url": "https://api.tinyhumans.ai/swagger.json",
@@ -10,8 +10,9 @@
     "version": "1.0.0",
     "pathCount": 205,
     "totalOperationCount": 235,
-    "operationCount": 200,
+    "operationCount": 182,
     "excludedAdminOperationCount": 35,
+    "excludedWebhookOperationCount": 18,
     "servers": [
       "https://api.tinyhumans.ai/",
       "https://staging-api.tinyhumans.ai/",
@@ -32,7 +33,7 @@
       "name": "agentIntegrations",
       "basePath": "/agent-integrations",
       "auth": "mixed",
-      "operationCount": 59,
+      "operationCount": 57,
       "tags": [
         "Agent Integrations"
       ],
@@ -93,9 +94,7 @@
         "POST /agent-integrations/recall-calendar/connect",
         "POST /agent-integrations/recall-calendar/disconnect",
         "POST /agent-integrations/tenor/search",
-        "POST /agent-integrations/twilio/call",
-        "POST /agent-integrations/twilio/webhooks/incoming-call/{userId}",
-        "POST /agent-integrations/twilio/webhooks/status/{userId}"
+        "POST /agent-integrations/twilio/call"
       ]
     },
     {
@@ -431,34 +430,6 @@
         "POST /teams/{teamId}/invites/email",
         "POST /teams/{teamId}/leave",
         "POST /teams/{teamId}/switch"
-      ]
-    },
-    {
-      "name": "webhooks",
-      "basePath": "/webhooks",
-      "auth": "mixed",
-      "operationCount": 16,
-      "tags": [
-        "Payments",
-        "Webhooks"
-      ],
-      "routes": [
-        "DELETE /webhooks/core/{id}",
-        "GET /webhooks/core",
-        "GET /webhooks/core/bandwidth",
-        "GET /webhooks/core/{id}",
-        "PATCH /webhooks/core/{id}",
-        "POST /webhooks/composio",
-        "POST /webhooks/core",
-        "POST /webhooks/discord",
-        "POST /webhooks/github",
-        "POST /webhooks/ingress/{uuid}",
-        "POST /webhooks/ingress/{uuid}/{path}",
-        "POST /webhooks/payments/coinbase",
-        "POST /webhooks/payments/stripe",
-        "POST /webhooks/sentry",
-        "POST /webhooks/telegram",
-        "POST /webhooks/telegram/managed/{botId}"
       ]
     }
   ]

@@ -4,6 +4,7 @@
 //! each with one method per deployed operation. [`TinyHumansClient::raw`] is the
 //! escape hatch for routes not yet surfaced as typed methods.
 
+use generated_public_routes::UNEXPOSED_ROUTES;
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{Client as ReqwestClient, Method};
@@ -44,6 +45,8 @@ pub enum Error {
     Status { status: u16, body: Value },
     #[error("invalid header value: {0}")]
     Header(#[from] reqwest::header::InvalidHeaderValue),
+    #[error("route is intentionally not exposed by the SDK: {0} {1}")]
+    RouteNotExposed(String, String),
 }
 
 #[derive(Clone)]
@@ -66,13 +69,6 @@ impl TinyHumansClient {
     pub fn with_api_key(mut self, api_key: Option<String>) -> Self {
         self.http.api_key = api_key;
         self
-    }
-
-    /// Fetch the deployed OpenAPI document (not enveloped).
-    pub async fn swagger(&self) -> Result<Value, Error> {
-        self.http
-            .send(Method::GET, "/swagger.json", &[], None, false)
-            .await
     }
 
     /// Raw HTTP escape hatch for routes without a typed method yet.
@@ -140,9 +136,6 @@ impl TinyHumansClient {
     pub fn teams(&self) -> api::teams::TeamsApi<'_> {
         api::teams::TeamsApi::new(&self.http)
     }
-    pub fn webhooks(&self) -> api::webhooks::WebhooksApi<'_> {
-        api::webhooks::WebhooksApi::new(&self.http)
-    }
 }
 
 #[derive(Clone)]
@@ -176,6 +169,7 @@ impl HttpClient {
         body: Option<&Value>,
         unwrap: bool,
     ) -> Result<Value, Error> {
+        reject_unexposed_route(&method, path)?;
         let url = self.url(path, query)?;
         let mut request = self.client.request(method, url).headers(self.headers()?);
         if let Some(body) = body {
@@ -217,6 +211,7 @@ impl HttpClient {
         path: &str,
         form: reqwest::multipart::Form,
     ) -> Result<Value, Error> {
+        reject_unexposed_route(&Method::POST, path)?;
         let url = self.url(path, &[])?;
         let response = self
             .client
@@ -282,5 +277,62 @@ fn unwrap_envelope(body: Value) -> Value {
             map.remove("data").unwrap_or(Value::Object(map))
         }
         other => other,
+    }
+}
+
+fn reject_unexposed_route(method: &Method, path: &str) -> Result<(), Error> {
+    let request_segments = path.trim_matches('/').split('/').collect::<Vec<_>>();
+    let blocked = UNEXPOSED_ROUTES.iter().any(|(blocked_method, template)| {
+        if *blocked_method != method.as_str() {
+            return false;
+        }
+        let template_segments = template.trim_matches('/').split('/').collect::<Vec<_>>();
+        template_segments.len() == request_segments.len()
+            && template_segments
+                .iter()
+                .zip(&request_segments)
+                .all(|(expected, actual)| {
+                    (expected.starts_with('{') && expected.ends_with('}')) || expected == actual
+                })
+    });
+    if blocked {
+        Err(Error::RouteNotExposed(
+            method.as_str().to_owned(),
+            path.to_owned(),
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod exclusion_tests {
+    use super::*;
+
+    #[test]
+    fn every_admin_and_webhook_route_is_rejected_by_the_raw_transport_gate() {
+        assert_eq!(UNEXPOSED_ROUTES.len(), 53);
+        for (method, template) in UNEXPOSED_ROUTES {
+            let concrete_path = template
+                .split('/')
+                .map(|segment| {
+                    if segment.starts_with('{') && segment.ends_with('}') {
+                        "example"
+                    } else {
+                        segment
+                    }
+                })
+                .collect::<Vec<_>>()
+                .join("/");
+            let method = Method::from_bytes(method.as_bytes()).unwrap();
+            assert!(
+                matches!(
+                    reject_unexposed_route(&method, &concrete_path),
+                    Err(Error::RouteNotExposed(_, _))
+                ),
+                "{} {template} was not blocked",
+                method.as_str()
+            );
+        }
     }
 }

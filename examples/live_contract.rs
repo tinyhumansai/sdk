@@ -13,15 +13,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         return Err(format!("unexpected health payload from {base_url}: {health}").into());
     }
 
-    let swagger = client.swagger().await?;
-    let path_count = swagger
-        .get("paths")
-        .and_then(|value| value.as_object())
-        .map_or(0, |paths| paths.len());
-    if path_count == 0 {
-        return Err("Swagger document contains no paths".into());
-    }
-
     match client.api_keys().list().await {
         Err(Error::Status { status, .. }) if status == 401 || status == 403 => {}
         Err(error) => {
@@ -34,6 +25,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("Rust SDK live contract passed against {base_url} ({path_count} Swagger paths)");
+    println!("Rust SDK live contract passed against {base_url}");
     Ok(())
 }

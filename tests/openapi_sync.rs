@@ -89,11 +89,15 @@ fn generated_rust_routes_match_the_public_manifest() {
         .collect::<BTreeSet<_>>();
     let rust_routes = PUBLIC_ROUTES.iter().copied().collect::<BTreeSet<_>>();
 
-    assert_eq!(manifest["source"]["operationCount"], 200);
+    assert_eq!(manifest["source"]["operationCount"], 182);
     assert_eq!(manifest["source"]["excludedAdminOperationCount"], 35);
-    assert_eq!(rust_routes.len(), 200);
+    assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 18);
+    assert_eq!(rust_routes.len(), 182);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()
-        .all(|(_, path)| !path.starts_with("/admin") && !path.contains("/admin/")));
+        .all(|(_, path)| !path.split('/').any(|segment| segment == "admin")));
+    assert!(rust_routes
+        .iter()
+        .all(|(_, path)| !path.split('/').any(|segment| segment == "webhooks")));
 }

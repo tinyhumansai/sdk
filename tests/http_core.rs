@@ -88,26 +88,6 @@ async fn error_status_is_returned_as_err() {
     }
 }
 
-// swagger() uses unwrap=false, so a body with success/data keys is returned raw.
-#[tokio::test]
-async fn swagger_returns_body_without_unwrapping() {
-    let server = MockServer::start().await;
-    let body = json!({
-        "openapi": "3.0.0",
-        "success": true,
-        "data": {"ignored": true}
-    });
-    Mock::given(method("GET"))
-        .and(path("/swagger.json"))
-        .respond_with(ResponseTemplate::new(200).set_body_json(body.clone()))
-        .mount(&server)
-        .await;
-
-    let client = TinyHumansClient::new(server.uri());
-    let result = client.swagger().await.unwrap();
-    assert_eq!(result, body);
-}
-
 // A path param containing a space must be percent-encoded via `enc`.
 #[tokio::test]
 async fn path_param_is_percent_encoded() {

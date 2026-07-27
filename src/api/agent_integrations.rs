@@ -744,30 +744,4 @@ impl<'a> AgentIntegrationsApi<'a> {
             )
             .await
     }
-
-    /// Twilio webhook for incoming calls.
-    pub async fn twilio_incoming_call_webhook(
-        &self,
-        user_id: &str,
-        body: &Value,
-    ) -> Result<Value, Error> {
-        let path = format!(
-            "/agent-integrations/twilio/webhooks/incoming-call/{}",
-            enc(user_id)
-        );
-        self.http
-            .send(Method::POST, &path, &[], Some(body), true)
-            .await
-    }
-
-    /// Twilio webhook for call status updates.
-    pub async fn twilio_status_webhook(&self, user_id: &str, body: &Value) -> Result<Value, Error> {
-        let path = format!(
-            "/agent-integrations/twilio/webhooks/status/{}",
-            enc(user_id)
-        );
-        self.http
-            .send(Method::POST, &path, &[], Some(body), true)
-            .await
-    }
 }
