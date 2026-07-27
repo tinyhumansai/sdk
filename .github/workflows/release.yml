@@ -1,32 +1,13 @@
-name: Release
-
-# Manual release dispatcher. Tick the SDKs you want to ship and pick the version
-# bump; the prepare job bumps + commits + pushes the selected versions, then each
-# selected SDK is published to its registry.
+name: Release Rust SDK
 
 on:
   workflow_dispatch:
     inputs:
-      typescript:
-        description: Publish TypeScript SDK to npm
-        type: boolean
-        default: false
-      python:
-        description: Publish Python SDK to PyPI
-        type: boolean
-        default: false
-      rust:
-        description: Publish Rust SDK to crates.io
-        type: boolean
-        default: false
       bump:
-        description: Version bump to apply to the selected targets
+        description: Version bump
         type: choice
         default: patch
-        options:
-          - patch
-          - minor
-          - major
+        options: [patch, minor, major]
 
 concurrency:
   group: release-main
@@ -36,146 +17,18 @@ permissions:
   contents: write
 
 jobs:
-  prepare:
-    name: Prepare release commit
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      sha: ${{ steps.push.outputs.sha }}
+    environment: Production
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-
-      - name: Configure git author
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Build target list
-        id: targets
-        env:
-          TYPESCRIPT: ${{ inputs.typescript }}
-          PYTHON: ${{ inputs.python }}
-          RUST: ${{ inputs.rust }}
-        run: |
-          list=()
-          if [[ "$TYPESCRIPT" == "true" ]]; then list+=(typescript); fi
-          if [[ "$PYTHON" == "true" ]]; then list+=(python); fi
-          if [[ "$RUST" == "true" ]]; then list+=(rust); fi
-          if [[ ${#list[@]} -eq 0 ]]; then
-            echo "::error::Select at least one SDK to release."
-            exit 1
-          fi
-          # comma-separated for --only
-          printf 'targets=%s\n' "$(IFS=,; echo "${list[*]}")" >> "$GITHUB_OUTPUT"
-
-      - name: Bump versions
-        env:
-          BUMP: ${{ inputs.bump }}
-          TARGETS: ${{ steps.targets.outputs.targets }}
-        run: node scripts/bump-versions.mjs "$BUMP" --only "$TARGETS"
-
-      - name: Commit and push
-        id: push
-        env:
-          TARGETS: ${{ steps.targets.outputs.targets }}
-        run: |
-          git add -A
-          git commit -m "chore(release): bump ${TARGETS}"
-          git push origin HEAD:main
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-  publish-typescript:
-    name: Publish TypeScript SDK
-    needs: prepare
-    if: ${{ inputs.typescript }}
-    runs-on: ubuntu-latest
-    environment: Production
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          registry-url: https://registry.npmjs.org
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm --filter @tinyhumansai/sdk build
-
-      - name: Test
-        run: pnpm --filter @tinyhumansai/sdk test
-
-      - name: Publish to npm
-        run: npm publish --access public --provenance
-        working-directory: sdk/typescript
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  publish-python:
-    name: Publish Python SDK
-    needs: prepare
-    if: ${{ inputs.python }}
-    runs-on: ubuntu-latest
-    environment: Production
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          python-version: "3.11"
-
-      - name: Build package
-        run: uv build
-        working-directory: sdk/python
-
-      - name: Publish to PyPI
-        run: uv publish
-        working-directory: sdk/python
-        env:
-          UV_PUBLISH_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
-
-  publish-rust:
-    name: Publish Rust SDK
-    needs: prepare
-    if: ${{ inputs.rust }}
-    runs-on: ubuntu-latest
-    environment: Production
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-          persist-credentials: false
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -183,22 +36,38 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: sdk/rust
+          workspaces: .
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-        working-directory: sdk/rust
-
-      - name: Clippy
-        run: cargo clippy --all-targets -- -D warnings
-        working-directory: sdk/rust
-
-      - name: Test
-        run: cargo test
-        working-directory: sdk/rust
-
-      - name: Publish to crates.io
-        run: cargo publish
-        working-directory: sdk/rust
+      - name: Bump Rust crate version
+        id: version
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          BUMP: ${{ inputs.bump }}
+        run: echo "version=$(node scripts/bump-versions.mjs "$BUMP")" >> "$GITHUB_OUTPUT"
+
+      - name: Commit release version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Cargo.toml
+          git commit -m "chore(release): rust v${VERSION}"
+          git push origin HEAD:main
+
+      - name: Validate and package
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test
+          cargo package
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: >-
+          gh release create "rust-v${VERSION}"
+          target/package/tinyhumans-sdk-${VERSION}.crate
+          --target "$(git rev-parse HEAD)"
+          --title "Rust SDK v${VERSION}"
+          --notes "Rust SDK package for v${VERSION}. GitHub Packages has no Cargo registry, so the .crate artifact is attached here."

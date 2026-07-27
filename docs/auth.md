@@ -23,16 +23,6 @@ x-api-key: <key>
 
 Each SDK accepts `apiKey` or `api_key`.
 
-## Admin Service Token
-
-Service-to-service admin write routes use:
-
-```text
-x-admin-service-token: <token>
-```
-
-Use this only in trusted server environments.
-
 ## Client Version Headers
 
 The backend records version headers such as `x-sdk-version`,

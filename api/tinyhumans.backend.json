@@ -1,15 +1,17 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "name": "tinyhumans-backend",
-  "version": "0.1.0",
-  "description": "TinyHumans backend namespace manifest derived from the deployed Swagger/OpenAPI contract.",
+  "version": "0.2.0",
+  "description": "TinyHumans public backend namespace manifest derived from the deployed Swagger/OpenAPI contract. Administrative operations are intentionally excluded.",
   "source": {
     "type": "openapi",
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 172,
-    "operationCount": 156,
+    "pathCount": 205,
+    "totalOperationCount": 235,
+    "operationCount": 200,
+    "excludedAdminOperationCount": 35,
     "servers": [
       "https://api.tinyhumans.ai/",
       "https://staging-api.tinyhumans.ai/",
@@ -23,36 +25,54 @@
   },
   "auth": {
     "bearerToken": "Authorization: Bearer <token>",
-    "apiKey": "x-api-key: <key>",
-    "adminServiceToken": "x-admin-service-token: <token>"
+    "apiKey": "x-api-key: <key>"
   },
   "namespaces": [
     {
       "name": "agentIntegrations",
       "basePath": "/agent-integrations",
-      "auth": "bearer",
-      "operationCount": 48,
+      "auth": "mixed",
+      "operationCount": 59,
       "tags": [
         "Agent Integrations"
       ],
       "routes": [
-        "POST /agent-integrations/apify/run",
+        "DELETE /agent-integrations/composio/connections/{connectionId}",
+        "DELETE /agent-integrations/composio/triggers/{triggerId}",
+        "DELETE /agent-integrations/file-storage/files/{fileId}",
         "GET /agent-integrations/apify/runs/{runId}",
         "GET /agent-integrations/apify/runs/{runId}/results",
-        "POST /agent-integrations/composio/authorize",
         "GET /agent-integrations/composio/connections",
-        "DELETE /agent-integrations/composio/connections/{connectionId}",
-        "POST /agent-integrations/composio/execute",
         "GET /agent-integrations/composio/toolkits",
-        "POST /agent-integrations/composio/toolkits/refresh",
         "GET /agent-integrations/composio/tools",
         "GET /agent-integrations/composio/triggers",
-        "POST /agent-integrations/composio/triggers",
         "GET /agent-integrations/composio/triggers/available",
-        "DELETE /agent-integrations/composio/triggers/{triggerId}",
-        "POST /agent-integrations/crypto/bridge",
         "GET /agent-integrations/crypto/routes",
+        "GET /agent-integrations/file-storage/files",
+        "GET /agent-integrations/file-storage/files/{fileId}",
+        "GET /agent-integrations/file-storage/files/{fileId}/download",
+        "GET /agent-integrations/file-storage/public/{fileId}",
+        "GET /agent-integrations/file-storage/usage",
+        "GET /agent-integrations/history-rewards/status",
+        "GET /agent-integrations/media-generation/models",
+        "GET /agent-integrations/media-generation/requests/{requestId}",
+        "GET /agent-integrations/parallel/dataset/{findallId}",
+        "GET /agent-integrations/parallel/dataset/{findallId}/result",
+        "GET /agent-integrations/parallel/research/{runId}",
+        "GET /agent-integrations/parallel/research/{runId}/result",
+        "GET /agent-integrations/pricing",
+        "GET /agent-integrations/recall-calendar/meetings",
+        "GET /agent-integrations/recall-calendar/oauth-complete",
+        "GET /agent-integrations/recall-calendar/status",
+        "PATCH /agent-integrations/file-storage/files/{fileId}",
+        "POST /agent-integrations/apify/run",
+        "POST /agent-integrations/composio/authorize",
+        "POST /agent-integrations/composio/execute",
+        "POST /agent-integrations/composio/triggers",
+        "POST /agent-integrations/crypto/bridge",
         "POST /agent-integrations/crypto/swap",
+        "POST /agent-integrations/file-storage/files",
+        "POST /agent-integrations/file-storage/files/{fileId}/link",
         "POST /agent-integrations/financial-apis/commodity",
         "POST /agent-integrations/financial-apis/crypto-series",
         "POST /agent-integrations/financial-apis/exchange-rate",
@@ -60,26 +80,18 @@
         "POST /agent-integrations/financial-apis/quote",
         "POST /agent-integrations/google-places/details",
         "POST /agent-integrations/google-places/search",
+        "POST /agent-integrations/history-rewards/claim",
+        "POST /agent-integrations/history-rewards/uploads",
         "POST /agent-integrations/media-generation/images",
-        "GET /agent-integrations/media-generation/models",
-        "GET /agent-integrations/media-generation/requests/{requestId}",
         "POST /agent-integrations/media-generation/videos",
         "POST /agent-integrations/parallel/chat",
         "POST /agent-integrations/parallel/dataset",
-        "GET /agent-integrations/parallel/dataset/{findallId}",
-        "GET /agent-integrations/parallel/dataset/{findallId}/result",
         "POST /agent-integrations/parallel/enrich",
         "POST /agent-integrations/parallel/extract",
         "POST /agent-integrations/parallel/research",
-        "GET /agent-integrations/parallel/research/{runId}",
-        "GET /agent-integrations/parallel/research/{runId}/result",
         "POST /agent-integrations/parallel/search",
-        "GET /agent-integrations/pricing",
         "POST /agent-integrations/recall-calendar/connect",
         "POST /agent-integrations/recall-calendar/disconnect",
-        "GET /agent-integrations/recall-calendar/meetings",
-        "GET /agent-integrations/recall-calendar/oauth-complete",
-        "GET /agent-integrations/recall-calendar/status",
         "POST /agent-integrations/tenor/search",
         "POST /agent-integrations/twilio/call",
         "POST /agent-integrations/twilio/webhooks/incoming-call/{userId}",
@@ -99,25 +111,54 @@
       ]
     },
     {
+      "name": "apiKeys",
+      "basePath": "/api-keys",
+      "auth": "bearer",
+      "operationCount": 3,
+      "tags": [
+        "API Keys"
+      ],
+      "routes": [
+        "DELETE /api-keys/{keyId}",
+        "GET /api-keys",
+        "POST /api-keys"
+      ]
+    },
+    {
       "name": "auth",
       "basePath": "/auth",
-      "auth": "bearer",
+      "auth": "mixed",
       "operationCount": 11,
       "tags": [
         "Auth"
       ],
       "routes": [
-        "POST /auth/channels/{channel}/link-token",
-        "POST /auth/email/send-link",
+        "DELETE /auth/integrations/{integrationId}",
         "GET /auth/email/verify",
         "GET /auth/integrations",
-        "DELETE /auth/integrations/{integrationId}",
-        "POST /auth/integrations/{integrationId}/tokens",
-        "POST /auth/login-token/consume",
         "GET /auth/me",
         "GET /auth/{provider}/callback",
         "GET /auth/{provider}/connect",
-        "GET /auth/{provider}/login"
+        "GET /auth/{provider}/login",
+        "POST /auth/channels/{channel}/link-token",
+        "POST /auth/email/send-link",
+        "POST /auth/integrations/{integrationId}/tokens",
+        "POST /auth/login-token/consume"
+      ]
+    },
+    {
+      "name": "budgets",
+      "basePath": "/budgets",
+      "auth": "bearer",
+      "operationCount": 4,
+      "tags": [
+        "Budgets"
+      ],
+      "routes": [
+        "DELETE /budgets/seats/{seatId}",
+        "GET /budgets",
+        "PATCH /budgets/seats/{seatId}",
+        "POST /budgets/seats"
       ]
     },
     {
@@ -129,12 +170,12 @@
         "Channels"
       ],
       "routes": [
-        "POST /channels/{channel}/messages",
         "DELETE /channels/{channel}/messages/{messageId}",
-        "POST /channels/{channel}/reactions",
-        "POST /channels/{channel}/threads",
         "GET /channels/{channel}/threads",
         "PATCH /channels/{channel}/threads/{threadId}",
+        "POST /channels/{channel}/messages",
+        "POST /channels/{channel}/reactions",
+        "POST /channels/{channel}/threads",
         "POST /channels/{channel}/typing"
       ]
     },
@@ -142,14 +183,11 @@
       "name": "coupons",
       "basePath": "/coupons",
       "auth": "bearer",
-      "operationCount": 5,
+      "operationCount": 2,
       "tags": [
         "Coupons"
       ],
       "routes": [
-        "POST /coupons/admin",
-        "GET /coupons/admin",
-        "DELETE /coupons/admin/{couponId}",
         "GET /coupons/me",
         "POST /coupons/redeem"
       ]
@@ -163,11 +201,11 @@
         "Feedback"
       ],
       "routes": [
-        "POST /feedback",
         "GET /feedback",
         "GET /feedback/{id}",
+        "POST /feedback",
+        "POST /feedback/ingest",
         "POST /feedback/{id}/comments",
-        "PATCH /feedback/{id}/status",
         "POST /feedback/{id}/vote"
       ]
     },
@@ -192,48 +230,32 @@
         "Inference"
       ],
       "routes": [
+        "GET /openai/v1/models",
         "POST /openai/v1/audio/speech",
         "POST /openai/v1/audio/transcriptions",
         "POST /openai/v1/chat/completions",
         "POST /openai/v1/completions",
-        "POST /openai/v1/embeddings",
-        "GET /openai/v1/models"
-      ]
-    },
-    {
-      "name": "investors",
-      "basePath": "/investors",
-      "auth": "none",
-      "operationCount": 2,
-      "tags": [
-        "Investors"
-      ],
-      "routes": [
-        "GET /investors/{slug}",
-        "POST /investors/{slug}/events"
+        "POST /openai/v1/embeddings"
       ]
     },
     {
       "name": "invite",
       "basePath": "/invite",
-      "auth": "bearer",
-      "operationCount": 6,
+      "auth": "mixed",
+      "operationCount": 3,
       "tags": [
         "Invite"
       ],
       "routes": [
-        "POST /invite/campaign",
-        "GET /invite/campaign",
-        "DELETE /invite/campaign/{codeId}",
         "GET /invite/my-codes",
-        "POST /invite/redeem",
-        "GET /invite/status"
+        "GET /invite/status",
+        "POST /invite/redeem"
       ]
     },
     {
       "name": "mascots",
       "basePath": "/mascots",
-      "auth": "bearer",
+      "auth": "mixed",
       "operationCount": 6,
       "tags": [
         "Mascots"
@@ -241,47 +263,116 @@
       "routes": [
         "GET /mascots",
         "GET /mascots/demo",
-        "POST /mascots/join-meeting",
         "GET /mascots/meetings",
         "GET /mascots/{id}",
-        "GET /mascots/{id}/riv"
+        "GET /mascots/{id}/riv",
+        "POST /mascots/join-meeting"
+      ]
+    },
+    {
+      "name": "medulla",
+      "basePath": "/medulla",
+      "auth": "bearer",
+      "operationCount": 20,
+      "tags": [
+        "Medulla"
+      ],
+      "routes": [
+        "DELETE /medulla/v1/sessions/{id}",
+        "DELETE /medulla/v1/tasks/sources/{id}",
+        "DELETE /medulla/v1/tasks/{id}",
+        "GET /medulla/v1/roster",
+        "GET /medulla/v1/routing/strategy",
+        "GET /medulla/v1/sessions",
+        "GET /medulla/v1/sessions/{id}",
+        "GET /medulla/v1/sessions/{id}/events",
+        "GET /medulla/v1/sessions/{id}/messages",
+        "GET /medulla/v1/sessions/{id}/stream",
+        "GET /medulla/v1/tasks",
+        "GET /medulla/v1/tasks/sources",
+        "PATCH /medulla/v1/tasks/{id}",
+        "POST /medulla/v1/sessions",
+        "POST /medulla/v1/sessions/{id}/abort",
+        "POST /medulla/v1/sessions/{id}/messages",
+        "POST /medulla/v1/tasks",
+        "POST /medulla/v1/tasks/sources",
+        "POST /medulla/v1/tasks/sources/{id}/sync",
+        "PUT /medulla/v1/routing/strategy"
+      ]
+    },
+    {
+      "name": "openCompany",
+      "basePath": "/opencompany",
+      "auth": "bearer",
+      "operationCount": 8,
+      "tags": [
+        "OpenCompany"
+      ],
+      "routes": [
+        "DELETE /opencompany/instances/{slug}",
+        "DELETE /opencompany/instances/{slug}/custom-domain",
+        "GET /opencompany/instances",
+        "POST /opencompany/instances",
+        "POST /opencompany/instances/{slug}/custom-domain/verify",
+        "POST /opencompany/instances/{slug}/resume",
+        "POST /opencompany/instances/{slug}/suspend",
+        "PUT /opencompany/instances/{slug}/custom-domain"
+      ]
+    },
+    {
+      "name": "orchestration",
+      "basePath": "/orchestration",
+      "auth": "bearer",
+      "operationCount": 8,
+      "tags": [
+        "Orchestration"
+      ],
+      "routes": [
+        "GET /orchestration/v1/sessions",
+        "GET /orchestration/v1/sessions/{id}/messages",
+        "GET /orchestration/v1/sessions/{id}/state",
+        "GET /orchestration/v1/world-diff",
+        "POST /orchestration/v1/events",
+        "POST /orchestration/v1/run",
+        "POST /orchestration/v1/run/continue",
+        "POST /orchestration/v1/world-diff"
       ]
     },
     {
       "name": "payments",
       "basePath": "/payments",
-      "auth": "bearer",
+      "auth": "mixed",
       "operationCount": 19,
       "tags": [
         "Credits",
         "Payment"
       ],
       "routes": [
-        "POST /payments/coinbase/charge",
+        "DELETE /payments/credits/auto-recharge/cards/{paymentMethodId}",
         "GET /payments/coinbase/charge/{gatewayTransactionId}",
         "GET /payments/credits/auto-recharge",
-        "PATCH /payments/credits/auto-recharge",
         "GET /payments/credits/auto-recharge/cards",
-        "POST /payments/credits/auto-recharge/cards/setup-intent",
-        "PATCH /payments/credits/auto-recharge/cards/{paymentMethodId}",
-        "DELETE /payments/credits/auto-recharge/cards/{paymentMethodId}",
         "GET /payments/credits/balance",
-        "POST /payments/credits/top-up",
         "GET /payments/credits/top-up/cancel",
         "GET /payments/credits/top-up/success",
         "GET /payments/credits/transactions",
         "GET /payments/stripe/checkout/return",
         "GET /payments/stripe/currentPlan",
         "GET /payments/stripe/plans",
-        "POST /payments/stripe/portal",
         "GET /payments/stripe/portal/return",
+        "PATCH /payments/credits/auto-recharge",
+        "PATCH /payments/credits/auto-recharge/cards/{paymentMethodId}",
+        "POST /payments/coinbase/charge",
+        "POST /payments/credits/auto-recharge/cards/setup-intent",
+        "POST /payments/credits/top-up",
+        "POST /payments/stripe/portal",
         "POST /payments/stripe/purchasePlan"
       ]
     },
     {
       "name": "redirect",
       "basePath": "/r",
-      "auth": "none",
+      "auth": "bearer",
       "operationCount": 1,
       "tags": [
         "Redirect"
@@ -299,68 +390,66 @@
         "Referral"
       ],
       "routes": [
-        "POST /referral/claim",
-        "GET /referral/stats"
+        "GET /referral/stats",
+        "POST /referral/claim"
       ]
     },
     {
       "name": "rewards",
       "basePath": "/rewards",
       "auth": "bearer",
-      "operationCount": 2,
+      "operationCount": 3,
       "tags": [
         "Rewards"
       ],
       "routes": [
         "DELETE /rewards/discord",
-        "GET /rewards/me"
+        "GET /rewards/me",
+        "POST /rewards/claim"
       ]
     },
     {
       "name": "teams",
       "basePath": "/teams",
       "auth": "bearer",
-      "operationCount": 17,
+      "operationCount": 14,
       "tags": [
         "Teams"
       ],
       "routes": [
+        "DELETE /teams/{teamId}/invites/{inviteId}",
         "GET /teams",
-        "POST /teams/join",
         "GET /teams/me/usage",
         "GET /teams/{teamId}",
-        "PUT /teams/{teamId}",
         "GET /teams/{teamId}/billing/plan",
+        "GET /teams/{teamId}/invites",
+        "GET /teams/{teamId}/members",
+        "POST /teams/join",
         "POST /teams/{teamId}/billing/portal",
         "POST /teams/{teamId}/billing/purchase",
         "POST /teams/{teamId}/invites",
-        "GET /teams/{teamId}/invites",
         "POST /teams/{teamId}/invites/email",
-        "DELETE /teams/{teamId}/invites/{inviteId}",
         "POST /teams/{teamId}/leave",
-        "GET /teams/{teamId}/members",
-        "DELETE /teams/{teamId}/members/{userId}",
-        "PUT /teams/{teamId}/members/{userId}/role",
         "POST /teams/{teamId}/switch"
       ]
     },
     {
       "name": "webhooks",
       "basePath": "/webhooks",
-      "auth": "bearer",
+      "auth": "mixed",
       "operationCount": 16,
       "tags": [
         "Payments",
         "Webhooks"
       ],
       "routes": [
-        "POST /webhooks/composio",
-        "POST /webhooks/core",
+        "DELETE /webhooks/core/{id}",
         "GET /webhooks/core",
         "GET /webhooks/core/bandwidth",
         "GET /webhooks/core/{id}",
         "PATCH /webhooks/core/{id}",
-        "DELETE /webhooks/core/{id}",
+        "POST /webhooks/composio",
+        "POST /webhooks/core",
         "POST /webhooks/discord",
         "POST /webhooks/github",
         "POST /webhooks/ingress/{uuid}",
