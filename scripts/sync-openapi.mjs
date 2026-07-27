@@ -75,8 +75,27 @@ function isAdminOperation(path, operation) {
   );
 }
 
-function isWebhookOperation(path) {
-  return path.split("/").includes("webhooks");
+// Exclude webhook *receivers* — the endpoints providers call into (Stripe,
+// Telegram, Discord, GitHub, Composio, Coinbase, Sentry, Twilio, and the
+// tunnel ingress routes). They are authenticated by provider signature rather
+// than by a user bearer token, so an SDK caller has nothing to send and no
+// reason to invoke them.
+//
+// Matching on the path segment alone also swept in `/webhooks/core*`, the
+// user-owned webhook *tunnel* CRUD surface — list/create/read/update/delete a
+// tunnel plus its bandwidth budget. Those are ordinary authenticated
+// user-facing operations that happen to live under `/webhooks`, and OpenHuman
+// drives all six of them from its `webhooks` RPC namespace. Blocking them left
+// that feature with no SDK path at all, not even through the raw escape hatch,
+// which `reject_unexposed_route` gates on this same list.
+//
+// `bearerAuth` is the discriminator rather than a hardcoded `/webhooks/core`
+// allowlist: it is the property that actually distinguishes the two families,
+// so a future user-facing webhook-management route is classified correctly
+// without another edit here.
+function isWebhookOperation(path, operation) {
+  if (!path.split("/").includes("webhooks")) return false;
+  return operationAuth(operation) !== "bearer";
 }
 
 function namespaceFor(path) {
@@ -125,7 +144,7 @@ function buildManifest(spec) {
         excludedOperations.push({ method: method.toUpperCase(), path });
         continue;
       }
-      if (isWebhookOperation(path)) {
+      if (isWebhookOperation(path, operation)) {
         excludedWebhookOperationCount += 1;
         excludedOperations.push({ method: method.toUpperCase(), path });
         continue;

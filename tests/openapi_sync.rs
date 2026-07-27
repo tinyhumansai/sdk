@@ -89,16 +89,23 @@ fn generated_rust_routes_match_the_public_manifest() {
         .collect::<BTreeSet<_>>();
     let rust_routes = PUBLIC_ROUTES.iter().copied().collect::<BTreeSet<_>>();
 
-    assert_eq!(manifest["source"]["operationCount"], 187);
+    assert_eq!(manifest["source"]["operationCount"], 193);
     assert_eq!(manifest["source"]["supplementalOperationCount"], 5);
     assert_eq!(manifest["source"]["excludedAdminOperationCount"], 35);
-    assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 18);
-    assert_eq!(rust_routes.len(), 187);
+    assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 12);
+    assert_eq!(rust_routes.len(), 193);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()
         .all(|(_, path)| !path.split('/').any(|segment| segment == "admin")));
-    assert!(rust_routes
-        .iter()
-        .all(|(_, path)| !path.split('/').any(|segment| segment == "webhooks")));
+    // Webhook *receivers* stay out of the public surface: they are provider
+    // callbacks authenticated by signature, so an SDK caller invoking one would
+    // be forging provider traffic. The user-owned tunnel CRUD under
+    // `/webhooks/core` is ordinary bearer-authenticated user-facing API and is
+    // the one permitted exception under this prefix.
+    assert!(rust_routes.iter().all(|(_, path)| {
+        !path.split('/').any(|segment| segment == "webhooks")
+            || *path == "/webhooks/core"
+            || path.starts_with("/webhooks/core/")
+    }));
 }

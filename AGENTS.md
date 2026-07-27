@@ -34,10 +34,20 @@ agent-integration platform. The SDK should expose these API families cleanly:
 - Feedback, invites, referrals, rewards, announcements, mascots, Medulla,
   OpenCompany, and orchestration routes.
 
-Administrative and webhook routes are intentionally excluded, including legacy
-operations outside `/admin` whose deployed OpenAPI summary marks them as
-admin-only. Never add typed methods for these routes or permit them through the
-raw transport.
+Administrative routes and webhook *receivers* are intentionally excluded,
+including legacy operations outside `/admin` whose deployed OpenAPI summary
+marks them as admin-only. Never add typed methods for these routes or permit
+them through the raw transport.
+
+The webhook exclusion targets receivers specifically — the endpoints providers
+call into (Stripe, Telegram, Discord, GitHub, Composio, Coinbase, Sentry,
+Twilio, and the `/webhooks/ingress/*` tunnel paths). The discriminator is
+`bearerAuth`: receivers have none because they are authenticated by provider
+signature, so an SDK caller has nothing to send and would only be forging
+provider traffic. Do not widen this to every path containing a `webhooks`
+segment — that also catches `/webhooks/core*`, the user-owned webhook *tunnel*
+CRUD, which is ordinary bearer-authenticated user-facing API and is exposed as
+the `webhooks` namespace.
 
 Successful JSON responses usually use:
 

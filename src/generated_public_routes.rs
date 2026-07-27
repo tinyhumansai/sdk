@@ -189,6 +189,12 @@ pub const PUBLIC_ROUTES: &[(&str, &str)] = &[
     ("POST", "/teams/{teamId}/switch"),
     ("POST", "/teams/join"),
     ("GET", "/teams/me/usage"),
+    ("GET", "/webhooks/core"),
+    ("POST", "/webhooks/core"),
+    ("DELETE", "/webhooks/core/{id}"),
+    ("GET", "/webhooks/core/{id}"),
+    ("PATCH", "/webhooks/core/{id}"),
+    ("GET", "/webhooks/core/bandwidth"),
 ];
 
 /// Route templates intentionally unavailable through both typed and raw SDK APIs.
@@ -232,12 +238,6 @@ pub(crate) const UNEXPOSED_ROUTES: &[(&str, &str)] = &[
     ("DELETE", "/teams/{teamId}/members/{userId}"),
     ("PUT", "/teams/{teamId}/members/{userId}/role"),
     ("POST", "/webhooks/composio"),
-    ("GET", "/webhooks/core"),
-    ("POST", "/webhooks/core"),
-    ("DELETE", "/webhooks/core/{id}"),
-    ("GET", "/webhooks/core/{id}"),
-    ("PATCH", "/webhooks/core/{id}"),
-    ("GET", "/webhooks/core/bandwidth"),
     ("POST", "/webhooks/discord"),
     ("POST", "/webhooks/github"),
     ("POST", "/webhooks/ingress/{uuid}"),

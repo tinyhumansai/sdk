@@ -169,6 +169,9 @@ impl TinyHumansClient {
     pub fn teams(&self) -> api::teams::TeamsApi<'_> {
         api::teams::TeamsApi::new(&self.http)
     }
+    pub fn webhooks(&self) -> api::webhooks::WebhooksApi<'_> {
+        api::webhooks::WebhooksApi::new(&self.http)
+    }
 }
 
 #[derive(Clone)]
@@ -383,7 +386,7 @@ mod exclusion_tests {
 
     #[test]
     fn every_admin_and_webhook_route_is_rejected_by_the_raw_transport_gate() {
-        assert_eq!(UNEXPOSED_ROUTES.len(), 53);
+        assert_eq!(UNEXPOSED_ROUTES.len(), 47);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
@@ -404,6 +407,27 @@ mod exclusion_tests {
                 ),
                 "{} {template} was not blocked",
                 method.as_str()
+            );
+        }
+    }
+
+    /// The blocked set covers webhook *receivers* only. `/webhooks/core*` is
+    /// user-owned tunnel CRUD — bearer-authenticated, user-facing, and driven
+    /// by OpenHuman — so it must stay reachable even though it shares the
+    /// `/webhooks` prefix with the receivers around it.
+    #[test]
+    fn webhook_tunnel_crud_is_not_in_the_blocked_set() {
+        for (method, path) in [
+            ("GET", "/webhooks/core"),
+            ("POST", "/webhooks/core"),
+            ("GET", "/webhooks/core/{id}"),
+            ("PATCH", "/webhooks/core/{id}"),
+            ("DELETE", "/webhooks/core/{id}"),
+            ("GET", "/webhooks/core/bandwidth"),
+        ] {
+            assert!(
+                !UNEXPOSED_ROUTES.contains(&(method, path)),
+                "{method} {path} is user-facing and must not be blocked"
             );
         }
     }

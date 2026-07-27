@@ -22,3 +22,4 @@ pub mod referral;
 pub mod rewards;
 pub mod teams;
 pub mod types;
+pub mod webhooks;

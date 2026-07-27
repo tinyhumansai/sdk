@@ -10,10 +10,10 @@
     "version": "1.0.0",
     "pathCount": 205,
     "totalOperationCount": 235,
-    "operationCount": 187,
+    "operationCount": 193,
     "supplementalOperationCount": 5,
     "excludedAdminOperationCount": 35,
-    "excludedWebhookOperationCount": 18,
+    "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
       "https://staging-api.tinyhumans.ai/",
@@ -438,6 +438,23 @@
         "POST /teams/{teamId}/invites/email",
         "POST /teams/{teamId}/leave",
         "POST /teams/{teamId}/switch"
+      ]
+    },
+    {
+      "name": "webhooks",
+      "basePath": "/webhooks",
+      "auth": "bearer",
+      "operationCount": 6,
+      "tags": [
+        "Webhooks"
+      ],
+      "routes": [
+        "DELETE /webhooks/core/{id}",
+        "GET /webhooks/core",
+        "GET /webhooks/core/bandwidth",
+        "GET /webhooks/core/{id}",
+        "PATCH /webhooks/core/{id}",
+        "POST /webhooks/core"
       ]
     }
   ]
