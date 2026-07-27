@@ -67,11 +67,6 @@ impl TinyHumansClient {
         self
     }
 
-    pub fn with_admin_service_token(mut self, admin_service_token: Option<String>) -> Self {
-        self.http.admin_service_token = admin_service_token;
-        self
-    }
-
     /// Fetch the deployed OpenAPI document (not enveloped).
     pub async fn swagger(&self) -> Result<Value, Error> {
         self.http
@@ -108,14 +103,26 @@ impl TinyHumansClient {
     pub fn inference(&self) -> api::inference::InferenceApi<'_> {
         api::inference::InferenceApi::new(&self.http)
     }
-    pub fn investors(&self) -> api::investors::InvestorsApi<'_> {
-        api::investors::InvestorsApi::new(&self.http)
+    pub fn api_keys(&self) -> api::api_keys::ApiKeysApi<'_> {
+        api::api_keys::ApiKeysApi::new(&self.http)
+    }
+    pub fn budgets(&self) -> api::budgets::BudgetsApi<'_> {
+        api::budgets::BudgetsApi::new(&self.http)
     }
     pub fn invite(&self) -> api::invite::InviteApi<'_> {
         api::invite::InviteApi::new(&self.http)
     }
     pub fn mascots(&self) -> api::mascots::MascotsApi<'_> {
         api::mascots::MascotsApi::new(&self.http)
+    }
+    pub fn medulla(&self) -> api::medulla::MedullaApi<'_> {
+        api::medulla::MedullaApi::new(&self.http)
+    }
+    pub fn opencompany(&self) -> api::opencompany::OpenCompanyApi<'_> {
+        api::opencompany::OpenCompanyApi::new(&self.http)
+    }
+    pub fn orchestration(&self) -> api::orchestration::OrchestrationApi<'_> {
+        api::orchestration::OrchestrationApi::new(&self.http)
     }
     pub fn payments(&self) -> api::payments::PaymentsApi<'_> {
         api::payments::PaymentsApi::new(&self.http)
@@ -142,7 +149,6 @@ pub struct HttpClient {
     base_url: String,
     token: Option<String>,
     api_key: Option<String>,
-    admin_service_token: Option<String>,
     client: ReqwestClient,
 }
 
@@ -152,7 +158,6 @@ impl HttpClient {
             base_url: base_url.into().trim_end_matches('/').to_owned(),
             token: None,
             api_key: None,
-            admin_service_token: None,
             client: ReqwestClient::new(),
         }
     }
@@ -206,6 +211,35 @@ impl HttpClient {
         self.send(Method::POST, path, &[], Some(body), true).await
     }
 
+    pub async fn post_multipart(
+        &self,
+        path: &str,
+        form: reqwest::multipart::Form,
+    ) -> Result<Value, Error> {
+        let url = self.url(path, &[])?;
+        let response = self
+            .client
+            .post(url)
+            .headers(self.headers()?)
+            .multipart(form)
+            .send()
+            .await?;
+        let status = response.status();
+        let text = response.text().await?;
+        let value = if text.is_empty() {
+            Value::Null
+        } else {
+            serde_json::from_str(&text).unwrap_or(Value::String(text))
+        };
+        if !status.is_success() {
+            return Err(Error::Status {
+                status: status.as_u16(),
+                body: value,
+            });
+        }
+        Ok(unwrap_envelope(value))
+    }
+
     fn url(&self, path: &str, query: &[QueryParam]) -> Result<Url, Error> {
         let normalized = if path.starts_with('/') {
             path.to_owned()
@@ -235,9 +269,6 @@ impl HttpClient {
         }
         if let Some(api_key) = &self.api_key {
             headers.insert("x-api-key", HeaderValue::from_str(api_key)?);
-        }
-        if let Some(token) = &self.admin_service_token {
-            headers.insert("x-admin-service-token", HeaderValue::from_str(token)?);
         }
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
         Ok(headers)

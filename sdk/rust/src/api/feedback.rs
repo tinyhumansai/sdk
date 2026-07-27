@@ -1,4 +1,4 @@
-//! Public feedback board: submit, browse, read, vote, comment, and update status.
+//! Public feedback board: submit, browse, read, vote, and comment.
 
 use reqwest::Method;
 use serde_json::Value;
@@ -22,6 +22,12 @@ impl<'a> FeedbackApi<'a> {
             .await
     }
 
+    pub async fn ingest_feedback(&self, body: &Value) -> Result<Value, Error> {
+        self.http
+            .send(Method::POST, "/feedback/ingest", &[], Some(body), true)
+            .await
+    }
+
     /// List feedback on the public board.
     pub async fn list_feedback(&self, query: &[QueryParam]) -> Result<Value, Error> {
         self.http
@@ -40,14 +46,6 @@ impl<'a> FeedbackApi<'a> {
         let path = format!("/feedback/{}/comments", enc(id));
         self.http
             .send(Method::POST, &path, &[], Some(body), true)
-            .await
-    }
-
-    /// Update a feedback item's status (admin only).
-    pub async fn update_feedback_status(&self, id: &str, body: &Value) -> Result<Value, Error> {
-        let path = format!("/feedback/{}/status", enc(id));
-        self.http
-            .send(Method::PATCH, &path, &[], Some(body), true)
             .await
     }
 

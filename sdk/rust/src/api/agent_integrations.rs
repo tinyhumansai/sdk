@@ -17,6 +17,170 @@ impl<'a> AgentIntegrationsApi<'a> {
         Self { http }
     }
 
+    pub async fn list_files(&self, query: &[QueryParam]) -> Result<Value, Error> {
+        self.http
+            .send(
+                Method::GET,
+                "/agent-integrations/file-storage/files",
+                query,
+                None,
+                true,
+            )
+            .await
+    }
+    pub async fn get_file(&self, file_id: &str) -> Result<Value, Error> {
+        self.http
+            .send(
+                Method::GET,
+                &format!("/agent-integrations/file-storage/files/{}", enc(file_id)),
+                &[],
+                None,
+                true,
+            )
+            .await
+    }
+    pub async fn download_file(&self, file_id: &str) -> Result<Value, Error> {
+        self.http
+            .send(
+                Method::GET,
+                &format!(
+                    "/agent-integrations/file-storage/files/{}/download",
+                    enc(file_id)
+                ),
+                &[],
+                None,
+                false,
+            )
+            .await
+    }
+    pub async fn public_file(&self, file_id: &str) -> Result<Value, Error> {
+        self.http
+            .send(
+                Method::GET,
+                &format!("/agent-integrations/file-storage/public/{}", enc(file_id)),
+                &[],
+                None,
+                false,
+            )
+            .await
+    }
+    pub async fn file_storage_usage(&self) -> Result<Value, Error> {
+        self.http
+            .send(
+                Method::GET,
+                "/agent-integrations/file-storage/usage",
+                &[],
+                None,
+                true,
+            )
+            .await
+    }
+    pub async fn upload_file(
+        &self,
+        file_name: &str,
+        bytes: Vec<u8>,
+        visibility: Option<&str>,
+        ttl_days: Option<u32>,
+    ) -> Result<Value, Error> {
+        let mut form = reqwest::multipart::Form::new().part(
+            "file",
+            reqwest::multipart::Part::bytes(bytes).file_name(file_name.to_owned()),
+        );
+        if let Some(value) = visibility {
+            form = form.text("visibility", value.to_owned());
+        }
+        if let Some(value) = ttl_days {
+            form = form.text("ttlDays", value.to_string());
+        }
+        self.http
+            .post_multipart("/agent-integrations/file-storage/files", form)
+            .await
+    }
+    pub async fn update_file_visibility(
+        &self,
+        file_id: &str,
+        visibility: &str,
+    ) -> Result<Value, Error> {
+        let body = serde_json::json!({"visibility": visibility});
+        self.http
+            .send(
+                Method::PATCH,
+                &format!("/agent-integrations/file-storage/files/{}", enc(file_id)),
+                &[],
+                Some(&body),
+                true,
+            )
+            .await
+    }
+    pub async fn delete_file(&self, file_id: &str) -> Result<Value, Error> {
+        self.http
+            .send(
+                Method::DELETE,
+                &format!("/agent-integrations/file-storage/files/{}", enc(file_id)),
+                &[],
+                None,
+                true,
+            )
+            .await
+    }
+    pub async fn create_file_link(
+        &self,
+        file_id: &str,
+        expires_in_seconds: Option<u32>,
+    ) -> Result<Value, Error> {
+        let body = serde_json::json!({"expiresInSeconds": expires_in_seconds});
+        self.http
+            .send(
+                Method::POST,
+                &format!(
+                    "/agent-integrations/file-storage/files/{}/link",
+                    enc(file_id)
+                ),
+                &[],
+                Some(&body),
+                true,
+            )
+            .await
+    }
+    pub async fn history_rewards_status(&self) -> Result<Value, Error> {
+        self.http
+            .send(
+                Method::GET,
+                "/agent-integrations/history-rewards/status",
+                &[],
+                None,
+                true,
+            )
+            .await
+    }
+    pub async fn claim_history_reward(&self) -> Result<Value, Error> {
+        self.http
+            .send(
+                Method::POST,
+                "/agent-integrations/history-rewards/claim",
+                &[],
+                None,
+                true,
+            )
+            .await
+    }
+    pub async fn upload_history(
+        &self,
+        file_name: &str,
+        bytes: Vec<u8>,
+        agent: &str,
+    ) -> Result<Value, Error> {
+        let form = reqwest::multipart::Form::new()
+            .part(
+                "file",
+                reqwest::multipart::Part::bytes(bytes).file_name(file_name.to_owned()),
+            )
+            .text("agent", agent.to_owned());
+        self.http
+            .post_multipart("/agent-integrations/history-rewards/uploads", form)
+            .await
+    }
+
     // --- Apify ---
 
     /// Run an Apify actor.
@@ -105,19 +269,6 @@ impl<'a> AgentIntegrationsApi<'a> {
                 Method::GET,
                 "/agent-integrations/composio/toolkits",
                 &[],
-                None,
-                true,
-            )
-            .await
-    }
-
-    /// Refresh the cached Composio toolkit catalog (admin).
-    pub async fn refresh_composio_toolkits(&self, query: &[QueryParam]) -> Result<Value, Error> {
-        self.http
-            .send(
-                Method::POST,
-                "/agent-integrations/composio/toolkits/refresh",
-                query,
                 None,
                 true,
             )

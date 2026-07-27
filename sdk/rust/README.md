@@ -19,3 +19,6 @@ let models = client.inference().get("/v1/models").await?;
 
 The Rust crate exposes thin namespace clients and a raw request pipeline over
 the deployed Swagger contract at <https://api.tinyhumans.ai/swagger.json>.
+Its typed surface intentionally follows the non-admin contract, including API
+keys, budgets, file storage, Medulla, OpenCompany, and orchestration. Admin
+operations and admin credentials are not exposed.

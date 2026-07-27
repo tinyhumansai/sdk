@@ -79,25 +79,6 @@ async fn comment_feedback_posts_body() {
 }
 
 #[tokio::test]
-async fn update_feedback_status_patches() {
-    let server = MockServer::start().await;
-    Mock::given(method("PATCH"))
-        .and(path("/feedback/fb_9/status"))
-        .and(body_json(json!({"status": "planned"})))
-        .respond_with(ok(json!({"status": "planned"})))
-        .mount(&server)
-        .await;
-
-    let client = TinyHumansClient::new(server.uri());
-    let result = client
-        .feedback()
-        .update_feedback_status("fb_9", &json!({"status": "planned"}))
-        .await
-        .unwrap();
-    assert_eq!(result, json!({"status": "planned"}));
-}
-
-#[tokio::test]
 async fn vote_feedback_posts_body() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))

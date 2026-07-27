@@ -188,29 +188,6 @@ async fn list_composio_toolkits_gets() {
 }
 
 #[tokio::test]
-async fn refresh_composio_toolkits_posts_with_query() {
-    let server = MockServer::start().await;
-    Mock::given(method("POST"))
-        .and(path("/agent-integrations/composio/toolkits/refresh"))
-        .and(query_param("full", "true"))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(json!({"success": true, "data": {"refreshed": 3}})),
-        )
-        .mount(&server)
-        .await;
-
-    let client = TinyHumansClient::new(server.uri());
-    let result = client
-        .agent_integrations()
-        .refresh_composio_toolkits(&[("full", Some("true".to_string()))])
-        .await
-        .unwrap();
-
-    assert_eq!(result, json!({"refreshed": 3}));
-}
-
-#[tokio::test]
 async fn list_composio_tools_gets_query() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))

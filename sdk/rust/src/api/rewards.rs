@@ -28,4 +28,11 @@ impl<'a> RewardsApi<'a> {
             .send(Method::GET, "/rewards/me", &[], None, true)
             .await
     }
+
+    pub async fn claim(&self, reward_type: &str) -> Result<Value, Error> {
+        let body = serde_json::json!({"rewardType": reward_type});
+        self.http
+            .send(Method::POST, "/rewards/claim", &[], Some(&body), true)
+            .await
+    }
 }

@@ -3,7 +3,7 @@ use tinyhumans_sdk::{Error, TinyHumansClient};
 use wiremock::matchers::{header, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
-// All three credential headers plus the static headers must reach the server.
+// User credential headers plus the static headers must reach the server.
 #[tokio::test]
 async fn sends_all_auth_and_static_headers() {
     let server = MockServer::start().await;
@@ -11,7 +11,6 @@ async fn sends_all_auth_and_static_headers() {
         .and(path("/auth/me"))
         .and(header("authorization", "Bearer t"))
         .and(header("x-api-key", "k"))
-        .and(header("x-admin-service-token", "a"))
         .and(header("accept", "application/json"))
         .and(header("x-sdk-client", "tinyhumans-rust"))
         .respond_with(
@@ -23,8 +22,7 @@ async fn sends_all_auth_and_static_headers() {
 
     let client = TinyHumansClient::new(server.uri())
         .with_token(Some("t".into()))
-        .with_api_key(Some("k".into()))
-        .with_admin_service_token(Some("a".into()));
+        .with_api_key(Some("k".into()));
 
     let result = client.auth().me().await.unwrap();
     assert_eq!(result, json!({"id": "u_1"}));

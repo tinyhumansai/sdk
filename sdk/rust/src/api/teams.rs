@@ -41,14 +41,6 @@ impl<'a> TeamsApi<'a> {
         self.http.send(Method::GET, &path, &[], None, true).await
     }
 
-    /// Update team settings (admin only).
-    pub async fn update_team(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
-        let path = format!("/teams/{}", enc(team_id));
-        self.http
-            .send(Method::PUT, &path, &[], Some(body), true)
-            .await
-    }
-
     /// Get the team's current subscription plan.
     pub async fn get_billing_plan(&self, team_id: &str) -> Result<Value, Error> {
         let path = format!("/teams/{}/billing/plan", enc(team_id));
@@ -109,25 +101,6 @@ impl<'a> TeamsApi<'a> {
     pub async fn list_members(&self, team_id: &str) -> Result<Value, Error> {
         let path = format!("/teams/{}/members", enc(team_id));
         self.http.send(Method::GET, &path, &[], None, true).await
-    }
-
-    /// Remove a member from the team (admin only).
-    pub async fn remove_member(&self, team_id: &str, user_id: &str) -> Result<Value, Error> {
-        let path = format!("/teams/{}/members/{}", enc(team_id), enc(user_id));
-        self.http.send(Method::DELETE, &path, &[], None, true).await
-    }
-
-    /// Change a member's role (admin only).
-    pub async fn update_member_role(
-        &self,
-        team_id: &str,
-        user_id: &str,
-        body: &Value,
-    ) -> Result<Value, Error> {
-        let path = format!("/teams/{}/members/{}/role", enc(team_id), enc(user_id));
-        self.http
-            .send(Method::PUT, &path, &[], Some(body), true)
-            .await
     }
 
     /// Switch the user's active team.
