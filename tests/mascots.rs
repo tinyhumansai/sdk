@@ -1,4 +1,5 @@
 use serde_json::json;
+use tinyhumans_sdk::api::types::JoinMeetingRequest;
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -48,7 +49,16 @@ async fn join_meeting_posts_json_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .mascots()
-        .join_meeting(&json!({"meetUrl": "https://meet.example/xyz"}))
+        .join_meeting(&JoinMeetingRequest {
+            meet_url: "https://meet.example/xyz".into(),
+            mascot_id: None,
+            agent_name: None,
+            display_name: None,
+            platform: None,
+            system_prompt: None,
+            muted: None,
+            rive_colors: None,
+        })
         .await
         .unwrap();
     assert_eq!(result, json!({"joined": true}));

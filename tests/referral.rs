@@ -1,4 +1,5 @@
 use serde_json::json;
+use tinyhumans_sdk::api::types::ClaimReferralRequest;
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -18,7 +19,10 @@ async fn claim_referral_posts_json_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .referral()
-        .claim_referral(&json!({"code": "abc"}))
+        .claim_referral(&ClaimReferralRequest {
+            code: "abc".into(),
+            device_fingerprint: None,
+        })
         .await
         .unwrap();
 

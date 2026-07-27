@@ -3,7 +3,8 @@
 Rust client for the public TinyHumans backend API.
 
 The crate is grounded in the deployed OpenAPI document at
-<https://api.tinyhumans.ai/swagger.json>. It exposes 200 public operations
+<https://api.tinyhumans.ai/swagger.json> plus five public operations exercised
+by OpenHuman but not yet documented there. It exposes 187 public operations
 across 21 namespaces. All 35 administrative operations are intentionally
 excluded, including legacy routes outside `/admin` whose contract marks them
 as admin-only.

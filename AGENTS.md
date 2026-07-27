@@ -30,13 +30,14 @@ agent-integration platform. The SDK should expose these API families cleanly:
   and `/payments/*`.
 - Agent integrations under `/agent-integrations/*` for Composio, Parallel,
   media generation, financial APIs, maps, Apify, Tenor, Twilio, and crypto.
-- Telegram/Discord channel integration routes under `/channels/*` and
-  provider webhook routes under `/webhooks/*`.
+- Telegram/Discord channel integration routes under `/channels/*`.
 - Feedback, invites, referrals, rewards, announcements, mascots, Medulla,
   OpenCompany, and orchestration routes.
 
-Administrative routes are intentionally excluded, including legacy operations
-outside `/admin` whose deployed OpenAPI summary marks them as admin-only.
+Administrative and webhook routes are intentionally excluded, including legacy
+operations outside `/admin` whose deployed OpenAPI summary marks them as
+admin-only. Never add typed methods for these routes or permit them through the
+raw transport.
 
 Successful JSON responses usually use:
 

@@ -1,4 +1,10 @@
 use serde_json::json;
+use serde_json::Map;
+use tinyhumans_sdk::api::payments::{
+    AutoRechargeRequest, CoinbasePlan, CreateCoinbaseChargeRequest, CreditTopUpRequest,
+    PaymentGateway, PurchaseStripePlanRequest, UpdateAutoRechargeCardRequest,
+};
+use tinyhumans_sdk::api::types::BillingPlan;
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -8,7 +14,7 @@ async fn create_coinbase_charge_posts_body() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/payments/coinbase/charge"))
-        .and(body_json(json!({"amount": 10})))
+        .and(body_json(json!({"plan": "PRO"})))
         .respond_with(
             ResponseTemplate::new(200)
                 .set_body_json(json!({"success": true, "data": {"id": "charge_1"}})),
@@ -19,7 +25,11 @@ async fn create_coinbase_charge_posts_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .payments()
-        .create_coinbase_charge(&json!({"amount": 10}))
+        .create_coinbase_charge(&CreateCoinbaseChargeRequest {
+            plan: CoinbasePlan::Pro,
+            interval: None,
+            metadata: Map::new(),
+        })
         .await
         .unwrap();
 
@@ -83,7 +93,11 @@ async fn update_auto_recharge_patches_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .payments()
-        .update_auto_recharge(&json!({"enabled": false}))
+        .update_auto_recharge(&AutoRechargeRequest {
+            enabled: Some(false),
+            threshold_usd: None,
+            recharge_amount_usd: None,
+        })
         .await
         .unwrap();
 
@@ -146,7 +160,12 @@ async fn update_auto_recharge_card_patches_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .payments()
-        .update_auto_recharge_card("pm_9", &json!({"default": true}))
+        .update_auto_recharge_card(
+            "pm_9",
+            &UpdateAutoRechargeCardRequest {
+                fields: Map::from_iter([("default".into(), json!(true))]),
+            },
+        )
         .await
         .unwrap();
 
@@ -198,7 +217,7 @@ async fn create_credit_top_up_posts_body() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/payments/credits/top-up"))
-        .and(body_json(json!({"amount": 20})))
+        .and(body_json(json!({"amountUsd": 20.0, "gateway": "stripe"})))
         .respond_with(
             ResponseTemplate::new(200)
                 .set_body_json(json!({"success": true, "data": {"url": "https://pay"}})),
@@ -209,7 +228,10 @@ async fn create_credit_top_up_posts_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .payments()
-        .create_credit_top_up(&json!({"amount": 20}))
+        .create_credit_top_up(&CreditTopUpRequest {
+            amount_usd: 20.0,
+            gateway: Some(PaymentGateway::Stripe),
+        })
         .await
         .unwrap();
 
@@ -383,7 +405,7 @@ async fn purchase_stripe_plan_posts_body() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/payments/stripe/purchasePlan"))
-        .and(body_json(json!({"plan": "pro"})))
+        .and(body_json(json!({"plan": "PRO_MONTHLY"})))
         .respond_with(
             ResponseTemplate::new(200)
                 .set_body_json(json!({"success": true, "data": {"url": "https://checkout"}})),
@@ -394,7 +416,10 @@ async fn purchase_stripe_plan_posts_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .payments()
-        .purchase_stripe_plan(&json!({"plan": "pro"}))
+        .purchase_stripe_plan(&PurchaseStripePlanRequest {
+            plan: BillingPlan::ProMonthly,
+            coupon_code: None,
+        })
         .await
         .unwrap();
 

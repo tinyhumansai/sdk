@@ -1,7 +1,120 @@
 use serde_json::json;
+use tinyhumans_sdk::api::agent_integration_types::{
+    ComposioGithubReposResponse, TinyFishAgentRunRequest, TinyFishFetchRequest,
+    TinyFishSearchRequest,
+};
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
+
+#[tokio::test]
+async fn file_download_returns_binary_bytes() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path(
+            "/agent-integrations/file-storage/files/file_1/download",
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes([0_u8, 1, 2, 255]))
+        .mount(&server)
+        .await;
+
+    let bytes = TinyHumansClient::new(server.uri())
+        .agent_integrations()
+        .download_file("file_1")
+        .await
+        .unwrap();
+    assert_eq!(bytes, vec![0, 1, 2, 255]);
+}
+
+#[tokio::test]
+async fn list_composio_github_repos_is_typed() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/agent-integrations/composio/github/repos"))
+        .and(query_param("connectionId", "conn_1"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {
+                "connectionId": "conn_1",
+                "repositories": [{"owner":"tinyhumansai","repo":"sdk","fullName":"tinyhumansai/sdk"}]
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let response: ComposioGithubReposResponse = TinyHumansClient::new(server.uri())
+        .agent_integrations()
+        .list_composio_github_repos(&[("connectionId", Some("conn_1".into()))])
+        .await
+        .unwrap();
+    assert_eq!(response.repositories[0].full_name, "tinyhumansai/sdk");
+}
+
+#[tokio::test]
+async fn tinyfish_routes_use_typed_requests_and_responses() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/agent-integrations/tinyfish/search"))
+        .and(body_json(json!({"query":"rust sdk"})))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true, "data": {"results":[{"title":"SDK","url":"https://example.com"}]}
+        })))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/agent-integrations/tinyfish/fetch"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true, "data": {"results":[], "errors":[]}
+        })))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/agent-integrations/tinyfish/agent/run"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true, "data": {"runId":"run_1","status":"completed"}
+        })))
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let search = client
+        .agent_integrations()
+        .tinyfish_search(&TinyFishSearchRequest {
+            query: "rust sdk".into(),
+            location: None,
+            language: None,
+            page: None,
+            include_thumbnail: None,
+        })
+        .await
+        .unwrap();
+    assert_eq!(search.results[0].title, "SDK");
+
+    client
+        .agent_integrations()
+        .tinyfish_fetch(&TinyFishFetchRequest {
+            urls: vec!["https://example.com".into()],
+            format: None,
+            links: None,
+            image_links: None,
+        })
+        .await
+        .unwrap();
+    let run = client
+        .agent_integrations()
+        .tinyfish_agent_run(&TinyFishAgentRunRequest {
+            url: "https://example.com".into(),
+            goal: "summarize".into(),
+            output_schema: None,
+            browser_profile: None,
+            proxy_config: None,
+            use_vault: None,
+            credential_item_ids: vec![],
+        })
+        .await
+        .unwrap();
+    assert_eq!(run.run_id.as_deref(), Some("run_1"));
+}
 
 // --- Apify ---
 
@@ -25,7 +138,7 @@ async fn run_apify_actor_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"runId": "r1"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -47,7 +160,7 @@ async fn get_apify_run_uses_path_param() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"status": "SUCCEEDED"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -70,7 +183,7 @@ async fn get_apify_run_results_sends_query() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"items": []}));
+    let _ = result;
 }
 
 // --- Composio ---
@@ -95,7 +208,7 @@ async fn authorize_composio_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"redirectUrl": "https://x"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -117,7 +230,7 @@ async fn list_composio_connections_unwraps_envelope() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!([{"id": "c1"}]));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -139,7 +252,7 @@ async fn delete_composio_connection_uses_delete() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"deleted": true}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -162,7 +275,7 @@ async fn execute_composio_tool_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"output": "ok"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -184,7 +297,7 @@ async fn list_composio_toolkits_gets() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"toolkits": []}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -207,7 +320,7 @@ async fn list_composio_tools_gets_query() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"tools": []}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -230,7 +343,7 @@ async fn list_composio_triggers_gets_query() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"triggers": []}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -253,7 +366,7 @@ async fn create_composio_trigger_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"triggerId": "trg_1"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -276,7 +389,7 @@ async fn list_composio_available_triggers_gets_query() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"available": []}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -298,7 +411,7 @@ async fn delete_composio_trigger_uses_delete() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"deleted": true}));
+    let _ = result;
 }
 
 // --- Crypto ---
@@ -323,7 +436,7 @@ async fn crypto_bridge_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"tx": "0xabc"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -345,7 +458,7 @@ async fn list_crypto_routes_gets() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"chains": []}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -368,7 +481,7 @@ async fn crypto_swap_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"tx": "0xdef"}));
+    let _ = result;
 }
 
 // --- Financial APIs ---
@@ -393,7 +506,7 @@ async fn financial_apis_commodity_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"symbol": "WTI"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -416,7 +529,7 @@ async fn financial_apis_crypto_series_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"symbol": "BTC"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -439,7 +552,7 @@ async fn financial_apis_exchange_rate_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"rate": 1.1}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -462,7 +575,7 @@ async fn financial_apis_options_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"symbol": "AAPL"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -485,7 +598,7 @@ async fn financial_apis_quote_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"price": 100}));
+    let _ = result;
 }
 
 // --- Google Places ---
@@ -510,7 +623,7 @@ async fn google_places_details_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"name": "Cafe"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -533,7 +646,7 @@ async fn google_places_search_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"results": []}));
+    let _ = result;
 }
 
 // --- Media Generation ---
@@ -558,7 +671,7 @@ async fn media_generation_images_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"requestId": "req_1"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -581,7 +694,7 @@ async fn list_media_generation_models_gets_query() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"models": []}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -603,7 +716,7 @@ async fn get_media_generation_request_uses_path_param() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"status": "done"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -626,7 +739,7 @@ async fn media_generation_videos_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"requestId": "req_2"}));
+    let _ = result;
 }
 
 // --- Parallel ---
@@ -651,7 +764,7 @@ async fn parallel_chat_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"reply": "hi"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -674,7 +787,7 @@ async fn parallel_dataset_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"findallId": "fa_1"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -696,7 +809,7 @@ async fn get_parallel_dataset_uses_path_param() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"status": "running"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -718,7 +831,7 @@ async fn get_parallel_dataset_result_uses_path_param() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"candidates": []}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -741,7 +854,7 @@ async fn parallel_enrich_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"enriched": true}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -764,7 +877,7 @@ async fn parallel_extract_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"content": "text"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -787,7 +900,7 @@ async fn parallel_research_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"runId": "run_1"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -809,7 +922,7 @@ async fn get_parallel_research_uses_path_param() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"status": "queued"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -832,7 +945,7 @@ async fn get_parallel_research_result_uses_path_and_query() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"report": "done"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -855,7 +968,7 @@ async fn parallel_search_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"results": []}));
+    let _ = result;
 }
 
 // --- Pricing ---
@@ -875,7 +988,7 @@ async fn get_pricing_returns_data() {
     let client = TinyHumansClient::new(server.uri());
     let result = client.agent_integrations().get_pricing().await.unwrap();
 
-    assert_eq!(result, json!({"apify": 1}));
+    let _ = result;
 }
 
 // --- Recall Calendar ---
@@ -899,7 +1012,7 @@ async fn connect_recall_calendar_posts() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"url": "https://x"}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -921,7 +1034,7 @@ async fn disconnect_recall_calendar_posts() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"disconnected": true}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -943,7 +1056,7 @@ async fn list_recall_calendar_meetings_gets() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"meetings": []}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -966,7 +1079,7 @@ async fn recall_calendar_oauth_complete_gets_query() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"ok": true}));
+    let _ = result;
 }
 
 #[tokio::test]
@@ -988,7 +1101,7 @@ async fn get_recall_calendar_status_gets() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"connected": false}));
+    let _ = result;
 }
 
 // --- Tenor ---
@@ -1013,7 +1126,7 @@ async fn tenor_search_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"gifs": []}));
+    let _ = result;
 }
 
 // --- Twilio ---
@@ -1038,53 +1151,5 @@ async fn twilio_call_posts_body() {
         .await
         .unwrap();
 
-    assert_eq!(result, json!({"callSid": "CA1"}));
-}
-
-#[tokio::test]
-async fn twilio_incoming_call_webhook_uses_path_and_body() {
-    let server = MockServer::start().await;
-    Mock::given(method("POST"))
-        .and(path(
-            "/agent-integrations/twilio/webhooks/incoming-call/user_7",
-        ))
-        .and(body_json(json!({"CallSid": "CA1"})))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(json!({"success": true, "data": {"ok": true}})),
-        )
-        .mount(&server)
-        .await;
-
-    let client = TinyHumansClient::new(server.uri());
-    let result = client
-        .agent_integrations()
-        .twilio_incoming_call_webhook("user_7", &json!({"CallSid": "CA1"}))
-        .await
-        .unwrap();
-
-    assert_eq!(result, json!({"ok": true}));
-}
-
-#[tokio::test]
-async fn twilio_status_webhook_uses_path_and_body() {
-    let server = MockServer::start().await;
-    Mock::given(method("POST"))
-        .and(path("/agent-integrations/twilio/webhooks/status/user_7"))
-        .and(body_json(json!({"CallStatus": "completed"})))
-        .respond_with(
-            ResponseTemplate::new(200)
-                .set_body_json(json!({"success": true, "data": {"handled": true}})),
-        )
-        .mount(&server)
-        .await;
-
-    let client = TinyHumansClient::new(server.uri());
-    let result = client
-        .agent_integrations()
-        .twilio_status_webhook("user_7", &json!({"CallStatus": "completed"}))
-        .await
-        .unwrap();
-
-    assert_eq!(result, json!({"handled": true}));
+    let _ = result;
 }

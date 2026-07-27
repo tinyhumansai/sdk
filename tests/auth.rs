@@ -1,4 +1,5 @@
 use serde_json::json;
+use tinyhumans_sdk::api::types::{EmailLinkRequest, IntegrationTokenRequest, LoginTokenRequest};
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -38,7 +39,10 @@ async fn send_email_link_posts_json_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .auth()
-        .send_email_link(&json!({"email": "a@b.com"}))
+        .send_email_link(&EmailLinkRequest {
+            email: "a@b.com".into(),
+            frontend_redirect_uri: None,
+        })
         .await
         .unwrap();
     assert_eq!(result, json!({"sent": true}));
@@ -72,7 +76,9 @@ async fn consume_login_token_posts() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .auth()
-        .consume_login_token(&json!({"token": "one_time"}))
+        .consume_login_token(&LoginTokenRequest {
+            token: "one_time".into(),
+        })
         .await
         .unwrap();
     assert_eq!(result, json!({"session": "s_1"}));
@@ -125,7 +131,7 @@ async fn create_integration_token_posts() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))
         .and(path("/auth/integrations/int_1/tokens"))
-        .and(body_json(json!({"scope": "read"})))
+        .and(body_json(json!({"key": "secret"})))
         .respond_with(ok(json!({"token": "at_1"})))
         .mount(&server)
         .await;
@@ -133,7 +139,12 @@ async fn create_integration_token_posts() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .auth()
-        .create_integration_token("int_1", &json!({"scope": "read"}))
+        .create_integration_token(
+            "int_1",
+            &IntegrationTokenRequest {
+                key: "secret".into(),
+            },
+        )
         .await
         .unwrap();
     assert_eq!(result, json!({"token": "at_1"}));

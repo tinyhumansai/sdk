@@ -1,4 +1,8 @@
 use serde_json::json;
+use tinyhumans_sdk::api::inference::{
+    ChatCompletionRequest, CompletionRequest, EmbeddingInput, EmbeddingModel, EmbeddingsRequest,
+    SpeechRequest, TranscriptionRequest,
+};
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -50,7 +54,16 @@ async fn create_chat_completion_not_unwrapped() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .inference()
-        .create_chat_completion(&json!({"model": "gpt-x", "messages": []}))
+        .create_chat_completion(&ChatCompletionRequest {
+            model: "gpt-x".into(),
+            messages: vec![],
+            stream: None,
+            temperature: None,
+            max_tokens: None,
+            tools: vec![],
+            tool_choice: None,
+            thread_id: None,
+        })
         .await
         .unwrap();
     assert_eq!(result, body);
@@ -69,7 +82,14 @@ async fn create_completion_returns_body_as_is() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .inference()
-        .create_completion(&json!({"model": "gpt-x", "prompt": "hi"}))
+        .create_completion(&CompletionRequest {
+            model: "gpt-x".into(),
+            prompt: "hi".into(),
+            stream: None,
+            temperature: None,
+            max_tokens: None,
+            thread_id: None,
+        })
         .await
         .unwrap();
     assert_eq!(result, body);
@@ -88,7 +108,17 @@ async fn create_transcription_returns_body_as_is() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .inference()
-        .create_transcription(&json!({"model": "whisper-1", "file": "audio"}))
+        .create_transcription(&TranscriptionRequest {
+            file_name: "audio.wav".into(),
+            file: b"audio".to_vec(),
+            model: Some("whisper-v1".into()),
+            language: None,
+            response_format: None,
+            temperature: None,
+            vad_model: None,
+            diarize: None,
+            timestamp_granularities: vec![],
+        })
         .await
         .unwrap();
     assert_eq!(result, body);
@@ -108,7 +138,13 @@ async fn create_speech_returns_body_as_is() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .inference()
-        .create_speech(&json!({"model": "eleven", "input": "hi", "voice": "rachel"}))
+        .create_speech(&SpeechRequest {
+            text: "hi".into(),
+            voice_id: Some("rachel".into()),
+            model_id: None,
+            output_format: None,
+            with_visemes: None,
+        })
         .await
         .unwrap();
     assert_eq!(result, body);
@@ -127,7 +163,12 @@ async fn create_embeddings_returns_body_as_is() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .inference()
-        .create_embeddings(&json!({"model": "voyage-3", "input": "hi"}))
+        .create_embeddings(&EmbeddingsRequest {
+            model: EmbeddingModel::EmbeddingV1,
+            input: EmbeddingInput::One("hi".into()),
+            dimensions: None,
+            input_type: None,
+        })
         .await
         .unwrap();
     assert_eq!(result, body);

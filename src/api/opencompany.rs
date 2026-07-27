@@ -1,3 +1,4 @@
+use super::types::DynamicResponse;
 use crate::{enc, Error, HttpClient, QueryParam};
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
@@ -17,15 +18,27 @@ impl<'a> OpenCompanyApi<'a> {
     pub fn new(http: &'a HttpClient) -> Self {
         Self { http }
     }
-    async fn body(&self, method: Method, path: &str, body: Value) -> Result<Value, Error> {
-        self.http.send(method, path, &[], Some(&body), true).await
+    async fn body(
+        &self,
+        method: Method,
+        path: &str,
+        body: Value,
+    ) -> Result<DynamicResponse, Error> {
+        self.http
+            .send(method, path, &[], Some(&body), true)
+            .await
+            .map(Into::into)
     }
-    pub async fn list_instances(&self) -> Result<Value, Error> {
+    pub async fn list_instances(&self) -> Result<DynamicResponse, Error> {
         self.http
             .send(Method::GET, "/opencompany/instances", &[], None, true)
             .await
+            .map(Into::into)
     }
-    pub async fn create_instance(&self, request: &CreateInstanceRequest) -> Result<Value, Error> {
+    pub async fn create_instance(
+        &self,
+        request: &CreateInstanceRequest,
+    ) -> Result<DynamicResponse, Error> {
         self.body(
             Method::POST,
             "/opencompany/instances",
@@ -37,7 +50,7 @@ impl<'a> OpenCompanyApi<'a> {
         &self,
         slug: &str,
         purge_data: Option<bool>,
-    ) -> Result<Value, Error> {
+    ) -> Result<DynamicResponse, Error> {
         let query: [QueryParam; 1] = [("purge_data", purge_data.map(|v| v.to_string()))];
         self.http
             .send(
@@ -48,8 +61,9 @@ impl<'a> OpenCompanyApi<'a> {
                 true,
             )
             .await
+            .map(Into::into)
     }
-    pub async fn suspend(&self, slug: &str) -> Result<Value, Error> {
+    pub async fn suspend(&self, slug: &str) -> Result<DynamicResponse, Error> {
         self.http
             .send(
                 Method::POST,
@@ -59,8 +73,9 @@ impl<'a> OpenCompanyApi<'a> {
                 true,
             )
             .await
+            .map(Into::into)
     }
-    pub async fn resume(&self, slug: &str) -> Result<Value, Error> {
+    pub async fn resume(&self, slug: &str) -> Result<DynamicResponse, Error> {
         self.http
             .send(
                 Method::POST,
@@ -70,8 +85,13 @@ impl<'a> OpenCompanyApi<'a> {
                 true,
             )
             .await
+            .map(Into::into)
     }
-    pub async fn set_custom_domain(&self, slug: &str, domain: &str) -> Result<Value, Error> {
+    pub async fn set_custom_domain(
+        &self,
+        slug: &str,
+        domain: &str,
+    ) -> Result<DynamicResponse, Error> {
         self.body(
             Method::PUT,
             &format!("/opencompany/instances/{}/custom-domain", enc(slug)),
@@ -79,7 +99,7 @@ impl<'a> OpenCompanyApi<'a> {
         )
         .await
     }
-    pub async fn remove_custom_domain(&self, slug: &str) -> Result<Value, Error> {
+    pub async fn remove_custom_domain(&self, slug: &str) -> Result<DynamicResponse, Error> {
         self.http
             .send(
                 Method::DELETE,
@@ -89,8 +109,9 @@ impl<'a> OpenCompanyApi<'a> {
                 true,
             )
             .await
+            .map(Into::into)
     }
-    pub async fn verify_custom_domain(&self, slug: &str) -> Result<Value, Error> {
+    pub async fn verify_custom_domain(&self, slug: &str) -> Result<DynamicResponse, Error> {
         self.http
             .send(
                 Method::POST,
@@ -100,5 +121,6 @@ impl<'a> OpenCompanyApi<'a> {
                 true,
             )
             .await
+            .map(Into::into)
     }
 }

@@ -3,10 +3,11 @@
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
 `1.0.0` with 205 paths and 235 operations. The Rust SDK exposes one typed
-method per public operation — **200 operations across the 21 namespaces
+method per public operation — **187 operations across the 20 namespaces
 below**.
-The remaining 35 administrative operations are intentionally excluded,
-including legacy routes whose summaries explicitly say they are admin-only.
+The remaining 35 administrative and 18 webhook operations are intentionally
+excluded, including legacy routes whose summaries explicitly say they are
+admin-only.
 
 | Namespace | Base path | Auth | Examples |
 | --- | --- | --- | --- |
@@ -30,7 +31,6 @@ including legacy routes whose summaries explicitly say they are admin-only.
 | `referral` | `/referral` | bearer | referral stats and claim |
 | `rewards` | `/rewards` | bearer | reward snapshot and Discord unlink |
 | `redirect` | `/r` | none | resolve short redirect codes |
-| `webhooks` | `/webhooks` | mixed | provider callbacks and webhook tunnels |
 
 The checked-in namespace manifest and Rust `PUBLIC_ROUTES` registry are
 generated deterministically:

@@ -1,5 +1,6 @@
 //! Typed namespace clients for the TinyHumans backend.
 
+pub mod agent_integration_types;
 pub mod agent_integrations;
 pub mod announcements;
 pub mod api_keys;
@@ -20,4 +21,4 @@ pub mod redirect;
 pub mod referral;
 pub mod rewards;
 pub mod teams;
-pub mod webhooks;
+pub mod types;

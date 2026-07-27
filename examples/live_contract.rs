@@ -10,16 +10,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let health = client.health().check().await?;
     if health.get("online").and_then(|value| value.as_bool()) != Some(true) {
-        return Err(format!("unexpected health payload from {base_url}: {health}").into());
-    }
-
-    let swagger = client.swagger().await?;
-    let path_count = swagger
-        .get("paths")
-        .and_then(|value| value.as_object())
-        .map_or(0, |paths| paths.len());
-    if path_count == 0 {
-        return Err("Swagger document contains no paths".into());
+        return Err(format!("unexpected health payload from {base_url}: {health:?}").into());
     }
 
     match client.api_keys().list().await {
@@ -29,11 +20,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         Ok(value) => {
             return Err(
-                format!("/api-keys unexpectedly allowed unauthenticated access: {value}").into(),
+                format!("/api-keys unexpectedly allowed unauthenticated access: {value:?}").into(),
             )
         }
     }
 
-    println!("Rust SDK live contract passed against {base_url} ({path_count} Swagger paths)");
+    println!("Rust SDK live contract passed against {base_url}");
     Ok(())
 }

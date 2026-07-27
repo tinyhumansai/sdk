@@ -1,4 +1,7 @@
 use serde_json::json;
+use tinyhumans_sdk::api::types::{
+    CreateFeedbackRequest, FeedbackCommentRequest, FeedbackType, FeedbackVoteRequest,
+};
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -20,7 +23,11 @@ async fn create_feedback_posts_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .feedback()
-        .create_feedback(&json!({"type": "bug", "title": "t", "body": "b"}))
+        .create_feedback(&CreateFeedbackRequest {
+            kind: FeedbackType::Bug,
+            title: "t".into(),
+            body: "b".into(),
+        })
         .await
         .unwrap();
     assert_eq!(result, json!({"id": "fb_1"}));
@@ -72,7 +79,12 @@ async fn comment_feedback_posts_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .feedback()
-        .comment_feedback("fb_9", &json!({"body": "nice"}))
+        .comment_feedback(
+            "fb_9",
+            &FeedbackCommentRequest {
+                body: "nice".into(),
+            },
+        )
         .await
         .unwrap();
     assert_eq!(result, json!({"commentId": "c_1"}));
@@ -91,7 +103,7 @@ async fn vote_feedback_posts_body() {
     let client = TinyHumansClient::new(server.uri());
     let result = client
         .feedback()
-        .vote_feedback("fb_9", &json!({"value": 1}))
+        .vote_feedback("fb_9", &FeedbackVoteRequest { value: 1 })
         .await
         .unwrap();
     assert_eq!(result, json!({"value": 1}));

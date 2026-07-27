@@ -1,8 +1,8 @@
 //! Referral link claiming and earnings/referral-list statistics.
 
 use reqwest::Method;
-use serde_json::Value;
 
+use super::types::{ClaimReferralRequest, DynamicResponse};
 use crate::{Error, HttpClient};
 
 /// Typed client for the `/referral/*` routes.
@@ -16,16 +16,20 @@ impl<'a> ReferralApi<'a> {
     }
 
     /// Claim a referral link for the authenticated user.
-    pub async fn claim_referral(&self, body: &Value) -> Result<Value, Error> {
+    pub async fn claim_referral(
+        &self,
+        request: &ClaimReferralRequest,
+    ) -> Result<DynamicResponse, Error> {
+        let body = serde_json::to_value(request).expect("referral request is serializable");
         self.http
-            .send(Method::POST, "/referral/claim", &[], Some(body), true)
+            .send_typed(Method::POST, "/referral/claim", &[], Some(&body), true)
             .await
     }
 
     /// Fetch referral link, earnings summary, and referral list.
-    pub async fn get_referral_stats(&self) -> Result<Value, Error> {
+    pub async fn get_referral_stats(&self) -> Result<DynamicResponse, Error> {
         self.http
-            .send(Method::GET, "/referral/stats", &[], None, true)
+            .send_typed(Method::GET, "/referral/stats", &[], None, true)
             .await
     }
 }
