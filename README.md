@@ -63,7 +63,7 @@ let models = client.inference().list_models().await?;
 The SDKs are grounded in the deployed backend OpenAPI document:
 <https://api.tinyhumans.ai/swagger.json>. The live spec advertises TinyHumans
 API `1.0.0`, production and staging servers, and 205 paths. Every SDK provides
-one typed method per public deployed operation — **201 operations across 21
+one typed method per public deployed operation — **200 operations across 21
 namespaces**:
 
 - Health and documentation: `/`, `/swagger.json`

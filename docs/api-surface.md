@@ -3,8 +3,8 @@
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
 `1.0.0` with 205 paths and 235 operations. Each SDK exposes one typed method
-per public operation — **201 operations across the 21 namespaces below**.
-The remaining 34 administrative operations are intentionally excluded,
+per public operation — **200 operations across the 21 namespaces below**.
+The remaining 35 administrative operations are intentionally excluded,
 including legacy routes whose summaries explicitly say they are admin-only.
 
 | Namespace | Base path | Auth | Examples |

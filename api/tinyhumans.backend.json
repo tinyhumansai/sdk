@@ -10,8 +10,8 @@
     "version": "1.0.0",
     "pathCount": 205,
     "totalOperationCount": 235,
-    "operationCount": 201,
-    "excludedAdminOperationCount": 34,
+    "operationCount": 200,
+    "excludedAdminOperationCount": 35,
     "servers": [
       "https://api.tinyhumans.ai/",
       "https://staging-api.tinyhumans.ai/",
@@ -32,7 +32,7 @@
       "name": "agentIntegrations",
       "basePath": "/agent-integrations",
       "auth": "mixed",
-      "operationCount": 60,
+      "operationCount": 59,
       "tags": [
         "Agent Integrations"
       ],
@@ -68,7 +68,6 @@
         "POST /agent-integrations/apify/run",
         "POST /agent-integrations/composio/authorize",
         "POST /agent-integrations/composio/execute",
-        "POST /agent-integrations/composio/toolkits/refresh",
         "POST /agent-integrations/composio/triggers",
         "POST /agent-integrations/crypto/bridge",
         "POST /agent-integrations/crypto/swap",

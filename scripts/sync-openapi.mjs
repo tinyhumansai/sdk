@@ -53,8 +53,15 @@ function isAdminOperation(path, operation) {
     return true;
   }
 
-  const description = `${operation.summary ?? ""} ${operation.description ?? ""}`;
-  return /\badmin(?:istrator)?(?:\s+access)?\s+only\b/i.test(description);
+  const summary = operation.summary ?? "";
+  const description = operation.description ?? "";
+  const forbiddenDescription = operation.responses?.["403"]?.description ?? "";
+  return (
+    /\(admin\)/i.test(summary) ||
+    /\badmin(?:istrator)?(?:\s+access)?\s+only\b/i.test(
+      `${summary} ${description} ${forbiddenDescription}`,
+    )
+  );
 }
 
 function namespaceFor(path) {

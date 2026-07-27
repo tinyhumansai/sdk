@@ -17,7 +17,7 @@ Every language binding therefore exposes:
 
 - A shared request pipeline with JSON envelope unwrapping.
 - Typed namespace clients such as `auth`, `inference`, `payments`, `feedback`,
-  and `agentIntegrations`, with one method per public deployed operation (201
+  and `agentIntegrations`, with one method per public deployed operation (200
   across 21 namespaces).
 - A raw request method for new backend endpoints before typed methods land.
 
