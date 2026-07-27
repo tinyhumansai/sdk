@@ -63,28 +63,22 @@ impl<'a> AgentIntegrationsApi<'a> {
             )
             .await
     }
-    pub async fn download_file(&self, file_id: &str) -> Result<Value, Error> {
+    pub async fn download_file(&self, file_id: &str) -> Result<Vec<u8>, Error> {
         self.http
-            .send(
+            .send_bytes(
                 Method::GET,
                 &format!(
                     "/agent-integrations/file-storage/files/{}/download",
                     enc(file_id)
                 ),
-                &[],
-                None,
-                false,
             )
             .await
     }
-    pub async fn public_file(&self, file_id: &str) -> Result<Value, Error> {
+    pub async fn public_file(&self, file_id: &str) -> Result<Vec<u8>, Error> {
         self.http
-            .send(
+            .send_bytes(
                 Method::GET,
                 &format!("/agent-integrations/file-storage/public/{}", enc(file_id)),
-                &[],
-                None,
-                false,
             )
             .await
     }

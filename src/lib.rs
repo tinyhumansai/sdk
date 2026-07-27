@@ -251,6 +251,28 @@ impl HttpClient {
         Ok(unwrap_envelope(value))
     }
 
+    /// Send a request whose successful response is binary rather than JSON.
+    pub async fn send_bytes(&self, method: Method, path: &str) -> Result<Vec<u8>, Error> {
+        reject_unexposed_route(&method, path)?;
+        let response = self
+            .client
+            .request(method, self.url(path, &[])?)
+            .headers(self.headers()?)
+            .send()
+            .await?;
+        let status = response.status();
+        let bytes = response.bytes().await?;
+        if !status.is_success() {
+            let body = serde_json::from_slice(&bytes)
+                .unwrap_or_else(|_| Value::String(String::from_utf8_lossy(&bytes).into_owned()));
+            return Err(Error::Status {
+                status: status.as_u16(),
+                body,
+            });
+        }
+        Ok(bytes.to_vec())
+    }
+
     fn url(&self, path: &str, query: &[QueryParam]) -> Result<Url, Error> {
         let normalized = if path.starts_with('/') {
             path.to_owned()

@@ -8,6 +8,25 @@ use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 #[tokio::test]
+async fn file_download_returns_binary_bytes() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path(
+            "/agent-integrations/file-storage/files/file_1/download",
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_bytes([0_u8, 1, 2, 255]))
+        .mount(&server)
+        .await;
+
+    let bytes = TinyHumansClient::new(server.uri())
+        .agent_integrations()
+        .download_file("file_1")
+        .await
+        .unwrap();
+    assert_eq!(bytes, vec![0, 1, 2, 255]);
+}
+
+#[tokio::test]
 async fn list_composio_github_repos_is_typed() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))
