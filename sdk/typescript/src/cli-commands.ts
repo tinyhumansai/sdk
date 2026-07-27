@@ -872,23 +872,6 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "agentIntegrations",
-    "command": "refresh-composio-toolkits",
-    "method": "refreshComposioToolkits",
-    "verb": "POST",
-    "path": "/agent-integrations/composio/toolkits/refresh",
-    "pathParams": [],
-    "params": [
-      {
-        "name": "query",
-        "role": "query"
-      }
-    ],
-    "hasBody": false,
-    "hasQuery": true,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "agentIntegrations",
     "command": "run-apify-actor",
     "method": "runApifyActor",
     "verb": "POST",

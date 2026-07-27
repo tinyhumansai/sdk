@@ -29,7 +29,7 @@ const NAMESPACES = [
 
 describe("CLI command manifest", () => {
   it("covers every public namespace", () => {
-    expect(COMMANDS).toHaveLength(202);
+    expect(COMMANDS).toHaveLength(201);
     const found = new Set(COMMANDS.map((c) => c.namespace));
     expect([...found].sort()).toEqual([...NAMESPACES].sort());
   });

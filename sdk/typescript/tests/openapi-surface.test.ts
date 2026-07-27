@@ -77,6 +77,7 @@ describe("non-admin OpenAPI surface", () => {
     const publicClient = client as unknown as Record<string, Record<string, unknown>>;
 
     expect(publicClient.investors).toBeUndefined();
+    expect(publicClient.agentIntegrations!.refreshComposioToolkits).toBeUndefined();
     expect(publicClient.coupons!.createCoupon).toBeUndefined();
     expect(publicClient.feedback!.updateFeedbackStatus).toBeUndefined();
     expect(publicClient.invite!.createCampaignInvite).toBeUndefined();

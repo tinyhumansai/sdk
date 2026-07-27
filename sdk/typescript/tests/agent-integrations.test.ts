@@ -73,14 +73,6 @@ describe("AgentIntegrationsApi", () => {
     expect(last().path).toBe("/agent-integrations/composio/toolkits");
   });
 
-  it("refreshComposioToolkits posts with query", async () => {
-    const { api, last } = makeApi();
-    await api.refreshComposioToolkits({ full: true });
-    expect(last().method).toBe("POST");
-    expect(last().path).toBe("/agent-integrations/composio/toolkits/refresh");
-    expect(last().query.full).toEqual(["true"]);
-  });
-
   it("listComposioTools gets tools with filters", async () => {
     const { api, last } = makeApi();
     await api.listComposioTools({ toolkits: "gmail", tags: "email" });

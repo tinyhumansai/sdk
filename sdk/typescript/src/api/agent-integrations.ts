@@ -50,10 +50,6 @@ export interface ComposioExecuteBody {
   connectionId?: string;
 }
 
-export interface ComposioToolkitsRefreshQuery {
-  full?: boolean;
-}
-
 export interface ComposioToolsQuery {
   toolkits?: string;
   tags?: string;
@@ -462,18 +458,6 @@ export class AgentIntegrationsApi {
   /** List Composio toolkits available to users */
   listComposioToolkits<T = unknown>(options?: RequestOptions): Promise<T> {
     return this.http.get<T>("/agent-integrations/composio/toolkits", options);
-  }
-
-  /** Refresh the cached Composio toolkit catalog (admin) */
-  refreshComposioToolkits<T = unknown>(
-    query?: ComposioToolkitsRefreshQuery,
-    options?: RequestOptions,
-  ): Promise<T> {
-    return this.http.post<T>(
-      "/agent-integrations/composio/toolkits/refresh",
-      undefined,
-      { ...options, query: { ...query, ...options?.query } },
-    );
   }
 
   /** List Composio tools as OpenAI function-call schemas */
