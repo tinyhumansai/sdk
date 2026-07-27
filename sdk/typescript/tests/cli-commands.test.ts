@@ -5,16 +5,20 @@ import { TinyHumansClient } from "../src/index.js";
 
 const NAMESPACES = [
   "agentIntegrations",
+  "apiKeys",
   "announcements",
   "auth",
+  "budgets",
   "channels",
   "coupons",
   "feedback",
   "health",
   "inference",
-  "investors",
   "invite",
   "mascots",
+  "medulla",
+  "openCompany",
+  "orchestration",
   "payments",
   "redirect",
   "referral",
@@ -24,8 +28,8 @@ const NAMESPACES = [
 ];
 
 describe("CLI command manifest", () => {
-  it("covers every namespace with 156 total commands", () => {
-    expect(COMMANDS).toHaveLength(156);
+  it("covers every public namespace", () => {
+    expect(COMMANDS).toHaveLength(202);
     const found = new Set(COMMANDS.map((c) => c.namespace));
     expect([...found].sort()).toEqual([...NAMESPACES].sort());
   });

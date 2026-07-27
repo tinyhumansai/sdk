@@ -54,18 +54,6 @@ describe("FeedbackApi", () => {
     expect(call.body).toEqual({ body: "Nice" });
   });
 
-  it("updates a feedback item's status", async () => {
-    const { http, last } = mockClient({ data: { id: "fb_1", status: "planned" } });
-    const api = new FeedbackApi(http);
-
-    await api.updateFeedbackStatus("fb_1", { status: "planned" });
-
-    const call = last();
-    expect(call.method).toBe("PATCH");
-    expect(call.path).toBe("/feedback/fb_1/status");
-    expect(call.body).toEqual({ status: "planned" });
-  });
-
   it("votes on a feedback item", async () => {
     const { http, last } = mockClient({ data: { up: 3, down: 0 } });
     const api = new FeedbackApi(http);

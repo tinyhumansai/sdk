@@ -52,7 +52,6 @@ describe("cli pure helpers", () => {
       TINYHUMANS_BASE_URL: "https://env.example",
       TINYHUMANS_TOKEN: "env-tok",
       TINYHUMANS_API_KEY: "env-key",
-      TINYHUMANS_ADMIN_SERVICE_TOKEN: "env-admin",
     };
     const fromFlags = resolveGlobals(
       { "base-url": "https://flag.example", token: "flag-tok", raw: "", json: "" },
@@ -61,7 +60,6 @@ describe("cli pure helpers", () => {
     expect(fromFlags.baseUrl).toBe("https://flag.example");
     expect(fromFlags.token).toBe("flag-tok");
     expect(fromFlags.apiKey).toBe("env-key");
-    expect(fromFlags.adminServiceToken).toBe("env-admin");
     expect(fromFlags.raw).toBe(true);
     expect(fromFlags.pretty).toBe(false);
 
@@ -108,10 +106,14 @@ describe("cli pure helpers", () => {
   });
 
   it("commandSignature renders positional, body, and query params", () => {
-    const cmd = COMMANDS.find((c) => c.namespace === "teams" && c.command === "update-team")!;
+    const cmd = COMMANDS.find(
+      (c) => c.namespace === "openCompany" && c.command === "set-custom-domain",
+    )!;
     const sig = commandSignature(cmd);
-    expect(sig).toContain("tinyhumans teams update-team <teamId> --body JSON");
-    expect(sig).toContain("PUT /teams/:teamId");
+    expect(sig).toContain(
+      "tinyhumans openCompany set-custom-domain <slug> --body JSON",
+    );
+    expect(sig).toContain("PUT /opencompany/instances/:slug/custom-domain");
 
     const nonEnvelope = COMMANDS.find((c) => c.nonEnvelope)!;
     expect(commandSignature(nonEnvelope)).toContain("(returns raw provider response)");
@@ -142,7 +144,7 @@ interface StubClient {
     me: (...a: unknown[]) => Promise<unknown>;
     verifyEmail: (...a: unknown[]) => Promise<unknown>;
   };
-  teams: { updateTeam: (...a: unknown[]) => Promise<unknown> };
+  openCompany: { setCustomDomain: (...a: unknown[]) => Promise<unknown> };
   inference: { listModels: (...a: unknown[]) => Promise<unknown> };
   raw: { request: (...a: unknown[]) => Promise<unknown> };
   swagger: () => Promise<unknown>;
@@ -157,8 +159,8 @@ function makeDeps(overrides: Partial<RunDeps> = {}) {
       me: async () => ({ id: "u" }),
       verifyEmail: async (token: unknown) => ({ verified: token }),
     },
-    teams: {
-      updateTeam: async (id: unknown, body: unknown) => ({ id, body }),
+    openCompany: {
+      setCustomDomain: async (id: unknown, body: unknown) => ({ id, body }),
     },
     inference: {
       listModels: async (query: unknown) => ({ query }),
@@ -226,8 +228,8 @@ describe("cli run dispatch", () => {
 
   it("prints a command signature with --help", async () => {
     const { deps, lines } = makeDeps();
-    await run(["teams", "update-team", "--help"], deps);
-    expect(lines[0]).toContain("tinyhumans teams update-team <teamId>");
+    await run(["openCompany", "set-custom-domain", "--help"], deps);
+    expect(lines[0]).toContain("tinyhumans openCompany set-custom-domain <slug>");
   });
 
   it("dispatches a no-arg positional command", async () => {
@@ -244,13 +246,13 @@ describe("cli run dispatch", () => {
 
   it("dispatches a path param plus --body", async () => {
     const { deps, lines } = makeDeps();
-    await run(["teams", "update-team", "team_1", "--body", '{"name":"new"}'], deps);
+    await run(["openCompany", "set-custom-domain", "team_1", "--body", '{"name":"new"}'], deps);
     expect(JSON.parse(lines[0]!)).toEqual({ id: "team_1", body: { name: "new" } });
   });
 
   it("reads the body from stdin when --body is absent", async () => {
     const { deps, lines } = makeDeps();
-    await run(["teams", "update-team", "team_2"], deps);
+    await run(["openCompany", "set-custom-domain", "team_2"], deps);
     expect(JSON.parse(lines[0]!)).toEqual({ id: "team_2", body: { stdin: true } });
   });
 

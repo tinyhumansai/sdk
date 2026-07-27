@@ -51,18 +51,6 @@ describe("TeamsApi", () => {
     expect(call.path).toBe("/teams/a%2Fb");
   });
 
-  it("updates a team with a JSON body", async () => {
-    const { http, last } = mockClient({ data: null });
-    const api = new TeamsApi(http);
-
-    await api.updateTeam("t_1", { name: "New Name" });
-
-    const call = last();
-    expect(call.method).toBe("PUT");
-    expect(call.path).toBe("/teams/t_1");
-    expect(call.body).toEqual({ name: "New Name" });
-  });
-
   it("gets the team billing plan", async () => {
     const { http, last } = mockClient({ data: { plan: "PRO" } });
     const api = new TeamsApi(http);
@@ -164,29 +152,6 @@ describe("TeamsApi", () => {
     const call = last();
     expect(call.method).toBe("GET");
     expect(call.path).toBe("/teams/t_1/members");
-  });
-
-  it("removes a member with both path params encoded", async () => {
-    const { http, last } = mockClient({ data: null });
-    const api = new TeamsApi(http);
-
-    await api.removeMember("t_1", "u/9");
-
-    const call = last();
-    expect(call.method).toBe("DELETE");
-    expect(call.path).toBe("/teams/t_1/members/u%2F9");
-  });
-
-  it("updates a member's role with a JSON body", async () => {
-    const { http, last } = mockClient({ data: null });
-    const api = new TeamsApi(http);
-
-    await api.updateMemberRole("t_1", "u_1", { role: "admin" });
-
-    const call = last();
-    expect(call.method).toBe("PUT");
-    expect(call.path).toBe("/teams/t_1/members/u_1/role");
-    expect(call.body).toEqual({ role: "admin" });
   });
 
   it("switches the active team", async () => {

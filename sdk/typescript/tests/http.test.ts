@@ -144,10 +144,10 @@ describe("HttpClient.request", () => {
     await expect(http.get("/thing")).rejects.toThrow("TinyHumans request failed with HTTP 500");
   });
 
-  it("sets auth headers for token, apiKey, and adminServiceToken", async () => {
+  it("sets user auth headers and custom headers", async () => {
     const { http, last } = mockClient(
       { data: {} },
-      { token: "tok", apiKey: "key", adminServiceToken: "admin" },
+      { token: "tok", apiKey: "key" },
     );
 
     await http.get("/thing", { headers: { "x-custom": "c" } });
@@ -155,7 +155,7 @@ describe("HttpClient.request", () => {
     const call = last();
     expect(call.headers["authorization"]).toBe("Bearer tok");
     expect(call.headers["x-api-key"]).toBe("key");
-    expect(call.headers["x-admin-service-token"]).toBe("admin");
+    expect(call.headers["x-admin-service-token"]).toBeUndefined();
     expect(call.headers["x-custom"]).toBe("c");
     expect(call.headers["x-sdk-client"]).toBe("@tinyhumansai/sdk");
   });

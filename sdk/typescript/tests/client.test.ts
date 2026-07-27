@@ -24,16 +24,20 @@ describe("TinyHumansClient", () => {
 
     for (const ns of [
       "agentIntegrations",
+      "apiKeys",
       "announcements",
       "auth",
+      "budgets",
       "channels",
       "coupons",
       "feedback",
       "health",
       "inference",
-      "investors",
       "invite",
       "mascots",
+      "medulla",
+      "openCompany",
+      "orchestration",
       "payments",
       "redirect",
       "referral",
@@ -47,7 +51,7 @@ describe("TinyHumansClient", () => {
     }
 
     expect(typeof client.auth.me).toBe("function");
-    expect(typeof client.teams.updateTeam).toBe("function");
+    expect(typeof client.openCompany.createInstance).toBe("function");
   });
 
   it("swagger() requests /swagger.json without unwrapping the envelope", async () => {
