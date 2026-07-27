@@ -13,6 +13,7 @@ use url::Url;
 
 pub mod api;
 pub mod generated_public_routes;
+pub mod jwt;
 
 /// Bytes left un-encoded by `encodeURIComponent`: the unreserved set
 /// `A-Z a-z 0-9 - _ . ! ~ * ' ( )`.
