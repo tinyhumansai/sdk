@@ -2,8 +2,10 @@
 
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
-`1.0.0` with 172 paths. Each SDK exposes one typed method per operation —
-**156 operations across the 17 namespaces below**.
+`1.0.0` with 205 paths and 235 operations. Each SDK exposes one typed method
+per public operation — **201 operations across the 21 namespaces below**.
+The remaining 34 administrative operations are intentionally excluded,
+including legacy routes whose summaries explicitly say they are admin-only.
 
 | Namespace | Base path | Auth | Examples |
 | --- | --- | --- | --- |
@@ -11,19 +13,30 @@ The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 | `auth` | `/auth` | bearer | email login, OAuth, `me()`, integration tokens |
 | `inference` | `/openai` | bearer | `GET /v1/models`, chat completions, responses, transcription |
 | `agentIntegrations` | `/agent-integrations` | bearer | Composio, Parallel, media generation, maps, Apify, Twilio, crypto |
+| `apiKeys` | `/api-keys` | bearer | create, list, and revoke user API keys |
+| `budgets` | `/budgets` | bearer | team budgets and seat allocations |
+| `medulla` | `/medulla` | bearer | roster, routing, sessions, messages, tasks, and sources |
+| `openCompany` | `/opencompany` | bearer | company instances, lifecycle, and custom domains |
+| `orchestration` | `/orchestration` | bearer | runs, events, sessions, state, and world diffs |
 | `payments` | `/payments` | bearer | Stripe, Coinbase, credits, transactions, plans |
-| `feedback` | `/feedback` | bearer | create, list, detail, vote, comments, status |
-| `teams` | `/teams` | bearer | team list/detail/update, usage, invites, join |
+| `feedback` | `/feedback` | bearer | create, ingest, list, detail, vote, and comments |
+| `teams` | `/teams` | bearer | team list/detail, usage, invites, join, leave, and billing |
 | `channels` | `/channels` | bearer | messages, reactions, typing, threads |
 | `mascots` | `/mascots` | mixed | catalog, render streams, meetings, Rive assets |
 | `announcements` | `/announcements` | bearer | latest active announcement |
 | `coupons` | `/coupons` | bearer | redemption and coupon history |
-| `invite` | `/invite` | mixed | status, redemption, campaign invites |
-| `investors` | `/investors` | none | deck lookup and event tracking |
+| `invite` | `/invite` | mixed | invite status, redemption, and owned codes |
 | `referral` | `/referral` | bearer | referral stats and claim |
 | `rewards` | `/rewards` | bearer | reward snapshot and Discord unlink |
 | `redirect` | `/r` | none | resolve short redirect codes |
 | `webhooks` | `/webhooks` | mixed | provider callbacks and webhook tunnels |
+
+The checked-in namespace manifest is generated deterministically:
+
+```bash
+pnpm sync:openapi
+pnpm check:openapi
+```
 
 Most JSON responses use the hosted-backend envelope:
 

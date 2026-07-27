@@ -9,7 +9,9 @@
   },
   "scripts": {
     "build": "pnpm -r build",
+    "check:openapi": "node scripts/sync-openapi.mjs --check",
     "lint": "pnpm -r lint",
+    "sync:openapi": "node scripts/sync-openapi.mjs",
     "test": "pnpm -r test"
   },
   "devDependencies": {

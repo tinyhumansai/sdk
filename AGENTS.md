@@ -33,8 +33,11 @@ agent-integration platform. The SDK should expose these API families cleanly:
   media generation, financial APIs, maps, Apify, Tenor, Twilio, and crypto.
 - Telegram/Discord channel integration routes under `/channels/*` and
   provider webhook routes under `/webhooks/*`.
-- Feedback, invites, referrals, rewards, announcements, mascots, investors,
-  and admin analytics/content-management routes.
+- Feedback, invites, referrals, rewards, announcements, mascots, Medulla,
+  OpenCompany, and orchestration routes.
+
+Administrative routes are intentionally excluded, including legacy operations
+outside `/admin` whose deployed OpenAPI summary marks them as admin-only.
 
 Successful JSON responses usually use:
 
@@ -101,13 +104,12 @@ Supported credentials:
 
 - `Authorization: Bearer <token>` for user/agent JWT flows.
 - `x-api-key: <key>` for API-key routes.
-- `x-admin-service-token: <token>` for trusted server-side admin write routes.
 
 Never commit secrets, local tokens, generated credential files, or test keys.
 Examples should read credentials from environment variables.
 
-Admin service-token helpers must be documented as server-only. Do not present
-them as browser-safe.
+Do not add admin service-token helpers or administrative operations to the
+public SDK packages.
 
 ## OpenAPI Discipline
 

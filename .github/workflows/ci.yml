@@ -90,12 +90,16 @@ jobs:
         working-directory: sdk/rust
 
   manifest:
-    name: Manifest reachable
+    name: OpenAPI manifest
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      # The deployed OpenAPI document is the source of truth for the SDK
-      # surface; fail fast if it becomes unreachable so drift is visible.
-      - name: Deployed swagger is reachable
-        run: curl -fsSL https://api.tinyhumans.ai/swagger.json > /dev/null
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      # Fail when the checked-in public surface drifts from the deployed
+      # contract. The synchronizer deliberately excludes administrative APIs.
+      - name: Public SDK manifest matches deployed OpenAPI
+        run: node scripts/sync-openapi.mjs --check
