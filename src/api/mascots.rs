@@ -3,6 +3,7 @@
 use reqwest::Method;
 use serde_json::Value;
 
+use super::types::JoinMeetingRequest;
 use crate::{enc, Error, HttpClient, QueryParam};
 
 /// Typed client for the `/mascots/*` routes.
@@ -30,9 +31,16 @@ impl<'a> MascotsApi<'a> {
     }
 
     /// Send the mascot bot into a live meeting.
-    pub async fn join_meeting(&self, body: &Value) -> Result<Value, Error> {
+    pub async fn join_meeting(&self, request: &JoinMeetingRequest) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("join meeting request is serializable");
         self.http
-            .send(Method::POST, "/mascots/join-meeting", &[], Some(body), true)
+            .send(
+                Method::POST,
+                "/mascots/join-meeting",
+                &[],
+                Some(&body),
+                true,
+            )
             .await
     }
 

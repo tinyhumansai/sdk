@@ -1,3 +1,4 @@
+use super::types::{ContinueRunRequest, OrchestrationEventRequest, SubmitWorldDiffRequest};
 use crate::{enc, Error, HttpClient, QueryParam};
 use reqwest::Method;
 use serde::{Deserialize, Serialize};
@@ -30,14 +31,14 @@ impl<'a> OrchestrationApi<'a> {
             .send(Method::POST, path, &[], Some(&body), true)
             .await
     }
-    pub async fn events(&self, body: &Value) -> Result<Value, Error> {
-        self.body("/orchestration/v1/events", body).await
+    pub async fn events(&self, request: &OrchestrationEventRequest) -> Result<Value, Error> {
+        self.body("/orchestration/v1/events", request).await
     }
     pub async fn run(&self, request: &RunRequest) -> Result<Value, Error> {
         self.body("/orchestration/v1/run", request).await
     }
-    pub async fn continue_run(&self, body: &Value) -> Result<Value, Error> {
-        self.body("/orchestration/v1/run/continue", body).await
+    pub async fn continue_run(&self, request: &ContinueRunRequest) -> Result<Value, Error> {
+        self.body("/orchestration/v1/run/continue", request).await
     }
     pub async fn list_sessions(&self, query: &[QueryParam]) -> Result<Value, Error> {
         self.http
@@ -77,7 +78,10 @@ impl<'a> OrchestrationApi<'a> {
             )
             .await
     }
-    pub async fn submit_world_diff(&self, body: &Value) -> Result<Value, Error> {
-        self.body("/orchestration/v1/world-diff", body).await
+    pub async fn submit_world_diff(
+        &self,
+        request: &SubmitWorldDiffRequest,
+    ) -> Result<Value, Error> {
+        self.body("/orchestration/v1/world-diff", request).await
     }
 }

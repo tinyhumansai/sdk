@@ -3,6 +3,7 @@
 use reqwest::Method;
 use serde_json::Value;
 
+use super::types::{EmailLinkRequest, IntegrationTokenRequest, LoginTokenRequest};
 use crate::{enc, Error, HttpClient, QueryParam};
 
 /// Typed client for the `/auth/*` routes.
@@ -22,9 +23,16 @@ impl<'a> AuthApi<'a> {
     }
 
     /// Send a magic link for email login.
-    pub async fn send_email_link(&self, body: &Value) -> Result<Value, Error> {
+    pub async fn send_email_link(&self, request: &EmailLinkRequest) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("email link request is serializable");
         self.http
-            .send(Method::POST, "/auth/email/send-link", &[], Some(body), true)
+            .send(
+                Method::POST,
+                "/auth/email/send-link",
+                &[],
+                Some(&body),
+                true,
+            )
             .await
     }
 
@@ -37,13 +45,14 @@ impl<'a> AuthApi<'a> {
     }
 
     /// Consume a one-time login token, exchanging it for a session.
-    pub async fn consume_login_token(&self, body: &Value) -> Result<Value, Error> {
+    pub async fn consume_login_token(&self, request: &LoginTokenRequest) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("login token request is serializable");
         self.http
             .send(
                 Method::POST,
                 "/auth/login-token/consume",
                 &[],
-                Some(body),
+                Some(&body),
                 true,
             )
             .await
@@ -73,11 +82,13 @@ impl<'a> AuthApi<'a> {
     pub async fn create_integration_token(
         &self,
         integration_id: &str,
-        body: &Value,
+        request: &IntegrationTokenRequest,
     ) -> Result<Value, Error> {
+        let body =
+            serde_json::to_value(request).expect("integration token request is serializable");
         let path = format!("/auth/integrations/{}/tokens", enc(integration_id));
         self.http
-            .send(Method::POST, &path, &[], Some(body), true)
+            .send(Method::POST, &path, &[], Some(&body), true)
             .await
     }
 

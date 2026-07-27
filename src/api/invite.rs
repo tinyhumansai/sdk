@@ -3,6 +3,7 @@
 use reqwest::Method;
 use serde_json::Value;
 
+use super::types::CodeRequest;
 use crate::{Error, HttpClient, QueryParam};
 
 /// Typed client for the `/invite/*` routes.
@@ -23,9 +24,10 @@ impl<'a> InviteApi<'a> {
     }
 
     /// Redeem an invite code.
-    pub async fn redeem_invite(&self, body: &Value) -> Result<Value, Error> {
+    pub async fn redeem_invite(&self, request: &CodeRequest) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("invite request is serializable");
         self.http
-            .send(Method::POST, "/invite/redeem", &[], Some(body), true)
+            .send(Method::POST, "/invite/redeem", &[], Some(&body), true)
             .await
     }
 

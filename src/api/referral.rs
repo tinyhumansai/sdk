@@ -3,6 +3,7 @@
 use reqwest::Method;
 use serde_json::Value;
 
+use super::types::ClaimReferralRequest;
 use crate::{Error, HttpClient};
 
 /// Typed client for the `/referral/*` routes.
@@ -16,9 +17,10 @@ impl<'a> ReferralApi<'a> {
     }
 
     /// Claim a referral link for the authenticated user.
-    pub async fn claim_referral(&self, body: &Value) -> Result<Value, Error> {
+    pub async fn claim_referral(&self, request: &ClaimReferralRequest) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("referral request is serializable");
         self.http
-            .send(Method::POST, "/referral/claim", &[], Some(body), true)
+            .send(Method::POST, "/referral/claim", &[], Some(&body), true)
             .await
     }
 

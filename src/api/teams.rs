@@ -4,6 +4,10 @@
 use reqwest::Method;
 use serde_json::Value;
 
+use super::types::{
+    BillingPortalRequest, CodeRequest, CreateTeamInviteRequest, EmailInviteRequest,
+    PurchasePlanRequest,
+};
 use crate::{enc, Error, HttpClient};
 
 /// Typed client for the `/teams/*` routes.
@@ -22,9 +26,10 @@ impl<'a> TeamsApi<'a> {
     }
 
     /// Join a team using an invite code.
-    pub async fn join_team(&self, body: &Value) -> Result<Value, Error> {
+    pub async fn join_team(&self, request: &CodeRequest) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("join team request is serializable");
         self.http
-            .send(Method::POST, "/teams/join", &[], Some(body), true)
+            .send(Method::POST, "/teams/join", &[], Some(&body), true)
             .await
     }
 
@@ -48,26 +53,41 @@ impl<'a> TeamsApi<'a> {
     }
 
     /// Create a Stripe billing portal session for the team.
-    pub async fn create_billing_portal(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
+    pub async fn create_billing_portal(
+        &self,
+        team_id: &str,
+        request: &BillingPortalRequest,
+    ) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("billing portal request is serializable");
         let path = format!("/teams/{}/billing/portal", enc(team_id));
         self.http
-            .send(Method::POST, &path, &[], Some(body), true)
+            .send(Method::POST, &path, &[], Some(&body), true)
             .await
     }
 
     /// Purchase a subscription plan for the team (creates a checkout session).
-    pub async fn purchase_plan(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
+    pub async fn purchase_plan(
+        &self,
+        team_id: &str,
+        request: &PurchasePlanRequest,
+    ) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("purchase plan request is serializable");
         let path = format!("/teams/{}/billing/purchase", enc(team_id));
         self.http
-            .send(Method::POST, &path, &[], Some(body), true)
+            .send(Method::POST, &path, &[], Some(&body), true)
             .await
     }
 
     /// Create a shareable team invite.
-    pub async fn create_invite(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
+    pub async fn create_invite(
+        &self,
+        team_id: &str,
+        request: &CreateTeamInviteRequest,
+    ) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("team invite request is serializable");
         let path = format!("/teams/{}/invites", enc(team_id));
         self.http
-            .send(Method::POST, &path, &[], Some(body), true)
+            .send(Method::POST, &path, &[], Some(&body), true)
             .await
     }
 
@@ -78,10 +98,15 @@ impl<'a> TeamsApi<'a> {
     }
 
     /// Send a team invite via email.
-    pub async fn send_email_invite(&self, team_id: &str, body: &Value) -> Result<Value, Error> {
+    pub async fn send_email_invite(
+        &self,
+        team_id: &str,
+        request: &EmailInviteRequest,
+    ) -> Result<Value, Error> {
+        let body = serde_json::to_value(request).expect("email invite request is serializable");
         let path = format!("/teams/{}/invites/email", enc(team_id));
         self.http
-            .send(Method::POST, &path, &[], Some(body), true)
+            .send(Method::POST, &path, &[], Some(&body), true)
             .await
     }
 
