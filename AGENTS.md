@@ -39,6 +39,16 @@ including legacy operations outside `/admin` whose deployed OpenAPI summary
 marks them as admin-only. Never add typed methods for these routes or permit
 them through the raw transport.
 
+"Administrative" means **platform** administration. An operation gated by a role
+*within a resource the caller belongs to* is ordinary user-facing API, even when
+its summary says "(admin only)". The three team-management routes (`PUT
+/teams/{teamId}`, `DELETE /teams/{teamId}/members/{userId}`, `PUT
+/teams/{teamId}/members/{userId}/role`) are gated by the **team-admin role**,
+which any user who creates a team holds; they take an ordinary user token and are
+scoped to a team the caller is a member of. Excluding them broke OpenHuman's
+team-management UI. They are carved out in `TEAM_ROLE_GATED_OPERATIONS` in
+`scripts/sync-openapi.mjs`; extend that set rather than loosening the heuristic.
+
 The webhook exclusion targets receivers specifically — the endpoints providers
 call into (Stripe, Telegram, Discord, GitHub, Composio, Coinbase, Sentry,
 Twilio, and the `/webhooks/ingress/*` tunnel paths). The discriminator is

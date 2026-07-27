@@ -3,11 +3,18 @@
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
 `1.0.0` with 205 paths and 235 operations. The Rust SDK exposes one typed
-method per public operation — **193 operations across the 21 namespaces
+method per public operation — **196 operations across the 21 namespaces
 below**.
-The remaining 35 administrative and 12 webhook-receiver operations are
+The remaining 32 administrative and 12 webhook-receiver operations are
 intentionally excluded, including legacy routes whose summaries explicitly say
 they are admin-only.
+
+"Administrative" means *platform* administration. It does not cover operations
+gated by a role within a resource the caller belongs to: `PUT /teams/{teamId}`,
+`DELETE /teams/{teamId}/members/{userId}`, and
+`PUT /teams/{teamId}/members/{userId}/role` say "(admin only)" in the contract,
+but that is the **team-admin role** — held by any user who creates a team — not
+platform administrator rights. They are exposed on the `teams` namespace.
 
 "Webhook" exclusion means webhook *receivers* — the endpoints providers call
 into (Stripe, Telegram, Discord, GitHub, Composio, Coinbase, Sentry, Twilio,

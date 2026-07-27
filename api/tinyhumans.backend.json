@@ -10,9 +10,9 @@
     "version": "1.0.0",
     "pathCount": 205,
     "totalOperationCount": 235,
-    "operationCount": 193,
+    "operationCount": 196,
     "supplementalOperationCount": 5,
-    "excludedAdminOperationCount": 35,
+    "excludedAdminOperationCount": 32,
     "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
@@ -419,12 +419,13 @@
       "name": "teams",
       "basePath": "/teams",
       "auth": "bearer",
-      "operationCount": 14,
+      "operationCount": 17,
       "tags": [
         "Teams"
       ],
       "routes": [
         "DELETE /teams/{teamId}/invites/{inviteId}",
+        "DELETE /teams/{teamId}/members/{userId}",
         "GET /teams",
         "GET /teams/me/usage",
         "GET /teams/{teamId}",
@@ -437,7 +438,9 @@
         "POST /teams/{teamId}/invites",
         "POST /teams/{teamId}/invites/email",
         "POST /teams/{teamId}/leave",
-        "POST /teams/{teamId}/switch"
+        "POST /teams/{teamId}/switch",
+        "PUT /teams/{teamId}",
+        "PUT /teams/{teamId}/members/{userId}/role"
       ]
     },
     {

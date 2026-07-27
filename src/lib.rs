@@ -429,7 +429,7 @@ mod exclusion_tests {
 
     #[test]
     fn every_admin_and_webhook_route_is_rejected_by_the_raw_transport_gate() {
-        assert_eq!(UNEXPOSED_ROUTES.len(), 47);
+        assert_eq!(UNEXPOSED_ROUTES.len(), 44);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
@@ -450,6 +450,43 @@ mod exclusion_tests {
                 ),
                 "{} {template} was not blocked",
                 method.as_str()
+            );
+        }
+    }
+
+    /// Team-scoped operations gated by the team-admin *role* are not platform
+    /// administration and must stay reachable. Their OpenAPI summaries read
+    /// "(admin only)", which the generator's admin heuristic would otherwise
+    /// exclude — that broke OpenHuman's `team_remove_member`.
+    #[test]
+    fn team_role_gated_operations_are_not_treated_as_platform_admin() {
+        for (method, path) in [
+            ("PUT", "/teams/{teamId}"),
+            ("DELETE", "/teams/{teamId}/members/{userId}"),
+            ("PUT", "/teams/{teamId}/members/{userId}/role"),
+        ] {
+            assert!(
+                !UNEXPOSED_ROUTES.contains(&(method, path)),
+                "{method} {path} is team-role gated, not platform-admin"
+            );
+        }
+    }
+
+    /// Genuine platform-administration operations stay blocked, including the
+    /// ones outside an `/admin` path segment that only their summary marks.
+    #[test]
+    fn platform_admin_operations_remain_blocked() {
+        for (method, path) in [
+            ("POST", "/coupons/admin"),
+            ("GET", "/coupons/admin"),
+            ("PATCH", "/feedback/{id}/status"),
+            ("POST", "/invite/campaign"),
+            ("DELETE", "/invite/campaign/{codeId}"),
+            ("POST", "/agent-integrations/composio/toolkits/refresh"),
+        ] {
+            assert!(
+                UNEXPOSED_ROUTES.contains(&(method, path)),
+                "{method} {path} is platform-admin and must stay blocked"
             );
         }
     }
