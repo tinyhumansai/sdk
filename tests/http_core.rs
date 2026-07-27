@@ -105,3 +105,55 @@ async fn path_param_is_percent_encoded() {
     let result = client.mascots().get_mascot("red fox").await.unwrap();
     assert_eq!(result, json!({"id": "red fox"}));
 }
+
+// A host application must be able to supply its own `reqwest::Client` so the
+// SDK inherits that host's TLS backend, timeouts, proxy, and redirect policy
+// instead of the crate's defaults. OpenHuman needs this to keep using schannel
+// on Windows (corporate TLS-inspection proxies present an OS-trusted cert that
+// the bundled rustls roots reject) while staying on rustls elsewhere.
+#[tokio::test]
+async fn caller_supplied_http_client_is_used_for_requests() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/auth/me"))
+        .and(header("user-agent", "openhuman-core/test"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"success": true, "data": {"id": "u_1"}})),
+        )
+        .mount(&server)
+        .await;
+
+    let http = reqwest::Client::builder()
+        .user_agent("openhuman-core/test")
+        .build()
+        .unwrap();
+    let client = TinyHumansClient::new(server.uri()).with_http_client(http);
+
+    let result = client.auth().me().await.unwrap();
+    assert_eq!(result, json!({"id": "u_1"}));
+}
+
+// Hosts also need to attach their own default headers (build/version
+// attribution, tenant routing) to every request without wrapping each call.
+#[tokio::test]
+async fn caller_supplied_default_headers_are_sent_on_every_request() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/auth/me"))
+        .and(header("x-core-version", "0.61.0"))
+        .and(header("x-sdk-client", "tinyhumans-rust"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"success": true, "data": {"id": "u_1"}})),
+        )
+        .mount(&server)
+        .await;
+
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert("x-core-version", "0.61.0".parse().unwrap());
+    let client = TinyHumansClient::new(server.uri()).with_default_headers(headers);
+
+    let result = client.auth().me().await.unwrap();
+    assert_eq!(result, json!({"id": "u_1"}));
+}

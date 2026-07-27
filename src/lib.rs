@@ -73,6 +73,37 @@ impl TinyHumansClient {
         self
     }
 
+    /// Use a caller-supplied [`reqwest::Client`] instead of the crate default.
+    ///
+    /// The default client is `reqwest::Client::new()`: bundled rustls roots, no
+    /// timeout, no proxy configuration. That is a reasonable default for a
+    /// standalone script but wrong for an embedded host, which needs the SDK's
+    /// requests to share its own transport policy — TLS backend, timeouts,
+    /// proxy, redirect policy, connection pool.
+    ///
+    /// The concrete motivating case is TLS backend selection. On Windows a
+    /// corporate TLS-inspection proxy presents a certificate chained to a root
+    /// that is in the OS certificate store but not in the bundled rustls root
+    /// set, so every request fails until the client is built on schannel.
+    /// A host that already resolves this per platform passes that client here.
+    pub fn with_http_client(mut self, client: ReqwestClient) -> Self {
+        self.http.client = client;
+        self
+    }
+
+    /// Attach headers sent on every request in addition to the SDK's own.
+    ///
+    /// For host build/version attribution and similar cross-cutting metadata
+    /// that would otherwise have to be threaded through each call. The SDK's
+    /// own headers (`accept`, `content-type`, `x-sdk-client`) and the
+    /// credential headers (`authorization`, `x-api-key`) are applied after
+    /// these and therefore win on conflict — a caller cannot accidentally
+    /// unset the bearer token or misreport the SDK client identity.
+    pub fn with_default_headers(mut self, headers: HeaderMap) -> Self {
+        self.http.default_headers = headers;
+        self
+    }
+
     /// Raw HTTP escape hatch for routes without a typed method yet.
     pub fn raw(&self) -> &HttpClient {
         &self.http
@@ -146,6 +177,7 @@ pub struct HttpClient {
     token: Option<String>,
     api_key: Option<String>,
     client: ReqwestClient,
+    default_headers: HeaderMap,
 }
 
 impl HttpClient {
@@ -155,6 +187,7 @@ impl HttpClient {
             token: None,
             api_key: None,
             client: ReqwestClient::new(),
+            default_headers: HeaderMap::new(),
         }
     }
 
@@ -291,7 +324,9 @@ impl HttpClient {
     }
 
     fn headers(&self) -> Result<HeaderMap, Error> {
-        let mut headers = HeaderMap::new();
+        // Host-supplied headers go in first so the SDK's own headers below
+        // overwrite them on conflict — see `with_default_headers`.
+        let mut headers = self.default_headers.clone();
         headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
         headers.insert("x-sdk-client", HeaderValue::from_static("tinyhumans-rust"));
         if let Some(token) = &self.token {
