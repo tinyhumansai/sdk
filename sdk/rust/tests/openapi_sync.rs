@@ -1,6 +1,9 @@
+use std::collections::BTreeSet;
+
 use serde_json::json;
 use tinyhumans_sdk::api::api_keys::{ApiKeyScope, CreateApiKeyRequest};
 use tinyhumans_sdk::api::medulla::{CreateTaskRequest, TaskStatus};
+use tinyhumans_sdk::generated_public_routes::PUBLIC_ROUTES;
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path};
 use wiremock::{Mock, MockServer, ResponseTemplate};
@@ -68,4 +71,29 @@ async fn path_segments_are_encoded_on_new_namespaces() {
         .session_messages("a/b", &[])
         .await
         .unwrap();
+}
+
+#[test]
+fn generated_rust_routes_match_the_public_manifest() {
+    let manifest: serde_json::Value =
+        serde_json::from_str(include_str!("../../../api/tinyhumans.backend.json")).unwrap();
+    let manifest_routes = manifest["namespaces"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .flat_map(|namespace| namespace["routes"].as_array().unwrap())
+        .map(|route| {
+            let route = route.as_str().unwrap();
+            route.split_once(' ').unwrap()
+        })
+        .collect::<BTreeSet<_>>();
+    let rust_routes = PUBLIC_ROUTES.iter().copied().collect::<BTreeSet<_>>();
+
+    assert_eq!(manifest["source"]["operationCount"], 200);
+    assert_eq!(manifest["source"]["excludedAdminOperationCount"], 35);
+    assert_eq!(rust_routes.len(), 200);
+    assert_eq!(rust_routes, manifest_routes);
+    assert!(rust_routes
+        .iter()
+        .all(|(_, path)| !path.starts_with("/admin") && !path.contains("/admin/")));
 }

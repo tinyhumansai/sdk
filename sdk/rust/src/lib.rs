@@ -11,6 +11,7 @@ use serde_json::Value;
 use url::Url;
 
 pub mod api;
+pub mod generated_public_routes;
 
 /// Bytes left un-encoded by `encodeURIComponent`: the unreserved set
 /// `A-Z a-z 0-9 - _ . ! ~ * ' ( )`.
