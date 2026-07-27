@@ -1,20 +1,15 @@
 {
-  "name": "tinyhumans-sdk-workspace",
+  "name": "tinyhumans-rust-sdk-tools",
   "private": true,
-  "description": "TinyHumans backend SDKs and CLI",
+  "description": "Contract tooling for the TinyHumans Rust SDK",
   "license": "GPL-3.0-or-later",
   "repository": {
     "type": "git",
     "url": "https://github.com/tinyhumansai/sdk"
   },
   "scripts": {
-    "build": "pnpm -r build",
     "check:openapi": "node scripts/sync-openapi.mjs --check",
-    "lint": "pnpm -r lint",
     "sync:openapi": "node scripts/sync-openapi.mjs",
-    "test": "pnpm -r test"
-  },
-  "devDependencies": {
-    "typescript": "^5.9.3"
+    "test": "cargo test"
   }
 }

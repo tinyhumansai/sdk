@@ -2,8 +2,9 @@
 
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
-`1.0.0` with 205 paths and 235 operations. Each SDK exposes one typed method
-per public operation — **200 operations across the 21 namespaces below**.
+`1.0.0` with 205 paths and 235 operations. The Rust SDK exposes one typed
+method per public operation — **200 operations across the 21 namespaces
+below**.
 The remaining 35 administrative operations are intentionally excluded,
 including legacy routes whose summaries explicitly say they are admin-only.
 
@@ -35,8 +36,8 @@ The checked-in namespace manifest and Rust `PUBLIC_ROUTES` registry are
 generated deterministically:
 
 ```bash
-pnpm sync:openapi
-pnpm check:openapi
+node scripts/sync-openapi.mjs
+node scripts/sync-openapi.mjs --check
 ```
 
 Most JSON responses use the hosted-backend envelope:
@@ -48,5 +49,5 @@ Most JSON responses use the hosted-backend envelope:
 }
 ```
 
-SDK request helpers unwrap this envelope by default. Raw helpers can return the
+SDK request helpers unwrap this envelope by default. The raw helper can return the
 full response body when callers need status metadata or non-standard payloads.

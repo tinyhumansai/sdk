@@ -6,7 +6,7 @@ import process from "node:process";
 
 const SPEC_URL = "https://api.tinyhumans.ai/swagger.json";
 const MANIFEST_PATH = resolve("api/tinyhumans.backend.json");
-const RUST_ROUTES_PATH = resolve("sdk/rust/src/generated_public_routes.rs");
+const RUST_ROUTES_PATH = resolve("src/generated_public_routes.rs");
 const HTTP_METHODS = new Set([
   "delete",
   "get",
@@ -203,7 +203,9 @@ if (options.check) {
     readFile(RUST_ROUTES_PATH, "utf8"),
   ]);
   if (currentManifest !== manifest || currentRustRoutes !== rustRoutes) {
-    console.error("Generated OpenAPI surfaces are out of date; run pnpm sync:openapi");
+    console.error(
+      "Generated OpenAPI surfaces are out of date; run node scripts/sync-openapi.mjs",
+    );
     process.exitCode = 1;
   }
 } else {

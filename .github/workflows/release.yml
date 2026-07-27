@@ -1,32 +1,13 @@
-name: Release
-
-# Manual release dispatcher. TypeScript is published to GitHub Packages. Python
-# and Rust packages are built and attached to a GitHub Release because GitHub
-# Packages does not provide PyPI- or Cargo-compatible registries.
+name: Release Rust SDK
 
 on:
   workflow_dispatch:
     inputs:
-      typescript:
-        description: Publish TypeScript SDK to GitHub Packages
-        type: boolean
-        default: false
-      python:
-        description: Attach Python distributions to a GitHub Release
-        type: boolean
-        default: false
-      rust:
-        description: Attach Rust crate package to a GitHub Release
-        type: boolean
-        default: false
       bump:
-        description: Version bump to apply to the selected targets
+        description: Version bump
         type: choice
         default: patch
-        options:
-          - patch
-          - minor
-          - major
+        options: [patch, minor, major]
 
 concurrency:
   group: release-main
@@ -36,145 +17,18 @@ permissions:
   contents: write
 
 jobs:
-  prepare:
-    name: Prepare release commit
+  release:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    outputs:
-      sha: ${{ steps.push.outputs.sha }}
+    environment: Production
     steps:
       - uses: actions/checkout@v4
         with:
           ref: main
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-
-      - name: Configure git author
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-      - name: Build target list
-        id: targets
-        env:
-          TYPESCRIPT: ${{ inputs.typescript }}
-          PYTHON: ${{ inputs.python }}
-          RUST: ${{ inputs.rust }}
-        run: |
-          list=()
-          if [[ "$TYPESCRIPT" == "true" ]]; then list+=(typescript); fi
-          if [[ "$PYTHON" == "true" ]]; then list+=(python); fi
-          if [[ "$RUST" == "true" ]]; then list+=(rust); fi
-          if [[ ${#list[@]} -eq 0 ]]; then
-            echo "::error::Select at least one SDK to release."
-            exit 1
-          fi
-          # comma-separated for --only
-          printf 'targets=%s\n' "$(IFS=,; echo "${list[*]}")" >> "$GITHUB_OUTPUT"
-
-      - name: Bump versions
-        env:
-          BUMP: ${{ inputs.bump }}
-          TARGETS: ${{ steps.targets.outputs.targets }}
-        run: node scripts/bump-versions.mjs "$BUMP" --only "$TARGETS"
-
-      - name: Commit and push
-        id: push
-        env:
-          TARGETS: ${{ steps.targets.outputs.targets }}
-        run: |
-          git add -A
-          git commit -m "chore(release): bump ${TARGETS}"
-          git push origin HEAD:main
-          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-  publish-typescript:
-    name: Publish TypeScript SDK to GitHub Packages
-    needs: prepare
-    if: ${{ inputs.typescript }}
-    runs-on: ubuntu-latest
-    environment: Production
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-          registry-url: https://npm.pkg.github.com
-          scope: "@tinyhumansai"
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Build
-        run: pnpm --filter @tinyhumansai/sdk build
-
-      - name: Test
-        run: pnpm --filter @tinyhumansai/sdk test
-
-      - name: Publish to GitHub Packages
-        run: npm publish
-        working-directory: sdk/typescript
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  package-python:
-    name: Build Python release artifacts
-    needs: prepare
-    if: ${{ inputs.python }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-
-      - name: Set up uv
-        uses: astral-sh/setup-uv@v4
-        with:
-          python-version: "3.11"
-
-      - name: Build package
-        run: uv build
-        working-directory: sdk/python
-
-      - name: Upload Python release artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-distributions
-          path: sdk/python/dist/*
-          if-no-files-found: error
-
-  package-rust:
-    name: Build Rust release artifact
-    needs: prepare
-    if: ${{ inputs.rust }}
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.prepare.outputs.sha }}
-          persist-credentials: false
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -182,93 +36,38 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          workspaces: sdk/rust
+          workspaces: .
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-        working-directory: sdk/rust
+      - name: Bump Rust crate version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: echo "version=$(node scripts/bump-versions.mjs "$BUMP")" >> "$GITHUB_OUTPUT"
 
-      - name: Clippy
-        run: cargo clippy --all-targets -- -D warnings
-        working-directory: sdk/rust
+      - name: Commit release version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Cargo.toml
+          git commit -m "chore(release): rust v${VERSION}"
+          git push origin HEAD:main
 
-      - name: Test
-        run: cargo test
-        working-directory: sdk/rust
+      - name: Validate and package
+        run: |
+          cargo fmt --all -- --check
+          cargo clippy --all-targets -- -D warnings
+          cargo test
+          cargo package
 
-      - name: Build crate package
-        run: cargo package
-        working-directory: sdk/rust
-
-      - name: Upload Rust release artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: rust-crate
-          path: sdk/rust/target/package/*.crate
-          if-no-files-found: error
-
-  create-github-release:
-    name: Create GitHub Release
-    needs:
-      - prepare
-      - publish-typescript
-      - package-python
-      - package-rust
-    if: >-
-      always() &&
-      needs.prepare.result == 'success' &&
-      (!inputs.typescript || needs.publish-typescript.result == 'success') &&
-      (!inputs.python || needs.package-python.result == 'success') &&
-      (!inputs.rust || needs.package-rust.result == 'success')
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: write
-    steps:
-      - name: Download Python release artifacts
-        if: ${{ inputs.python }}
-        uses: actions/download-artifact@v4
-        with:
-          name: python-distributions
-          path: release-assets/python
-
-      - name: Download Rust release artifact
-        if: ${{ inputs.rust }}
-        uses: actions/download-artifact@v4
-        with:
-          name: rust-crate
-          path: release-assets/rust
-
-      - name: Create release and attach distributions
+      - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          RELEASE_SHA: ${{ needs.prepare.outputs.sha }}
-          TYPESCRIPT: ${{ inputs.typescript }}
-          PYTHON: ${{ inputs.python }}
-          RUST: ${{ inputs.rust }}
-        run: |
-          tag="sdk-release-${RELEASE_SHA}"
-          notes="SDK release from commit ${RELEASE_SHA}."
-          if [[ "$TYPESCRIPT" == "true" ]]; then
-            notes="${notes}"$'\n\n'"TypeScript: published to GitHub Packages."
-          fi
-          if [[ "$PYTHON" == "true" ]]; then
-            notes="${notes}"$'\n'"Python: wheel and source distribution attached."
-          fi
-          if [[ "$RUST" == "true" ]]; then
-            notes="${notes}"$'\n'"Rust: Cargo package attached."
-          fi
-
-          assets=()
-          if [[ "$PYTHON" == "true" ]]; then
-            assets+=(release-assets/python/*)
-          fi
-          if [[ "$RUST" == "true" ]]; then
-            assets+=(release-assets/rust/*)
-          fi
-
-          gh release create "$tag" "${assets[@]}" \
-            --target "$RELEASE_SHA" \
-            --title "SDK release ${RELEASE_SHA:0:7}" \
-            --notes "$notes"
+          VERSION: ${{ steps.version.outputs.version }}
+        run: >-
+          gh release create "rust-v${VERSION}"
+          target/package/tinyhumans-sdk-${VERSION}.crate
+          --target "$(git rev-parse HEAD)"
+          --title "Rust SDK v${VERSION}"
+          --notes "Rust SDK package for v${VERSION}. GitHub Packages has no Cargo registry, so the .crate artifact is attached here."
