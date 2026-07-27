@@ -8,7 +8,6 @@ export interface GlobalOptions {
   baseUrl: string;
   token?: string;
   apiKey?: string;
-  adminServiceToken?: string;
   raw: boolean;
   pretty: boolean;
 }
@@ -49,7 +48,6 @@ Global flags:
   --base-url URL            (env TINYHUMANS_BASE_URL, default https://api.tinyhumans.ai)
   --token TOKEN             (env TINYHUMANS_TOKEN)
   --api-key KEY             (env TINYHUMANS_API_KEY)
-  --admin-service-token TOK (env TINYHUMANS_ADMIN_SERVICE_TOKEN)
   --raw                     do not unwrap the { success, data } envelope
   --json                    compact JSON output (default is pretty)
 
@@ -107,7 +105,6 @@ export async function run(argv: string[], deps: RunDeps = defaultDeps): Promise<
     baseUrl: options.baseUrl,
     token: options.token,
     apiKey: options.apiKey,
-    adminServiceToken: options.adminServiceToken,
     unwrapEnvelope: !options.raw,
   });
 
@@ -245,8 +242,6 @@ export function resolveGlobals(
     baseUrl: asStr(flags["base-url"]) ?? env.TINYHUMANS_BASE_URL ?? "https://api.tinyhumans.ai",
     token: asStr(flags.token) ?? env.TINYHUMANS_TOKEN,
     apiKey: asStr(flags["api-key"]) ?? env.TINYHUMANS_API_KEY,
-    adminServiceToken:
-      asStr(flags["admin-service-token"]) ?? env.TINYHUMANS_ADMIN_SERVICE_TOKEN,
     raw: flags.raw !== undefined,
     pretty: flags.json === undefined,
   };

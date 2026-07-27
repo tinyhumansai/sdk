@@ -8,16 +8,20 @@ export type {
 } from "./http.js";
 
 export * from "./api/agent-integrations.js";
+export * from "./api/api-keys.js";
 export * from "./api/announcements.js";
 export * from "./api/auth.js";
+export * from "./api/budgets.js";
 export * from "./api/channels.js";
 export * from "./api/coupons.js";
 export * from "./api/feedback.js";
 export * from "./api/health.js";
 export * from "./api/inference.js";
-export * from "./api/investors.js";
 export * from "./api/invite.js";
 export * from "./api/mascots.js";
+export * from "./api/medulla.js";
+export * from "./api/open-company.js";
+export * from "./api/orchestration.js";
 export * from "./api/payments.js";
 export * from "./api/redirect.js";
 export * from "./api/referral.js";

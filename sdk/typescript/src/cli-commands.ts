@@ -41,6 +41,18 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "agentIntegrations",
+    "command": "claim-history-reward",
+    "method": "claimHistoryReward",
+    "verb": "POST",
+    "path": "/agent-integrations/history-rewards/claim",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
     "command": "connect-recall-calendar",
     "method": "connectRecallCalendar",
     "verb": "POST",
@@ -142,12 +154,50 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "agentIntegrations",
+    "command": "delete-file",
+    "method": "deleteFile",
+    "verb": "DELETE",
+    "path": "/agent-integrations/file-storage/files/:fileId",
+    "pathParams": [
+      "fileId"
+    ],
+    "params": [
+      {
+        "name": "fileId",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
     "command": "disconnect-recall-calendar",
     "method": "disconnectRecallCalendar",
     "verb": "POST",
     "path": "/agent-integrations/recall-calendar/disconnect",
     "pathParams": [],
     "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
+    "command": "download-file",
+    "method": "downloadFile",
+    "verb": "GET",
+    "path": "/agent-integrations/file-storage/files/:fileId/download",
+    "pathParams": [
+      "fileId"
+    ],
+    "params": [
+      {
+        "name": "fileId",
+        "role": "positional"
+      }
+    ],
     "hasBody": false,
     "hasQuery": false,
     "nonEnvelope": false
@@ -298,6 +348,49 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "agentIntegrations",
+    "command": "get-file",
+    "method": "getFile",
+    "verb": "GET",
+    "path": "/agent-integrations/file-storage/files/:fileId",
+    "pathParams": [
+      "fileId"
+    ],
+    "params": [
+      {
+        "name": "fileId",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
+    "command": "get-file-storage-usage",
+    "method": "getFileStorageUsage",
+    "verb": "GET",
+    "path": "/agent-integrations/file-storage/usage",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
+    "command": "get-history-reward-status",
+    "method": "getHistoryRewardStatus",
+    "verb": "GET",
+    "path": "/agent-integrations/history-rewards/status",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
     "command": "get-media-generation-request",
     "method": "getMediaGenerationRequest",
     "verb": "GET",
@@ -409,6 +502,25 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "agentIntegrations",
+    "command": "get-public-file",
+    "method": "getPublicFile",
+    "verb": "GET",
+    "path": "/agent-integrations/file-storage/public/:fileId",
+    "pathParams": [
+      "fileId"
+    ],
+    "params": [
+      {
+        "name": "fileId",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
     "command": "get-recall-calendar-status",
     "method": "getRecallCalendarStatus",
     "verb": "GET",
@@ -450,6 +562,25 @@ export const COMMANDS: readonly CliCommand[] = [
       }
     ],
     "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
+    "command": "link-file",
+    "method": "linkFile",
+    "verb": "POST",
+    "path": "/agent-integrations/file-storage/files/:fileId/link",
+    "pathParams": [
+      "fileId"
+    ],
+    "params": [
+      {
+        "name": "fileId",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
     "hasQuery": false,
     "nonEnvelope": false
   },
@@ -538,6 +669,23 @@ export const COMMANDS: readonly CliCommand[] = [
     "params": [],
     "hasBody": false,
     "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
+    "command": "list-files",
+    "method": "listFiles",
+    "verb": "GET",
+    "path": "/agent-integrations/file-storage/files",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "query",
+        "role": "query"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": true,
     "nonEnvelope": false
   },
   {
@@ -837,11 +985,116 @@ export const COMMANDS: readonly CliCommand[] = [
     "nonEnvelope": false
   },
   {
+    "namespace": "agentIntegrations",
+    "command": "update-file",
+    "method": "updateFile",
+    "verb": "PATCH",
+    "path": "/agent-integrations/file-storage/files/:fileId",
+    "pathParams": [
+      "fileId"
+    ],
+    "params": [
+      {
+        "name": "fileId",
+        "role": "positional"
+      },
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
+    "command": "upload-file",
+    "method": "uploadFile",
+    "verb": "POST",
+    "path": "/agent-integrations/file-storage/files",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "agentIntegrations",
+    "command": "upload-history-reward",
+    "method": "uploadHistoryReward",
+    "verb": "POST",
+    "path": "/agent-integrations/history-rewards/uploads",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
     "namespace": "announcements",
     "command": "get-latest-announcements",
     "method": "getLatestAnnouncements",
     "verb": "GET",
     "path": "/announcements/latest",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "apiKeys",
+    "command": "create-api-key",
+    "method": "createApiKey",
+    "verb": "POST",
+    "path": "/api-keys",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "apiKeys",
+    "command": "delete-api-key",
+    "method": "deleteApiKey",
+    "verb": "DELETE",
+    "path": "/api-keys/:keyId",
+    "pathParams": [
+      "keyId"
+    ],
+    "params": [
+      {
+        "name": "keyId",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "apiKeys",
+    "command": "list-api-keys",
+    "method": "listApiKeys",
+    "verb": "GET",
+    "path": "/api-keys",
     "pathParams": [],
     "params": [],
     "hasBody": false,
@@ -1050,6 +1303,77 @@ export const COMMANDS: readonly CliCommand[] = [
     "nonEnvelope": false
   },
   {
+    "namespace": "budgets",
+    "command": "create-seat",
+    "method": "createSeat",
+    "verb": "POST",
+    "path": "/budgets/seats",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "budgets",
+    "command": "delete-seat",
+    "method": "deleteSeat",
+    "verb": "DELETE",
+    "path": "/budgets/seats/:seatId",
+    "pathParams": [
+      "seatId"
+    ],
+    "params": [
+      {
+        "name": "seatId",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "budgets",
+    "command": "get-budgets",
+    "method": "getBudgets",
+    "verb": "GET",
+    "path": "/budgets",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "budgets",
+    "command": "update-seat",
+    "method": "updateSeat",
+    "verb": "PATCH",
+    "path": "/budgets/seats/:seatId",
+    "pathParams": [
+      "seatId"
+    ],
+    "params": [
+      {
+        "name": "seatId",
+        "role": "positional"
+      },
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
     "namespace": "channels",
     "command": "add-reaction",
     "method": "addReaction",
@@ -1218,59 +1542,6 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "coupons",
-    "command": "create-coupon",
-    "method": "createCoupon",
-    "verb": "POST",
-    "path": "/coupons/admin",
-    "pathParams": [],
-    "params": [
-      {
-        "name": "body",
-        "role": "body"
-      }
-    ],
-    "hasBody": true,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "coupons",
-    "command": "delete-coupon",
-    "method": "deleteCoupon",
-    "verb": "DELETE",
-    "path": "/coupons/admin/:couponId",
-    "pathParams": [
-      "couponId"
-    ],
-    "params": [
-      {
-        "name": "couponId",
-        "role": "positional"
-      }
-    ],
-    "hasBody": false,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "coupons",
-    "command": "list-coupons",
-    "method": "listCoupons",
-    "verb": "GET",
-    "path": "/coupons/admin",
-    "pathParams": [],
-    "params": [
-      {
-        "name": "query",
-        "role": "query"
-      }
-    ],
-    "hasBody": false,
-    "hasQuery": true,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "coupons",
     "command": "list-my-coupons",
     "method": "listMyCoupons",
     "verb": "GET",
@@ -1359,6 +1630,23 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "feedback",
+    "command": "ingest-feedback",
+    "method": "ingestFeedback",
+    "verb": "POST",
+    "path": "/feedback/ingest",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "feedback",
     "command": "list-feedback",
     "method": "listFeedback",
     "verb": "GET",
@@ -1372,29 +1660,6 @@ export const COMMANDS: readonly CliCommand[] = [
     ],
     "hasBody": false,
     "hasQuery": true,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "feedback",
-    "command": "update-feedback-status",
-    "method": "updateFeedbackStatus",
-    "verb": "PATCH",
-    "path": "/feedback/:id/status",
-    "pathParams": [
-      "id"
-    ],
-    "params": [
-      {
-        "name": "id",
-        "role": "positional"
-      },
-      {
-        "name": "body",
-        "role": "body"
-      }
-    ],
-    "hasBody": true,
-    "hasQuery": false,
     "nonEnvelope": false
   },
   {
@@ -1535,84 +1800,6 @@ export const COMMANDS: readonly CliCommand[] = [
     "nonEnvelope": true
   },
   {
-    "namespace": "investors",
-    "command": "get-investor-page",
-    "method": "getInvestorPage",
-    "verb": "GET",
-    "path": "/investors/:slug",
-    "pathParams": [
-      "slug"
-    ],
-    "params": [
-      {
-        "name": "slug",
-        "role": "positional"
-      }
-    ],
-    "hasBody": false,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "investors",
-    "command": "track-investor-event",
-    "method": "trackInvestorEvent",
-    "verb": "POST",
-    "path": "/investors/:slug/events",
-    "pathParams": [
-      "slug"
-    ],
-    "params": [
-      {
-        "name": "slug",
-        "role": "positional"
-      },
-      {
-        "name": "body",
-        "role": "body"
-      }
-    ],
-    "hasBody": true,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "invite",
-    "command": "create-campaign-invite",
-    "method": "createCampaignInvite",
-    "verb": "POST",
-    "path": "/invite/campaign",
-    "pathParams": [],
-    "params": [
-      {
-        "name": "body",
-        "role": "body"
-      }
-    ],
-    "hasBody": true,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "invite",
-    "command": "delete-campaign-invite",
-    "method": "deleteCampaignInvite",
-    "verb": "DELETE",
-    "path": "/invite/campaign/:codeId",
-    "pathParams": [
-      "codeId"
-    ],
-    "params": [
-      {
-        "name": "codeId",
-        "role": "positional"
-      }
-    ],
-    "hasBody": false,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
     "namespace": "invite",
     "command": "get-invite-status",
     "method": "getInviteStatus",
@@ -1627,18 +1814,6 @@ export const COMMANDS: readonly CliCommand[] = [
     ],
     "hasBody": false,
     "hasQuery": true,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "invite",
-    "command": "list-campaign-invites",
-    "method": "listCampaignInvites",
-    "verb": "GET",
-    "path": "/invite/campaign",
-    "pathParams": [],
-    "params": [],
-    "hasBody": false,
-    "hasQuery": false,
     "nonEnvelope": false
   },
   {
@@ -1764,6 +1939,676 @@ export const COMMANDS: readonly CliCommand[] = [
     ],
     "hasBody": false,
     "hasQuery": true,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "abort-session",
+    "method": "abortSession",
+    "verb": "POST",
+    "path": "/medulla/v1/sessions/:id/abort",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "create-session",
+    "method": "createSession",
+    "verb": "POST",
+    "path": "/medulla/v1/sessions",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "create-task",
+    "method": "createTask",
+    "verb": "POST",
+    "path": "/medulla/v1/tasks",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "create-task-source",
+    "method": "createTaskSource",
+    "verb": "POST",
+    "path": "/medulla/v1/tasks/sources",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "delete-session",
+    "method": "deleteSession",
+    "verb": "DELETE",
+    "path": "/medulla/v1/sessions/:id",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "delete-task",
+    "method": "deleteTask",
+    "verb": "DELETE",
+    "path": "/medulla/v1/tasks/:id",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "delete-task-source",
+    "method": "deleteTaskSource",
+    "verb": "DELETE",
+    "path": "/medulla/v1/tasks/sources/:id",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "get-roster",
+    "method": "getRoster",
+    "verb": "GET",
+    "path": "/medulla/v1/roster",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "get-routing-strategy",
+    "method": "getRoutingStrategy",
+    "verb": "GET",
+    "path": "/medulla/v1/routing/strategy",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "get-session",
+    "method": "getSession",
+    "verb": "GET",
+    "path": "/medulla/v1/sessions/:id",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "list-events",
+    "method": "listEvents",
+    "verb": "GET",
+    "path": "/medulla/v1/sessions/:id/events",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      },
+      {
+        "name": "query",
+        "role": "query"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": true,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "list-messages",
+    "method": "listMessages",
+    "verb": "GET",
+    "path": "/medulla/v1/sessions/:id/messages",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      },
+      {
+        "name": "query",
+        "role": "query"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": true,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "list-sessions",
+    "method": "listSessions",
+    "verb": "GET",
+    "path": "/medulla/v1/sessions",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "list-task-sources",
+    "method": "listTaskSources",
+    "verb": "GET",
+    "path": "/medulla/v1/tasks/sources",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "list-tasks",
+    "method": "listTasks",
+    "verb": "GET",
+    "path": "/medulla/v1/tasks",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "send-message",
+    "method": "sendMessage",
+    "verb": "POST",
+    "path": "/medulla/v1/sessions/:id/messages",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      },
+      {
+        "name": "body",
+        "role": "body"
+      },
+      {
+        "name": "query",
+        "role": "query"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": true,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "stream-session",
+    "method": "streamSession",
+    "verb": "GET",
+    "path": "/medulla/v1/sessions/:id/stream",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      },
+      {
+        "name": "query",
+        "role": "query"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": true,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "sync-task-source",
+    "method": "syncTaskSource",
+    "verb": "POST",
+    "path": "/medulla/v1/tasks/sources/:id/sync",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "update-routing-strategy",
+    "method": "updateRoutingStrategy",
+    "verb": "PUT",
+    "path": "/medulla/v1/routing/strategy",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "medulla",
+    "command": "update-task",
+    "method": "updateTask",
+    "verb": "PATCH",
+    "path": "/medulla/v1/tasks/:id",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      },
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "create-instance",
+    "method": "createInstance",
+    "verb": "POST",
+    "path": "/opencompany/instances",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "delete-custom-domain",
+    "method": "deleteCustomDomain",
+    "verb": "DELETE",
+    "path": "/opencompany/instances/:slug/custom-domain",
+    "pathParams": [
+      "slug"
+    ],
+    "params": [
+      {
+        "name": "slug",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "delete-instance",
+    "method": "deleteInstance",
+    "verb": "DELETE",
+    "path": "/opencompany/instances/:slug",
+    "pathParams": [
+      "slug"
+    ],
+    "params": [
+      {
+        "name": "slug",
+        "role": "positional"
+      },
+      {
+        "name": "query",
+        "role": "query"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": true,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "get-instance",
+    "method": "getInstance",
+    "verb": "GET",
+    "path": "/opencompany/instances/:slug",
+    "pathParams": [
+      "slug"
+    ],
+    "params": [
+      {
+        "name": "slug",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "list-instances",
+    "method": "listInstances",
+    "verb": "GET",
+    "path": "/opencompany/instances",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "resume-instance",
+    "method": "resumeInstance",
+    "verb": "POST",
+    "path": "/opencompany/instances/:slug/resume",
+    "pathParams": [
+      "slug"
+    ],
+    "params": [
+      {
+        "name": "slug",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "set-custom-domain",
+    "method": "setCustomDomain",
+    "verb": "PUT",
+    "path": "/opencompany/instances/:slug/custom-domain",
+    "pathParams": [
+      "slug"
+    ],
+    "params": [
+      {
+        "name": "slug",
+        "role": "positional"
+      },
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "suspend-instance",
+    "method": "suspendInstance",
+    "verb": "POST",
+    "path": "/opencompany/instances/:slug/suspend",
+    "pathParams": [
+      "slug"
+    ],
+    "params": [
+      {
+        "name": "slug",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "openCompany",
+    "command": "verify-custom-domain",
+    "method": "verifyCustomDomain",
+    "verb": "POST",
+    "path": "/opencompany/instances/:slug/custom-domain/verify",
+    "pathParams": [
+      "slug"
+    ],
+    "params": [
+      {
+        "name": "slug",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "orchestration",
+    "command": "continue-run",
+    "method": "continueRun",
+    "verb": "POST",
+    "path": "/orchestration/v1/run/continue",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "orchestration",
+    "command": "get-session-state",
+    "method": "getSessionState",
+    "verb": "GET",
+    "path": "/orchestration/v1/sessions/:id/state",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "orchestration",
+    "command": "get-world-diff",
+    "method": "getWorldDiff",
+    "verb": "GET",
+    "path": "/orchestration/v1/world-diff",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "query",
+        "role": "query"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": true,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "orchestration",
+    "command": "ingest-event",
+    "method": "ingestEvent",
+    "verb": "POST",
+    "path": "/orchestration/v1/events",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "orchestration",
+    "command": "list-session-messages",
+    "method": "listSessionMessages",
+    "verb": "GET",
+    "path": "/orchestration/v1/sessions/:id/messages",
+    "pathParams": [
+      "id"
+    ],
+    "params": [
+      {
+        "name": "id",
+        "role": "positional"
+      },
+      {
+        "name": "query",
+        "role": "query"
+      }
+    ],
+    "hasBody": false,
+    "hasQuery": true,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "orchestration",
+    "command": "list-sessions",
+    "method": "listSessions",
+    "verb": "GET",
+    "path": "/orchestration/v1/sessions",
+    "pathParams": [],
+    "params": [],
+    "hasBody": false,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "orchestration",
+    "command": "post-world-diff",
+    "method": "postWorldDiff",
+    "verb": "POST",
+    "path": "/orchestration/v1/world-diff",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "orchestration",
+    "command": "run",
+    "method": "run",
+    "verb": "POST",
+    "path": "/orchestration/v1/run",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
     "nonEnvelope": false
   },
   {
@@ -2108,6 +2953,23 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "rewards",
+    "command": "claim-reward",
+    "method": "claimReward",
+    "verb": "POST",
+    "path": "/rewards/claim",
+    "pathParams": [],
+    "params": [
+      {
+        "name": "body",
+        "role": "body"
+      }
+    ],
+    "hasBody": true,
+    "hasQuery": false,
+    "nonEnvelope": false
+  },
+  {
+    "namespace": "rewards",
     "command": "get-my-rewards",
     "method": "getMyRewards",
     "verb": "GET",
@@ -2337,30 +3199,6 @@ export const COMMANDS: readonly CliCommand[] = [
   },
   {
     "namespace": "teams",
-    "command": "remove-member",
-    "method": "removeMember",
-    "verb": "DELETE",
-    "path": "/teams/:teamId/members/:userId",
-    "pathParams": [
-      "teamId",
-      "userId"
-    ],
-    "params": [
-      {
-        "name": "teamId",
-        "role": "positional"
-      },
-      {
-        "name": "userId",
-        "role": "positional"
-      }
-    ],
-    "hasBody": false,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "teams",
     "command": "revoke-invite",
     "method": "revokeInvite",
     "verb": "DELETE",
@@ -2422,57 +3260,6 @@ export const COMMANDS: readonly CliCommand[] = [
       }
     ],
     "hasBody": false,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "teams",
-    "command": "update-member-role",
-    "method": "updateMemberRole",
-    "verb": "PUT",
-    "path": "/teams/:teamId/members/:userId/role",
-    "pathParams": [
-      "teamId",
-      "userId"
-    ],
-    "params": [
-      {
-        "name": "teamId",
-        "role": "positional"
-      },
-      {
-        "name": "userId",
-        "role": "positional"
-      },
-      {
-        "name": "body",
-        "role": "body"
-      }
-    ],
-    "hasBody": true,
-    "hasQuery": false,
-    "nonEnvelope": false
-  },
-  {
-    "namespace": "teams",
-    "command": "update-team",
-    "method": "updateTeam",
-    "verb": "PUT",
-    "path": "/teams/:teamId",
-    "pathParams": [
-      "teamId"
-    ],
-    "params": [
-      {
-        "name": "teamId",
-        "role": "positional"
-      },
-      {
-        "name": "body",
-        "role": "body"
-      }
-    ],
-    "hasBody": true,
     "hasQuery": false,
     "nonEnvelope": false
   },

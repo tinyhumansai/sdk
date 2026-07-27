@@ -15,10 +15,6 @@ export interface JoinTeamBody {
   code: string;
 }
 
-export interface UpdateTeamBody {
-  name?: string;
-}
-
 export interface CreateBillingPortalBody {
   /** URL to return to after the portal session. */
   returnUrl?: string;
@@ -37,10 +33,6 @@ export interface CreateInviteBody {
 
 export interface SendEmailInviteBody {
   email: string;
-}
-
-export interface UpdateMemberRoleBody {
-  role: TeamRole;
 }
 
 /**
@@ -68,15 +60,6 @@ export class TeamsApi {
   /** Get details for a single team. */
   getTeam<T = unknown>(teamId: string, options?: RequestOptions): Promise<T> {
     return this.http.get<T>(`/teams/${encodeURIComponent(teamId)}`, options);
-  }
-
-  /** Update team settings (admin only). */
-  updateTeam<T = unknown>(
-    teamId: string,
-    body: UpdateTeamBody,
-    options?: RequestOptions,
-  ): Promise<T> {
-    return this.http.put<T>(`/teams/${encodeURIComponent(teamId)}`, body, options);
   }
 
   /** Get the team's current subscription plan. */
@@ -168,32 +151,6 @@ export class TeamsApi {
   /** List a team's members. */
   listMembers<T = unknown>(teamId: string, options?: RequestOptions): Promise<T> {
     return this.http.get<T>(`/teams/${encodeURIComponent(teamId)}/members`, options);
-  }
-
-  /** Remove a member from the team (admin only). */
-  removeMember<T = unknown>(
-    teamId: string,
-    userId: string,
-    options?: RequestOptions,
-  ): Promise<T> {
-    return this.http.delete<T>(
-      `/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(userId)}`,
-      options,
-    );
-  }
-
-  /** Change a member's role (admin only). */
-  updateMemberRole<T = unknown>(
-    teamId: string,
-    userId: string,
-    body: UpdateMemberRoleBody,
-    options?: RequestOptions,
-  ): Promise<T> {
-    return this.http.put<T>(
-      `/teams/${encodeURIComponent(teamId)}/members/${encodeURIComponent(userId)}/role`,
-      body,
-      options,
-    );
   }
 
   /** Switch the user's active team. */

@@ -5,7 +5,6 @@ export interface TinyHumansClientOptions {
   baseUrl: string;
   token?: string;
   apiKey?: string;
-  adminServiceToken?: string;
   headers?: Record<string, string>;
   fetch?: typeof globalThis.fetch;
   unwrapEnvelope?: boolean;
@@ -151,9 +150,6 @@ export class HttpClient {
     });
     if (this.options.token) headers.set("authorization", `Bearer ${this.options.token}`);
     if (this.options.apiKey) headers.set("x-api-key", this.options.apiKey);
-    if (this.options.adminServiceToken) {
-      headers.set("x-admin-service-token", this.options.adminServiceToken);
-    }
     return headers;
   }
 }

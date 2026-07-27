@@ -1,5 +1,22 @@
 import type { HttpClient, RequestOptions } from "../http.js";
 
+// --- File storage ---
+
+export interface FileStorageListQuery {
+  limit?: number;
+  cursor?: string;
+}
+
+export interface UpdateStoredFileBody {
+  visibility?: "public" | "private";
+  ttlDays?: number;
+}
+
+export interface HistoryRewardUploadBody {
+  file: Blob;
+  agent: "claude" | "codex" | "opencode";
+}
+
 // --- Apify ---
 
 export interface RunApifyActorBody {
@@ -281,6 +298,105 @@ export interface TwilioCallBody {
  */
 export class AgentIntegrationsApi {
   constructor(private readonly http: HttpClient) {}
+
+  // --- File storage ---
+
+  /** Upload a file. Supply multipart FormData with file and optional visibility/ttlDays. */
+  uploadFile<T = unknown>(body: FormData, options?: RequestOptions): Promise<T> {
+    return this.http.post<T>("/agent-integrations/file-storage/files", body, options);
+  }
+
+  listFiles<T = unknown>(
+    query?: FileStorageListQuery,
+    options?: RequestOptions,
+  ): Promise<T> {
+    return this.http.get<T>("/agent-integrations/file-storage/files", {
+      ...options,
+      query: { ...query, ...options?.query },
+    });
+  }
+
+  getFile<T = unknown>(fileId: string, options?: RequestOptions): Promise<T> {
+    return this.http.get<T>(
+      `/agent-integrations/file-storage/files/${encodeURIComponent(fileId)}`,
+      options,
+    );
+  }
+
+  downloadFile<T = Response>(
+    fileId: string,
+    options?: RequestOptions,
+  ): Promise<T> {
+    return this.http.get<T>(
+      `/agent-integrations/file-storage/files/${encodeURIComponent(fileId)}/download`,
+      { ...options, responseType: options?.responseType ?? "raw" },
+    );
+  }
+
+  getPublicFile<T = Response>(
+    fileId: string,
+    options?: RequestOptions,
+  ): Promise<T> {
+    return this.http.get<T>(
+      `/agent-integrations/file-storage/public/${encodeURIComponent(fileId)}`,
+      { ...options, responseType: options?.responseType ?? "raw" },
+    );
+  }
+
+  updateFile<T = unknown>(
+    fileId: string,
+    body: UpdateStoredFileBody,
+    options?: RequestOptions,
+  ): Promise<T> {
+    return this.http.patch<T>(
+      `/agent-integrations/file-storage/files/${encodeURIComponent(fileId)}`,
+      body,
+      options,
+    );
+  }
+
+  deleteFile<T = unknown>(fileId: string, options?: RequestOptions): Promise<T> {
+    return this.http.delete<T>(
+      `/agent-integrations/file-storage/files/${encodeURIComponent(fileId)}`,
+      options,
+    );
+  }
+
+  linkFile<T = unknown>(fileId: string, options?: RequestOptions): Promise<T> {
+    return this.http.post<T>(
+      `/agent-integrations/file-storage/files/${encodeURIComponent(fileId)}/link`,
+      undefined,
+      options,
+    );
+  }
+
+  getFileStorageUsage<T = unknown>(options?: RequestOptions): Promise<T> {
+    return this.http.get<T>("/agent-integrations/file-storage/usage", options);
+  }
+
+  /** Upload history. Supply multipart FormData with file and agent fields. */
+  uploadHistoryReward<T = unknown>(
+    body: FormData,
+    options?: RequestOptions,
+  ): Promise<T> {
+    return this.http.post<T>(
+      "/agent-integrations/history-rewards/uploads",
+      body,
+      options,
+    );
+  }
+
+  claimHistoryReward<T = unknown>(options?: RequestOptions): Promise<T> {
+    return this.http.post<T>(
+      "/agent-integrations/history-rewards/claim",
+      undefined,
+      options,
+    );
+  }
+
+  getHistoryRewardStatus<T = unknown>(options?: RequestOptions): Promise<T> {
+    return this.http.get<T>("/agent-integrations/history-rewards/status", options);
+  }
 
   // --- Apify ---
 
