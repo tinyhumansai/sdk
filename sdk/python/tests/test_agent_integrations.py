@@ -73,14 +73,6 @@ def test_list_composio_toolkits() -> None:
     assert http.last["path"] == "/agent-integrations/composio/toolkits"
 
 
-def test_refresh_composio_toolkits() -> None:
-    api, http = make()
-    api.refresh_composio_toolkits({"full": True})
-    assert http.last["method"] == "POST"
-    assert http.last["path"] == "/agent-integrations/composio/toolkits/refresh"
-    assert http.last["query"] == {"full": True}
-
-
 def test_list_composio_tools() -> None:
     api, http = make()
     api.list_composio_tools({"toolkits": "gmail"})

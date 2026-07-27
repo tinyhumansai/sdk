@@ -11,8 +11,10 @@ from helpers import RecordingHttp
 
 NAMESPACES = [
     "agent_integrations",
+    "api_keys",
     "announcements",
     "auth",
+    "budgets",
     "channels",
     "coupons",
     "feedback",
@@ -20,6 +22,9 @@ NAMESPACES = [
     "inference",
     "invite",
     "mascots",
+    "medulla",
+    "opencompany",
+    "orchestration",
     "payments",
     "redirect",
     "referral",
@@ -41,7 +46,7 @@ def test_raw_is_http_client() -> None:
 
 def test_all_namespaces_present() -> None:
     client = _client()
-    assert len(NAMESPACES) == 16
+    assert len(NAMESPACES) == 21
     for name in NAMESPACES:
         assert hasattr(client, name), name
         assert getattr(client, name) is not None
