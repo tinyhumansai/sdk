@@ -31,7 +31,8 @@ including legacy routes whose summaries explicitly say they are admin-only.
 | `redirect` | `/r` | none | resolve short redirect codes |
 | `webhooks` | `/webhooks` | mixed | provider callbacks and webhook tunnels |
 
-The checked-in namespace manifest is generated deterministically:
+The checked-in namespace manifest and Rust `PUBLIC_ROUTES` registry are
+generated deterministically:
 
 ```bash
 pnpm sync:openapi

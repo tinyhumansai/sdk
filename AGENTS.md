@@ -124,6 +124,11 @@ When adding or changing SDK methods:
 Do not invent stable SDK method names from local source alone if the deployed
 Swagger operation has a different path or tag.
 
+Never add an administrative route or admin credential helper to any SDK,
+including legacy paths outside `/admin` whose summary, description, or 403
+response marks them as admin-only. `pnpm sync:openapi` must retain that filter
+and regenerate both the manifest and Rust public-route registry.
+
 ## Git and PR Expectations
 
 - Keep changes small and coherent.
