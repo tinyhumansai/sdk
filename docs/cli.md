@@ -2,7 +2,7 @@
 
 The TypeScript package ships the `tinyhumans` command. It mirrors the typed SDK:
 every namespace method is a `tinyhumans <namespace> <command>` subcommand
-(156 commands across 17 namespaces), with a `raw` escape hatch for anything not
+(200 commands across 21 namespaces), with a `raw` escape hatch for anything not
 yet typed.
 
 ## Discovering commands
@@ -29,8 +29,8 @@ tinyhumans auth me --token "$TINYHUMANS_TOKEN"
 # GET /auth/email/verify?token=... (token is a positional param)
 tinyhumans auth verify-email tok_123
 
-# PUT /teams/:teamId with a JSON body
-tinyhumans teams update-team team_9 --body '{"name":"New name"}' --token "$TINYHUMANS_TOKEN"
+# POST /api-keys with a JSON body
+tinyhumans api-keys create-api-key --body '{"name":"automation"}' --token "$TINYHUMANS_TOKEN"
 
 # POST /openai/v1/chat/completions (body via stdin; returns raw provider JSON)
 echo '{"model":"gpt-4.1-mini","messages":[]}' \
@@ -53,7 +53,6 @@ echo '{"email":"you@example.com"}' | tinyhumans raw post /auth/email/send-link
 - `--base-url URL`
 - `--token TOKEN`
 - `--api-key KEY`
-- `--admin-service-token TOKEN`
 - `--raw` — return the full `{ success, data }` envelope instead of unwrapping
 - `--json` — compact JSON output (default is pretty-printed)
 
@@ -62,7 +61,6 @@ echo '{"email":"you@example.com"}' | tinyhumans raw post /auth/email/send-link
 - `TINYHUMANS_BASE_URL`
 - `TINYHUMANS_TOKEN`
 - `TINYHUMANS_API_KEY`
-- `TINYHUMANS_ADMIN_SERVICE_TOKEN`
 
 ## Regenerating the command table
 
