@@ -216,7 +216,10 @@ pub enum OrchestrationRole {
 #[serde(rename_all = "camelCase")]
 pub struct ContinueRunRequest {
     pub cycle_id: String,
-    pub tool_results: Vec<Value>,
+    /// Results for the calls the orchestrator asked for. Empty polls a run
+    /// that is still pending.
+    #[serde(default)]
+    pub tool_results: Vec<super::orchestration::ToolResult>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]

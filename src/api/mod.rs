@@ -14,6 +14,7 @@ pub mod inference;
 pub mod invite;
 pub mod mascots;
 pub mod medulla;
+pub mod medulla_types;
 pub mod opencompany;
 pub mod orchestration;
 pub mod payments;
