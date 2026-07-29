@@ -8,13 +8,20 @@ repository = "https://github.com/tinyhumansai/sdk"
 
 [dependencies]
 base64 = "0.22"
-reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls"] }
+# `stream` is for the SSE session stream in `src/sse.rs`; every other route
+# buffers its body.
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls", "stream"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
 url = "2"
 percent-encoding = "2"
+# The SSE session stream. Server-Sent Events framing plus reconnect-with-cursor
+# is real protocol complexity a caller should not have to reimplement, which is
+# what earns these two their place in an otherwise dependency-light crate.
+futures = "0.3"
+tokio = { version = "1", features = ["time"] }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "net", "io-util"] }
 wiremock = "0.6"

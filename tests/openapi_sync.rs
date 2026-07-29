@@ -42,7 +42,19 @@ async fn medulla_task_status_serializes_in_camel_case() {
     Mock::given(method("POST"))
         .and(path("/medulla/v1/tasks"))
         .and(body_json(json!({"title":"Ship","status":"inProgress"})))
-        .respond_with(ok())
+        // `create_task` now decodes a typed `Task`, so the stub returns the
+        // route's real `{"task": {...}}` payload rather than a placeholder.
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": { "task": {
+                "id": "task-1",
+                "title": "Ship",
+                "description": "",
+                "status": "inProgress",
+                "createdAt": "2026-07-29T00:00:00Z",
+                "updatedAt": "2026-07-29T00:00:00Z",
+            }},
+        })))
         .mount(&server)
         .await;
     let request = CreateTaskRequest {
@@ -51,11 +63,12 @@ async fn medulla_task_status_serializes_in_camel_case() {
         status: Some(TaskStatus::InProgress),
         recurrence: None,
     };
-    TinyHumansClient::new(server.uri())
+    let task = TinyHumansClient::new(server.uri())
         .medulla()
         .create_task(&request)
         .await
         .unwrap();
+    assert_eq!(task.status, TaskStatus::InProgress);
 }
 
 #[tokio::test]
