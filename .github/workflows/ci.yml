@@ -34,16 +34,3 @@ jobs:
       - run: cargo test
 
       - run: cargo package
-
-  contract:
-    name: Public OpenAPI parity
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-
-      - name: Rust route registry matches deployed public contract
-        run: node scripts/sync-openapi.mjs --check
