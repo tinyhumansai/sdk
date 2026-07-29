@@ -26,14 +26,85 @@ const namespaceOverrides = new Map([
   ["r", "redirect"],
 ]);
 
-// Public backend calls implemented and exercised by OpenHuman but not yet
-// described by the deployed Swagger document.
+// Public backend routes that already exist in the backend/OpenHuman clients but
+// are not yet described by the deployed Swagger document. The optional third
+// element overrides the default operation metadata.
 const SUPPLEMENTAL_PUBLIC_OPERATIONS = [
   ["GET", "/agent-integrations/composio/github/repos"],
   ["POST", "/agent-integrations/tinyfish/agent/run"],
   ["POST", "/agent-integrations/tinyfish/fetch"],
   ["POST", "/agent-integrations/tinyfish/search"],
   ["GET", "/orchestration/v1/steering"],
+  [
+    "GET",
+    "/medulla/v1/workflows",
+    {
+      summary: "The caller's advertised workflow catalog",
+      tags: ["Medulla"],
+    },
+  ],
+];
+
+// Admin and webhook operations the SDK must keep unreachable through both the
+// typed and the raw APIs. The backend now serves a PRE-FILTERED public
+// Swagger document (`src/config/swagger.ts` -> `publicSwaggerSpec`), so these
+// operations no longer appear in the deployed spec at all and can no longer be
+// derived from it. They are declared here so regeneration retains the filter
+// instead of silently emptying the denylist and opening the raw transport.
+const RETAINED_UNEXPOSED_ROUTES = [
+  ["POST", "/admin/announcements"],
+  ["DELETE", "/admin/announcements/{announcementId}"],
+  ["PATCH", "/admin/announcements/{announcementId}"],
+  ["POST", "/admin/coupons"],
+  ["DELETE", "/admin/coupons/{couponId}"],
+  ["PATCH", "/admin/coupons/{couponId}"],
+  ["POST", "/admin/coupons/bulk"],
+  ["PATCH", "/admin/feedback/triage/{feedbackId}"],
+  ["POST", "/admin/feedback/triage/{feedbackId}/approve"],
+  ["POST", "/admin/feedback/triage/{feedbackId}/merge"],
+  ["POST", "/admin/feedback/triage/{feedbackId}/reject"],
+  ["POST", "/admin/feedback/triage/{feedbackId}/reprocess"],
+  ["POST", "/admin/users/{userId}/credits"],
+  ["PATCH", "/admin/users/{userId}/medulla-access"],
+  ["DELETE", "/admin/users/{userId}/subscription"],
+  ["POST", "/admin/users/{userId}/subscription"],
+  ["POST", "/admin/users/credits/bulk"],
+  ["POST", "/agent-integrations/composio/toolkits/refresh"],
+  ["POST", "/agent-integrations/twilio/webhooks/incoming-call/{userId}"],
+  ["POST", "/agent-integrations/twilio/webhooks/status/{userId}"],
+  ["GET", "/coupons/admin"],
+  ["POST", "/coupons/admin"],
+  ["DELETE", "/coupons/admin/{couponId}"],
+  ["PATCH", "/feedback/{id}/status"],
+  ["GET", "/feedback/admin/triage"],
+  ["GET", "/feedback/admin/triage/{id}"],
+  ["POST", "/feedback/admin/triage/{id}/approve"],
+  ["PATCH", "/feedback/admin/triage/{id}/draft"],
+  ["POST", "/feedback/admin/triage/{id}/merge"],
+  ["POST", "/feedback/admin/triage/{id}/reject"],
+  ["POST", "/feedback/admin/triage/{id}/reprocess"],
+  ["GET", "/invite/campaign"],
+  ["POST", "/invite/campaign"],
+  ["DELETE", "/invite/campaign/{codeId}"],
+  ["PUT", "/teams/{teamId}"],
+  ["DELETE", "/teams/{teamId}/members/{userId}"],
+  ["PUT", "/teams/{teamId}/members/{userId}/role"],
+  ["POST", "/webhooks/composio"],
+  ["GET", "/webhooks/core"],
+  ["POST", "/webhooks/core"],
+  ["DELETE", "/webhooks/core/{id}"],
+  ["GET", "/webhooks/core/{id}"],
+  ["PATCH", "/webhooks/core/{id}"],
+  ["GET", "/webhooks/core/bandwidth"],
+  ["POST", "/webhooks/discord"],
+  ["POST", "/webhooks/github"],
+  ["POST", "/webhooks/ingress/{uuid}"],
+  ["POST", "/webhooks/ingress/{uuid}/{path}"],
+  ["POST", "/webhooks/payments/coinbase"],
+  ["POST", "/webhooks/payments/stripe"],
+  ["POST", "/webhooks/sentry"],
+  ["POST", "/webhooks/telegram"],
+  ["POST", "/webhooks/telegram/managed/{botId}"],
 ];
 
 function parseArgs(argv) {
@@ -111,8 +182,6 @@ function buildManifest(spec) {
   const publicOperations = [];
   const excludedOperations = [];
   let totalOperationCount = 0;
-  let excludedAdminOperationCount = 0;
-  let excludedWebhookOperationCount = 0;
 
   for (const path of Object.keys(spec.paths ?? {}).sort()) {
     const pathItem = spec.paths[path];
@@ -120,13 +189,7 @@ function buildManifest(spec) {
       if (!HTTP_METHODS.has(method)) continue;
       totalOperationCount += 1;
       const operation = pathItem[method];
-      if (isAdminOperation(path, operation)) {
-        excludedAdminOperationCount += 1;
-        excludedOperations.push({ method: method.toUpperCase(), path });
-        continue;
-      }
-      if (isWebhookOperation(path)) {
-        excludedWebhookOperationCount += 1;
+      if (isAdminOperation(path, operation) || isWebhookOperation(path)) {
         excludedOperations.push({ method: method.toUpperCase(), path });
         continue;
       }
@@ -139,7 +202,21 @@ function buildManifest(spec) {
     }
   }
 
-  for (const [method, path] of SUPPLEMENTAL_PUBLIC_OPERATIONS) {
+  // Retain the declared denylist on top of whatever the spec still describes, so
+  // a spec that stops documenting its admin/webhook surface cannot widen the SDK.
+  for (const [method, path] of RETAINED_UNEXPOSED_ROUTES) {
+    if (excludedOperations.some((entry) => entry.method === method && entry.path === path)) {
+      continue;
+    }
+    excludedOperations.push({ method, path });
+  }
+  const excludedWebhookOperationCount = excludedOperations.filter(({ path }) =>
+    isWebhookOperation(path)
+  ).length;
+  const excludedAdminOperationCount = excludedOperations.length -
+    excludedWebhookOperationCount;
+
+  for (const [method, path, overrides] of SUPPLEMENTAL_PUBLIC_OPERATIONS) {
     publicOperations.push({
       method,
       namespace: namespaceFor(path),
@@ -147,6 +224,7 @@ function buildManifest(spec) {
         summary: "Public operation implemented by the OpenHuman backend client",
         security: [{ bearerAuth: [] }],
         tags: ["OpenHuman parity"],
+        ...overrides,
       },
       path,
     });

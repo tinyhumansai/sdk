@@ -104,6 +104,12 @@ impl<'a> MedullaApi<'a> {
             .await
             .map(Into::into)
     }
+    pub async fn workflows(&self) -> Result<DynamicResponse, Error> {
+        self.http
+            .send(Method::GET, "/medulla/v1/workflows", &[], None, true)
+            .await
+            .map(Into::into)
+    }
     pub async fn routing_strategy(&self) -> Result<DynamicResponse, Error> {
         self.http
             .send(Method::GET, "/medulla/v1/routing/strategy", &[], None, true)

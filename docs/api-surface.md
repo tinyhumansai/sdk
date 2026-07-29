@@ -17,7 +17,7 @@ admin-only.
 | `agentIntegrations` | `/agent-integrations` | bearer | Composio, Parallel, media generation, maps, Apify, Twilio, crypto |
 | `apiKeys` | `/api-keys` | bearer | create, list, and revoke user API keys |
 | `budgets` | `/budgets` | bearer | team budgets and seat allocations |
-| `medulla` | `/medulla` | bearer | roster, routing, sessions, messages, tasks, and sources |
+| `medulla` | `/medulla` | bearer | roster, workflows, routing, sessions, messages, tasks, and sources |
 | `openCompany` | `/opencompany` | bearer | company instances, lifecycle, and custom domains |
 | `orchestration` | `/orchestration` | bearer | runs, events, sessions, state, and world diffs |
 | `payments` | `/payments` | bearer | Stripe, Coinbase, credits, transactions, plans |
