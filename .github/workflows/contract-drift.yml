@@ -1,0 +1,32 @@
+# Reports drift between the committed OpenAPI surfaces and the deployed spec.
+#
+# Deliberately NOT a pull-request gate. It fetches
+# https://api.tinyhumans.ai/swagger.json at run time, so its result depends on
+# backend deploy state rather than on the commit under test — as a required
+# check it fails every open PR whenever the deployed spec moves, which is
+# unrelated to whether that PR is correct.
+#
+# Nothing safety-critical rests on this job. The admin-route blocklist is
+# enforced by `exclusion_tests` in src/lib.rs, which runs under `cargo test` in
+# the CI workflow on every PR.
+name: Contract drift
+
+on:
+  schedule:
+    # 08:00 UTC daily.
+    - cron: "0 8 * * *"
+  workflow_dispatch:
+
+jobs:
+  contract:
+    name: Public OpenAPI parity
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Rust route registry matches deployed public contract
+        run: node scripts/sync-openapi.mjs --check
