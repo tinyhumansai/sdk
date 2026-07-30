@@ -86,16 +86,7 @@ const RETAINED_UNEXPOSED_ROUTES = [
   ["GET", "/invite/campaign"],
   ["POST", "/invite/campaign"],
   ["DELETE", "/invite/campaign/{codeId}"],
-  ["PUT", "/teams/{teamId}"],
-  ["DELETE", "/teams/{teamId}/members/{userId}"],
-  ["PUT", "/teams/{teamId}/members/{userId}/role"],
   ["POST", "/webhooks/composio"],
-  ["GET", "/webhooks/core"],
-  ["POST", "/webhooks/core"],
-  ["DELETE", "/webhooks/core/{id}"],
-  ["GET", "/webhooks/core/{id}"],
-  ["PATCH", "/webhooks/core/{id}"],
-  ["GET", "/webhooks/core/bandwidth"],
   ["POST", "/webhooks/discord"],
   ["POST", "/webhooks/github"],
   ["POST", "/webhooks/ingress/{uuid}"],
@@ -123,7 +114,29 @@ function parseArgs(argv) {
   return options;
 }
 
-function isAdminOperation(path, operation) {
+// Operations gated by a role *within a resource the caller belongs to*, not by
+// platform administrator rights.
+//
+// Their OpenAPI summaries read "(admin only)", which the heuristic below would
+// otherwise treat as platform-admin and exclude. But the "admin" here is the
+// team-admin role: any user who creates a team holds it, the routes take an
+// ordinary `bearerAuth` user token, they are scoped to a team the caller is a
+// member of, and their 403s read "Only admins can remove members" — meaning
+// admins *of that team*. Platform-administrator operations live under an
+// `/admin` path segment and are excluded by path above.
+//
+// Excluding these broke OpenHuman's team-management UI: `team_remove_member`
+// failed with "route is intentionally not exposed by the SDK".
+const TEAM_ROLE_GATED_OPERATIONS = new Set([
+  "PUT /teams/{teamId}",
+  "DELETE /teams/{teamId}/members/{userId}",
+  "PUT /teams/{teamId}/members/{userId}/role",
+]);
+
+function isAdminOperation(path, operation, method) {
+  if (TEAM_ROLE_GATED_OPERATIONS.has(`${method.toUpperCase()} ${path}`)) {
+    return false;
+  }
   if (
     path === "/admin" ||
     path.startsWith("/admin/") ||
@@ -146,7 +159,30 @@ function isAdminOperation(path, operation) {
   );
 }
 
-function isWebhookOperation(path) {
+// Exclude webhook *receivers* — the endpoints providers call into (Stripe,
+// Telegram, Discord, GitHub, Composio, Coinbase, Sentry, Twilio, and the
+// tunnel ingress routes). They are authenticated by provider signature rather
+// than by a user bearer token, so an SDK caller has nothing to send and no
+// reason to invoke them.
+//
+// Matching on the path segment alone also swept in `/webhooks/core*`, the
+// user-owned webhook *tunnel* CRUD surface — list/create/read/update/delete a
+// tunnel plus its bandwidth budget. Those are ordinary authenticated
+// user-facing operations that happen to live under `/webhooks`, and OpenHuman
+// drives all six of them from its `webhooks` RPC namespace. Blocking them left
+// that feature with no SDK path at all, not even through the raw escape hatch,
+// which `reject_unexposed_route` gates on this same list.
+//
+// `bearerAuth` is the discriminator rather than a hardcoded `/webhooks/core`
+// allowlist: it is the property that actually distinguishes the two families,
+// so a future user-facing webhook-management route is classified correctly
+// without another edit here.
+function isWebhookOperation(path, operation) {
+  if (!isWebhookPath(path)) return false;
+  return operationAuth(operation) !== "bearer";
+}
+
+function isWebhookPath(path) {
   return path.split("/").includes("webhooks");
 }
 
@@ -189,7 +225,11 @@ function buildManifest(spec) {
       if (!HTTP_METHODS.has(method)) continue;
       totalOperationCount += 1;
       const operation = pathItem[method];
-      if (isAdminOperation(path, operation) || isWebhookOperation(path)) {
+      if (isAdminOperation(path, operation, method)) {
+        excludedOperations.push({ method: method.toUpperCase(), path });
+        continue;
+      }
+      if (isWebhookOperation(path, operation)) {
         excludedOperations.push({ method: method.toUpperCase(), path });
         continue;
       }
@@ -211,7 +251,7 @@ function buildManifest(spec) {
     excludedOperations.push({ method, path });
   }
   const excludedWebhookOperationCount = excludedOperations.filter(({ path }) =>
-    isWebhookOperation(path)
+    isWebhookPath(path)
   ).length;
   const excludedAdminOperationCount = excludedOperations.length -
     excludedWebhookOperationCount;

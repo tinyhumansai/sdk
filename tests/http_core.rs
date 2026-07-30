@@ -105,3 +105,106 @@ async fn path_param_is_percent_encoded() {
     let result = client.mascots().get_mascot("red fox").await.unwrap();
     assert_eq!(result, json!({"id": "red fox"}));
 }
+
+// A host application must be able to supply its own `reqwest::Client` so the
+// SDK inherits that host's TLS backend, timeouts, proxy, and redirect policy
+// instead of the crate's defaults. OpenHuman needs this to keep using schannel
+// on Windows (corporate TLS-inspection proxies present an OS-trusted cert that
+// the bundled rustls roots reject) while staying on rustls elsewhere.
+#[tokio::test]
+async fn caller_supplied_http_client_is_used_for_requests() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/auth/me"))
+        .and(header("user-agent", "openhuman-core/test"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"success": true, "data": {"id": "u_1"}})),
+        )
+        .mount(&server)
+        .await;
+
+    let http = reqwest::Client::builder()
+        .user_agent("openhuman-core/test")
+        .build()
+        .unwrap();
+    let client = TinyHumansClient::new(server.uri()).with_http_client(http);
+
+    let result = client.auth().me().await.unwrap();
+    assert_eq!(result, json!({"id": "u_1"}));
+}
+
+// Hosts also need to attach their own default headers (build/version
+// attribution, tenant routing) to every request without wrapping each call.
+#[tokio::test]
+async fn caller_supplied_default_headers_are_sent_on_every_request() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/auth/me"))
+        .and(header("x-core-version", "0.61.0"))
+        .and(header("x-sdk-client", "tinyhumans-rust"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"success": true, "data": {"id": "u_1"}})),
+        )
+        .mount(&server)
+        .await;
+
+    let mut headers = reqwest::header::HeaderMap::new();
+    headers.insert("x-core-version", "0.61.0".parse().unwrap());
+    let client = TinyHumansClient::new(server.uri()).with_default_headers(headers);
+
+    let result = client.auth().me().await.unwrap();
+    assert_eq!(result, json!({"id": "u_1"}));
+}
+
+// The backend signals a failed operation with `{success:false, error, ...}`,
+// sometimes on an HTTP 200. Unwrapping must surface that as an error rather
+// than handing the caller the failure envelope as if it were data.
+#[tokio::test]
+async fn unsuccessful_envelope_on_http_200_is_an_error() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/auth/me"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": false,
+            "error": "session expired",
+            "errorCode": "SESSION_EXPIRED",
+            "details": {"hint": "re-authenticate"},
+        })))
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let err = client.auth().me().await.unwrap_err();
+    match err {
+        Error::Envelope {
+            error,
+            error_code,
+            details,
+        } => {
+            assert_eq!(error, "session expired");
+            assert_eq!(error_code.as_deref(), Some("SESSION_EXPIRED"));
+            assert_eq!(details, json!({"hint": "re-authenticate"}));
+        }
+        other => panic!("expected Error::Envelope, got {other:?}"),
+    }
+}
+
+// A successful envelope whose `data` is absent still yields the remaining
+// fields, and `success` itself is not leaked into the returned value.
+#[tokio::test]
+async fn successful_envelope_without_data_drops_the_success_flag() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/auth/me"))
+        .respond_with(
+            ResponseTemplate::new(200).set_body_json(json!({"success": true, "jwt": "abc"})),
+        )
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let result = client.auth().me().await.unwrap();
+    assert_eq!(result, json!({"jwt": "abc"}));
+}

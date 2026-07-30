@@ -13,6 +13,8 @@ use url::Url;
 
 pub mod api;
 pub mod generated_public_routes;
+pub mod jwt;
+pub mod sse;
 
 /// Bytes left un-encoded by `encodeURIComponent`: the unreserved set
 /// `A-Z a-z 0-9 - _ . ! ~ * ' ( )`.
@@ -49,6 +51,17 @@ pub enum Error {
     Decode(#[from] serde_json::Error),
     #[error("route is intentionally not exposed by the SDK: {0} {1}")]
     RouteNotExposed(String, String),
+    /// The response carried a `{success:false, ...}` envelope.
+    ///
+    /// The backend does not always pair an unsuccessful envelope with a
+    /// non-2xx status, so this is distinct from [`Error::Status`]: the
+    /// transport succeeded and the operation did not.
+    #[error("backend reported failure: {error}")]
+    Envelope {
+        error: String,
+        error_code: Option<String>,
+        details: Value,
+    },
 }
 
 #[derive(Clone)]
@@ -70,6 +83,37 @@ impl TinyHumansClient {
 
     pub fn with_api_key(mut self, api_key: Option<String>) -> Self {
         self.http.api_key = api_key;
+        self
+    }
+
+    /// Use a caller-supplied [`reqwest::Client`] instead of the crate default.
+    ///
+    /// The default client is `reqwest::Client::new()`: bundled rustls roots, no
+    /// timeout, no proxy configuration. That is a reasonable default for a
+    /// standalone script but wrong for an embedded host, which needs the SDK's
+    /// requests to share its own transport policy — TLS backend, timeouts,
+    /// proxy, redirect policy, connection pool.
+    ///
+    /// The concrete motivating case is TLS backend selection. On Windows a
+    /// corporate TLS-inspection proxy presents a certificate chained to a root
+    /// that is in the OS certificate store but not in the bundled rustls root
+    /// set, so every request fails until the client is built on schannel.
+    /// A host that already resolves this per platform passes that client here.
+    pub fn with_http_client(mut self, client: ReqwestClient) -> Self {
+        self.http.client = client;
+        self
+    }
+
+    /// Attach headers sent on every request in addition to the SDK's own.
+    ///
+    /// For host build/version attribution and similar cross-cutting metadata
+    /// that would otherwise have to be threaded through each call. The SDK's
+    /// own headers (`accept`, `content-type`, `x-sdk-client`) and the
+    /// credential headers (`authorization`, `x-api-key`) are applied after
+    /// these and therefore win on conflict — a caller cannot accidentally
+    /// unset the bearer token or misreport the SDK client identity.
+    pub fn with_default_headers(mut self, headers: HeaderMap) -> Self {
+        self.http.default_headers = headers;
         self
     }
 
@@ -138,6 +182,9 @@ impl TinyHumansClient {
     pub fn teams(&self) -> api::teams::TeamsApi<'_> {
         api::teams::TeamsApi::new(&self.http)
     }
+    pub fn webhooks(&self) -> api::webhooks::WebhooksApi<'_> {
+        api::webhooks::WebhooksApi::new(&self.http)
+    }
 }
 
 #[derive(Clone)]
@@ -146,6 +193,7 @@ pub struct HttpClient {
     token: Option<String>,
     api_key: Option<String>,
     client: ReqwestClient,
+    default_headers: HeaderMap,
 }
 
 impl HttpClient {
@@ -155,6 +203,7 @@ impl HttpClient {
             token: None,
             api_key: None,
             client: ReqwestClient::new(),
+            default_headers: HeaderMap::new(),
         }
     }
 
@@ -191,11 +240,11 @@ impl HttpClient {
                 body: value,
             });
         }
-        Ok(if unwrap {
+        if unwrap {
             unwrap_envelope(value)
         } else {
-            value
-        })
+            Ok(value)
+        }
     }
 
     /// Send a request and deserialize the unwrapped response into a concrete DTO.
@@ -248,7 +297,7 @@ impl HttpClient {
                 body: value,
             });
         }
-        Ok(unwrap_envelope(value))
+        unwrap_envelope(value)
     }
 
     /// Send a request whose successful response is binary rather than JSON.
@@ -291,7 +340,9 @@ impl HttpClient {
     }
 
     fn headers(&self) -> Result<HeaderMap, Error> {
-        let mut headers = HeaderMap::new();
+        // Host-supplied headers go in first so the SDK's own headers below
+        // overwrite them on conflict — see `with_default_headers`.
+        let mut headers = self.default_headers.clone();
         headers.insert(ACCEPT, HeaderValue::from_static("application/json"));
         headers.insert("x-sdk-client", HeaderValue::from_static("tinyhumans-rust"));
         if let Some(token) = &self.token {
@@ -308,12 +359,43 @@ impl HttpClient {
     }
 }
 
-fn unwrap_envelope(body: Value) -> Value {
-    match body {
-        Value::Object(mut map) if map.get("success") == Some(&Value::Bool(true)) => {
-            map.remove("data").unwrap_or(Value::Object(map))
+/// Unwrap the hosted-backend `{success, data}` envelope.
+///
+/// `success: false` becomes [`Error::Envelope`] rather than a successful
+/// value: the backend pairs a failed operation with an unsuccessful envelope
+/// that is not always accompanied by a non-2xx status, so returning it as data
+/// would hand the caller `{success: false, error: "..."}` where a result is
+/// expected.
+///
+/// A successful envelope with no `data` key yields the remaining fields with
+/// `success` removed, so envelopes that inline their payload (`{success, jwt}`)
+/// do not leak the flag into the caller's value.
+fn unwrap_envelope(body: Value) -> Result<Value, Error> {
+    let Value::Object(mut map) = body else {
+        return Ok(body);
+    };
+    match map.get("success").and_then(Value::as_bool) {
+        Some(true) => {
+            if let Some(data) = map.remove("data") {
+                return Ok(data);
+            }
+            map.remove("success");
+            Ok(Value::Object(map))
         }
-        other => other,
+        Some(false) => Err(Error::Envelope {
+            error: map
+                .get("error")
+                .or_else(|| map.get("message"))
+                .and_then(Value::as_str)
+                .unwrap_or("request unsuccessful")
+                .to_owned(),
+            error_code: map
+                .get("errorCode")
+                .and_then(Value::as_str)
+                .map(str::to_owned),
+            details: map.get("details").cloned().unwrap_or(Value::Null),
+        }),
+        None => Ok(Value::Object(map)),
     }
 }
 
@@ -348,7 +430,7 @@ mod exclusion_tests {
 
     #[test]
     fn every_admin_and_webhook_route_is_rejected_by_the_raw_transport_gate() {
-        assert_eq!(UNEXPOSED_ROUTES.len(), 53);
+        assert_eq!(UNEXPOSED_ROUTES.len(), 44);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
@@ -369,6 +451,64 @@ mod exclusion_tests {
                 ),
                 "{} {template} was not blocked",
                 method.as_str()
+            );
+        }
+    }
+
+    /// Team-scoped operations gated by the team-admin *role* are not platform
+    /// administration and must stay reachable. Their OpenAPI summaries read
+    /// "(admin only)", which the generator's admin heuristic would otherwise
+    /// exclude — that broke OpenHuman's `team_remove_member`.
+    #[test]
+    fn team_role_gated_operations_are_not_treated_as_platform_admin() {
+        for (method, path) in [
+            ("PUT", "/teams/{teamId}"),
+            ("DELETE", "/teams/{teamId}/members/{userId}"),
+            ("PUT", "/teams/{teamId}/members/{userId}/role"),
+        ] {
+            assert!(
+                !UNEXPOSED_ROUTES.contains(&(method, path)),
+                "{method} {path} is team-role gated, not platform-admin"
+            );
+        }
+    }
+
+    /// Genuine platform-administration operations stay blocked, including the
+    /// ones outside an `/admin` path segment that only their summary marks.
+    #[test]
+    fn platform_admin_operations_remain_blocked() {
+        for (method, path) in [
+            ("POST", "/coupons/admin"),
+            ("GET", "/coupons/admin"),
+            ("PATCH", "/feedback/{id}/status"),
+            ("POST", "/invite/campaign"),
+            ("DELETE", "/invite/campaign/{codeId}"),
+            ("POST", "/agent-integrations/composio/toolkits/refresh"),
+        ] {
+            assert!(
+                UNEXPOSED_ROUTES.contains(&(method, path)),
+                "{method} {path} is platform-admin and must stay blocked"
+            );
+        }
+    }
+
+    /// The blocked set covers webhook *receivers* only. `/webhooks/core*` is
+    /// user-owned tunnel CRUD — bearer-authenticated, user-facing, and driven
+    /// by OpenHuman — so it must stay reachable even though it shares the
+    /// `/webhooks` prefix with the receivers around it.
+    #[test]
+    fn webhook_tunnel_crud_is_not_in_the_blocked_set() {
+        for (method, path) in [
+            ("GET", "/webhooks/core"),
+            ("POST", "/webhooks/core"),
+            ("GET", "/webhooks/core/{id}"),
+            ("PATCH", "/webhooks/core/{id}"),
+            ("DELETE", "/webhooks/core/{id}"),
+            ("GET", "/webhooks/core/bandwidth"),
+        ] {
+            assert!(
+                !UNEXPOSED_ROUTES.contains(&(method, path)),
+                "{method} {path} is user-facing and must not be blocked"
             );
         }
     }

@@ -3,11 +3,26 @@
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
 `1.0.0` with 205 paths and 235 operations. The Rust SDK exposes one typed
-method per public operation — **187 operations across the 20 namespaces
+method per public operation — **196 operations across the 21 namespaces
 below**.
-The remaining 35 administrative and 18 webhook operations are intentionally
-excluded, including legacy routes whose summaries explicitly say they are
-admin-only.
+The remaining 32 administrative and 12 webhook-receiver operations are
+intentionally excluded, including legacy routes whose summaries explicitly say
+they are admin-only.
+
+"Administrative" means *platform* administration. It does not cover operations
+gated by a role within a resource the caller belongs to: `PUT /teams/{teamId}`,
+`DELETE /teams/{teamId}/members/{userId}`, and
+`PUT /teams/{teamId}/members/{userId}/role` say "(admin only)" in the contract,
+but that is the **team-admin role** — held by any user who creates a team — not
+platform administrator rights. They are exposed on the `teams` namespace.
+
+"Webhook" exclusion means webhook *receivers* — the endpoints providers call
+into (Stripe, Telegram, Discord, GitHub, Composio, Coinbase, Sentry, Twilio,
+and the tunnel ingress paths). They carry no `bearerAuth`, are authenticated by
+provider signature, and an SDK caller invoking one would be forging provider
+traffic. The user-owned webhook *tunnel* CRUD under `/webhooks/core` is
+ordinary bearer-authenticated user-facing API and is exposed as the `webhooks`
+namespace.
 
 | Namespace | Base path | Auth | Examples |
 | --- | --- | --- | --- |
@@ -31,6 +46,7 @@ admin-only.
 | `referral` | `/referral` | bearer | referral stats and claim |
 | `rewards` | `/rewards` | bearer | reward snapshot and Discord unlink |
 | `redirect` | `/r` | none | resolve short redirect codes |
+| `webhooks` | `/webhooks` | bearer | webhook tunnel CRUD and bandwidth budget |
 
 The checked-in namespace manifest and Rust `PUBLIC_ROUTES` registry are
 generated deterministically:

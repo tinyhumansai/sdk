@@ -2,6 +2,7 @@
 //! joining/leaving/switching teams, member management, and billing plan helpers.
 
 use reqwest::Method;
+use serde_json::Value;
 
 use super::types::{
     BillingPortalRequest, CodeRequest, CreateTeamInviteRequest, DynamicResponse,
@@ -150,6 +151,52 @@ impl<'a> TeamsApi<'a> {
         let path = format!("/teams/{}/switch", enc(team_id));
         self.http
             .send_typed(Method::POST, &path, &[], None, true)
+            .await
+    }
+
+    /// Update team settings.
+    ///
+    /// Requires the team-admin role — a role within this team, not platform
+    /// administrator rights.
+    pub async fn update_team(
+        &self,
+        team_id: &str,
+        request: &Value,
+    ) -> Result<DynamicResponse, Error> {
+        let path = format!("/teams/{}", enc(team_id));
+        self.http
+            .send_typed(Method::PUT, &path, &[], Some(request), true)
+            .await
+    }
+
+    /// Remove a member from the team.
+    ///
+    /// Requires the team-admin role — a role within this team, not platform
+    /// administrator rights.
+    pub async fn remove_member(
+        &self,
+        team_id: &str,
+        user_id: &str,
+    ) -> Result<DynamicResponse, Error> {
+        let path = format!("/teams/{}/members/{}", enc(team_id), enc(user_id));
+        self.http
+            .send_typed(Method::DELETE, &path, &[], None, true)
+            .await
+    }
+
+    /// Change a member's role within the team.
+    ///
+    /// Requires the team-admin role — a role within this team, not platform
+    /// administrator rights.
+    pub async fn update_member_role(
+        &self,
+        team_id: &str,
+        user_id: &str,
+        request: &Value,
+    ) -> Result<DynamicResponse, Error> {
+        let path = format!("/teams/{}/members/{}/role", enc(team_id), enc(user_id));
+        self.http
+            .send_typed(Method::PUT, &path, &[], Some(request), true)
             .await
     }
 }

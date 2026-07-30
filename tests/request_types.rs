@@ -1,4 +1,5 @@
 use serde_json::json;
+use tinyhumans_sdk::api::orchestration::ToolResult;
 use tinyhumans_sdk::api::types::{
     BillingPlan, ContinueRunRequest, CreateFeedbackRequest, FeedbackType, OrchestrationEvent,
     OrchestrationEventRequest, OrchestrationRole, PurchasePlanRequest,
@@ -57,10 +58,16 @@ fn nested_orchestration_event_is_fully_typed() {
 
     let continuation = ContinueRunRequest {
         cycle_id: "cycle-1".into(),
-        tool_results: vec![json!({"tool": "search", "result": []})],
+        tool_results: vec![ToolResult {
+            id: "call-1".into(),
+            ok: true,
+            result: Some(json!({"tool": "search", "result": []})),
+            error: None,
+        }],
     };
-    assert_eq!(
-        serde_json::to_value(continuation).unwrap()["cycleId"],
-        "cycle-1"
-    );
+    let encoded = serde_json::to_value(continuation).unwrap();
+    assert_eq!(encoded["cycleId"], "cycle-1");
+    // A successful result omits `error` rather than sending an explicit null.
+    assert_eq!(encoded["toolResults"][0]["ok"], true);
+    assert!(encoded["toolResults"][0].get("error").is_none());
 }
