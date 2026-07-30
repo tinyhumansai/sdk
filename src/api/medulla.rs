@@ -12,7 +12,6 @@ use serde_json::Value;
 use super::medulla_types::{
     TaskPayload, TaskSourcePayload, TaskSourceSyncPayload, TaskSourcesPayload, TasksPayload,
 };
-use super::types::DynamicResponse;
 use crate::{enc, Error, HttpClient, QueryParam};
 
 pub use super::medulla_types::{
@@ -165,14 +164,6 @@ impl<'a> MedullaApi<'a> {
         self.get(Method::GET, "/medulla/v1/routing/strategy", &[])
             .await
     }
-    /// Read the caller's advertised workflow catalog.
-    pub async fn workflows(&self) -> Result<DynamicResponse, Error> {
-        self.http
-            .send(Method::GET, "/medulla/v1/workflows", &[], None, true)
-            .await
-            .map(Into::into)
-    }
-
     /// Persist the operator's worker routing strategy.
     pub async fn set_routing_strategy(&self, strategy: &str) -> Result<RoutingStrategy, Error> {
         self.body(

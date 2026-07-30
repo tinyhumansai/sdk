@@ -127,7 +127,6 @@ pub const PUBLIC_ROUTES: &[(&str, &str)] = &[
     ("POST", "/medulla/v1/tasks/sources"),
     ("DELETE", "/medulla/v1/tasks/sources/{id}"),
     ("POST", "/medulla/v1/tasks/sources/{id}/sync"),
-    ("GET", "/medulla/v1/workflows"),
     ("POST", "/openai/v1/audio/speech"),
     ("POST", "/openai/v1/audio/transcriptions"),
     ("POST", "/openai/v1/chat/completions"),

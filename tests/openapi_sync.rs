@@ -86,21 +86,6 @@ async fn path_segments_are_encoded_on_new_namespaces() {
         .unwrap();
 }
 
-#[tokio::test]
-async fn medulla_workflows_reads_the_advert_parity_route() {
-    let server = MockServer::start().await;
-    Mock::given(method("GET"))
-        .and(path("/medulla/v1/workflows"))
-        .respond_with(ok())
-        .mount(&server)
-        .await;
-    TinyHumansClient::new(server.uri())
-        .medulla()
-        .workflows()
-        .await
-        .unwrap();
-}
-
 #[test]
 fn generated_rust_routes_match_the_public_manifest() {
     let manifest: serde_json::Value =
@@ -117,11 +102,11 @@ fn generated_rust_routes_match_the_public_manifest() {
         .collect::<BTreeSet<_>>();
     let rust_routes = PUBLIC_ROUTES.iter().copied().collect::<BTreeSet<_>>();
 
-    assert_eq!(manifest["source"]["operationCount"], 188);
-    assert_eq!(manifest["source"]["supplementalOperationCount"], 6);
+    assert_eq!(manifest["source"]["operationCount"], 187);
+    assert_eq!(manifest["source"]["supplementalOperationCount"], 5);
     assert_eq!(manifest["source"]["excludedAdminOperationCount"], 32);
     assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 12);
-    assert_eq!(rust_routes.len(), 188);
+    assert_eq!(rust_routes.len(), 187);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()

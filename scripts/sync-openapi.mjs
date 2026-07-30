@@ -26,23 +26,14 @@ const namespaceOverrides = new Map([
   ["r", "redirect"],
 ]);
 
-// Public backend routes that already exist in the backend/OpenHuman clients but
-// are not yet described by the deployed Swagger document. The optional third
-// element overrides the default operation metadata.
+// Public backend calls implemented and exercised by OpenHuman but not yet
+// described by the deployed Swagger document.
 const SUPPLEMENTAL_PUBLIC_OPERATIONS = [
   ["GET", "/agent-integrations/composio/github/repos"],
   ["POST", "/agent-integrations/tinyfish/agent/run"],
   ["POST", "/agent-integrations/tinyfish/fetch"],
   ["POST", "/agent-integrations/tinyfish/search"],
   ["GET", "/orchestration/v1/steering"],
-  [
-    "GET",
-    "/medulla/v1/workflows",
-    {
-      summary: "The caller's advertised workflow catalog",
-      tags: ["Medulla"],
-    },
-  ],
 ];
 
 // Admin and webhook operations the SDK must keep unreachable through both the
@@ -256,7 +247,7 @@ function buildManifest(spec) {
   const excludedAdminOperationCount = excludedOperations.length -
     excludedWebhookOperationCount;
 
-  for (const [method, path, overrides] of SUPPLEMENTAL_PUBLIC_OPERATIONS) {
+  for (const [method, path] of SUPPLEMENTAL_PUBLIC_OPERATIONS) {
     publicOperations.push({
       method,
       namespace: namespaceFor(path),
@@ -264,7 +255,6 @@ function buildManifest(spec) {
         summary: "Public operation implemented by the OpenHuman backend client",
         security: [{ bearerAuth: [] }],
         tags: ["OpenHuman parity"],
-        ...overrides,
       },
       path,
     });
