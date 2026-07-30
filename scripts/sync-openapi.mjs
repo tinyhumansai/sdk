@@ -34,6 +34,15 @@ const SUPPLEMENTAL_PUBLIC_OPERATIONS = [
   ["POST", "/agent-integrations/tinyfish/fetch"],
   ["POST", "/agent-integrations/tinyfish/search"],
   ["GET", "/orchestration/v1/steering"],
+  ["PUT", "/teams/{teamId}"],
+  ["DELETE", "/teams/{teamId}/members/{userId}"],
+  ["PUT", "/teams/{teamId}/members/{userId}/role"],
+  ["GET", "/webhooks/core"],
+  ["POST", "/webhooks/core"],
+  ["DELETE", "/webhooks/core/{id}"],
+  ["GET", "/webhooks/core/{id}"],
+  ["PATCH", "/webhooks/core/{id}"],
+  ["GET", "/webhooks/core/bandwidth"],
 ];
 
 // Admin and webhook operations the SDK must keep unreachable through both the

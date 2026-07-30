@@ -10,8 +10,8 @@
     "version": "1.0.0",
     "pathCount": 161,
     "totalOperationCount": 182,
-    "operationCount": 187,
-    "supplementalOperationCount": 5,
+    "operationCount": 196,
+    "supplementalOperationCount": 14,
     "excludedAdminOperationCount": 32,
     "excludedWebhookOperationCount": 12,
     "servers": [
@@ -419,12 +419,14 @@
       "name": "teams",
       "basePath": "/teams",
       "auth": "bearer",
-      "operationCount": 14,
+      "operationCount": 17,
       "tags": [
+        "OpenHuman parity",
         "Teams"
       ],
       "routes": [
         "DELETE /teams/{teamId}/invites/{inviteId}",
+        "DELETE /teams/{teamId}/members/{userId}",
         "GET /teams",
         "GET /teams/me/usage",
         "GET /teams/{teamId}",
@@ -437,7 +439,26 @@
         "POST /teams/{teamId}/invites",
         "POST /teams/{teamId}/invites/email",
         "POST /teams/{teamId}/leave",
-        "POST /teams/{teamId}/switch"
+        "POST /teams/{teamId}/switch",
+        "PUT /teams/{teamId}",
+        "PUT /teams/{teamId}/members/{userId}/role"
+      ]
+    },
+    {
+      "name": "webhooks",
+      "basePath": "/webhooks",
+      "auth": "bearer",
+      "operationCount": 6,
+      "tags": [
+        "OpenHuman parity"
+      ],
+      "routes": [
+        "DELETE /webhooks/core/{id}",
+        "GET /webhooks/core",
+        "GET /webhooks/core/bandwidth",
+        "GET /webhooks/core/{id}",
+        "PATCH /webhooks/core/{id}",
+        "POST /webhooks/core"
       ]
     }
   ]

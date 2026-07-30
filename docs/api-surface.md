@@ -3,7 +3,7 @@
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
 `1.0.0` with 161 paths and 182 operations. The Rust SDK exposes one typed
-method per public operation — **187 operations across the 21 namespaces
+method per public operation — **196 operations across the 21 namespaces
 below**.
 The remaining 32 administrative and 12 webhook-receiver operations are
 intentionally excluded, including legacy routes whose summaries explicitly say

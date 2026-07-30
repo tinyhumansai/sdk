@@ -4,7 +4,7 @@
 //! each with one method per deployed operation. [`TinyHumansClient::raw`] is the
 //! escape hatch for routes not yet surfaced as typed methods.
 
-use generated_public_routes::UNEXPOSED_ROUTES;
+use generated_public_routes::{PUBLIC_ROUTES, UNEXPOSED_ROUTES};
 use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
 use reqwest::header::{HeaderMap, HeaderValue, ACCEPT, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::{Client as ReqwestClient, Method};
@@ -400,9 +400,22 @@ fn unwrap_envelope(body: Value) -> Result<Value, Error> {
 }
 
 fn reject_unexposed_route(method: &Method, path: &str) -> Result<(), Error> {
+    let blocked =
+        route_matches(UNEXPOSED_ROUTES, method, path) || is_structurally_unexposed(method, path);
+    if blocked {
+        Err(Error::RouteNotExposed(
+            method.as_str().to_owned(),
+            path.to_owned(),
+        ))
+    } else {
+        Ok(())
+    }
+}
+
+fn route_matches(routes: &[(&str, &str)], method: &Method, path: &str) -> bool {
     let request_segments = path.trim_matches('/').split('/').collect::<Vec<_>>();
-    let blocked = UNEXPOSED_ROUTES.iter().any(|(blocked_method, template)| {
-        if *blocked_method != method.as_str() {
+    routes.iter().any(|(route_method, template)| {
+        if *route_method != method.as_str() {
             return false;
         }
         let template_segments = template.trim_matches('/').split('/').collect::<Vec<_>>();
@@ -413,15 +426,19 @@ fn reject_unexposed_route(method: &Method, path: &str) -> Result<(), Error> {
                 .all(|(expected, actual)| {
                     (expected.starts_with('{') && expected.ends_with('}')) || expected == actual
                 })
-    });
-    if blocked {
-        Err(Error::RouteNotExposed(
-            method.as_str().to_owned(),
-            path.to_owned(),
-        ))
-    } else {
-        Ok(())
+    })
+}
+
+fn is_structurally_unexposed(method: &Method, path: &str) -> bool {
+    let segments = path.trim_matches('/').split('/').collect::<Vec<_>>();
+    if segments.contains(&"admin") {
+        return true;
     }
+
+    // The deployed Swagger document omits webhook receivers entirely. Treat an
+    // undocumented webhook route as a receiver; generated bearer-authenticated
+    // routes such as `/webhooks/core*` remain available.
+    segments.contains(&"webhooks") && !route_matches(PUBLIC_ROUTES, method, path)
 }
 
 #[cfg(test)]
@@ -509,6 +526,38 @@ mod exclusion_tests {
             assert!(
                 !UNEXPOSED_ROUTES.contains(&(method, path)),
                 "{method} {path} is user-facing and must not be blocked"
+            );
+        }
+    }
+
+    #[test]
+    fn future_structurally_private_routes_are_rejected_without_regeneration() {
+        for (method, path) in [
+            (Method::POST, "/admin/future-operation"),
+            (Method::POST, "/webhooks/future-provider"),
+        ] {
+            assert!(
+                matches!(
+                    reject_unexposed_route(&method, path),
+                    Err(Error::RouteNotExposed(_, _))
+                ),
+                "{} {path} was not blocked",
+                method.as_str()
+            );
+        }
+    }
+
+    #[test]
+    fn generated_public_webhook_routes_pass_the_structural_guard() {
+        for (method, path) in [
+            (Method::GET, "/webhooks/core"),
+            (Method::GET, "/webhooks/core/example"),
+            (Method::GET, "/webhooks/core/bandwidth"),
+        ] {
+            assert!(
+                reject_unexposed_route(&method, path).is_ok(),
+                "{} {path} was blocked",
+                method.as_str()
             );
         }
     }
