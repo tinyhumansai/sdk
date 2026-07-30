@@ -20,7 +20,9 @@ percent-encoding = "2"
 # is real protocol complexity a caller should not have to reimplement, which is
 # what earns these two their place in an otherwise dependency-light crate.
 futures = "0.3"
-tokio = { version = "1", features = ["time"] }
+# Socket.IO is a distinct framed protocol over Engine.IO, not a raw WebSocket.
+rust_socketio = { version = "0.6", features = ["async"] }
+tokio = { version = "1", features = ["sync", "time"] }
 
 [dev-dependencies]
 tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "net", "io-util"] }

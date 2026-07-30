@@ -4,7 +4,7 @@ Rust client for the public TinyHumans backend API.
 
 The crate is grounded in the deployed OpenAPI document at
 <https://api.tinyhumans.ai/swagger.json> plus five public operations exercised
-by OpenHuman but not yet documented there. It exposes 187 public operations
+by OpenHuman but not yet documented there. It exposes 197 public operations
 across 21 namespaces. All 35 administrative operations are intentionally
 excluded, including legacy routes outside `/admin` whose contract marks them
 as admin-only.
@@ -32,6 +32,13 @@ let models = client.inference().list_models().await?;
 # Ok(())
 # }
 ```
+
+## Streaming
+
+The SDK includes a reconnecting Medulla SSE session stream and an authenticated
+Socket.IO client for the full live backend event catalog. The socket client has
+generic JSON/binary/ack primitives plus typed Medulla harness and workflow
+helpers. See [docs/streaming.md](docs/streaming.md).
 
 ## Development
 

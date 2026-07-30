@@ -3,7 +3,7 @@
 The SDK surface is grounded in the deployed Swagger/OpenAPI contract at
 <https://api.tinyhumans.ai/swagger.json>. The spec reports TinyHumans API
 `1.0.0` with 161 paths and 182 operations. The Rust SDK exposes one typed
-method per public operation — **196 operations across the 21 namespaces
+method per public operation — **197 operations across the 21 namespaces
 below**.
 The remaining 32 administrative and 12 webhook-receiver operations are
 intentionally excluded, including legacy routes whose summaries explicitly say
@@ -32,7 +32,7 @@ namespace.
 | `agentIntegrations` | `/agent-integrations` | bearer | Composio, Parallel, media generation, maps, Apify, Twilio, crypto |
 | `apiKeys` | `/api-keys` | bearer | create, list, and revoke user API keys |
 | `budgets` | `/budgets` | bearer | team budgets and seat allocations |
-| `medulla` | `/medulla` | bearer | roster, routing, sessions, messages, tasks, and sources |
+| `medulla` | `/medulla` | bearer | roster, workflow adverts, routing, sessions, messages, tasks, and sources |
 | `openCompany` | `/opencompany` | bearer | company instances, lifecycle, and custom domains |
 | `orchestration` | `/orchestration` | bearer | runs, events, sessions, state, and world diffs |
 | `payments` | `/payments` | bearer | Stripe, Coinbase, credits, transactions, plans |

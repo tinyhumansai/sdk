@@ -14,6 +14,7 @@ use url::Url;
 pub mod api;
 pub mod generated_public_routes;
 pub mod jwt;
+pub mod socket;
 pub mod sse;
 
 /// Bytes left un-encoded by `encodeURIComponent`: the unreserved set
@@ -49,6 +50,16 @@ pub enum Error {
     Header(#[from] reqwest::header::InvalidHeaderValue),
     #[error("response decoding failed: {0}")]
     Decode(#[from] serde_json::Error),
+    #[error("socket.io transport failed: {0}")]
+    Socket(Box<rust_socketio::Error>),
+    #[error("a bearer token is required for socket.io connections")]
+    MissingSocketToken,
+    #[error("socket event {0} did not carry a JSON payload")]
+    UnexpectedSocketPayload(String),
+    #[error("socket acknowledgement timed out")]
+    SocketAckTimeout,
+    #[error("socket acknowledgement channel closed")]
+    SocketAckClosed,
     #[error("route is intentionally not exposed by the SDK: {0} {1}")]
     RouteNotExposed(String, String),
     /// The response carried a `{success:false, ...}` envelope.
@@ -62,6 +73,12 @@ pub enum Error {
         error_code: Option<String>,
         details: Value,
     },
+}
+
+impl From<rust_socketio::Error> for Error {
+    fn from(error: rust_socketio::Error) -> Self {
+        Self::Socket(Box::new(error))
+    }
 }
 
 #[derive(Clone)]
@@ -184,6 +201,16 @@ impl TinyHumansClient {
     }
     pub fn webhooks(&self) -> api::webhooks::WebhooksApi<'_> {
         api::webhooks::WebhooksApi::new(&self.http)
+    }
+
+    /// Connect to the authenticated Socket.IO surface at `/socket.io/`.
+    ///
+    /// The returned connection receives every public socket event through one
+    /// generic stream and also exposes typed helpers for the Medulla harness
+    /// and workflow protocol.
+    pub async fn connect_socket(&self) -> Result<socket::SocketConnection, Error> {
+        let token = self.http.token.clone().ok_or(Error::MissingSocketToken)?;
+        socket::SocketConnection::connect(self.http.base_url.clone(), token).await
     }
 }
 

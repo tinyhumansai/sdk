@@ -364,6 +364,39 @@ pub struct Roster {
     pub workers: Vec<RosterWorker>,
 }
 
+/// A saved workflow advertised by a connected Medulla harness.
+///
+/// This is intentionally the catalog descriptor, not the workflow graph. The
+/// graph remains on the owning client and is fetched through the workflow
+/// Socket.IO round trip only when needed.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkflowDescriptor {
+    /// Stable workflow identifier used for delegation and socket requests.
+    pub id: String,
+    /// Human-facing workflow name.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub name: Option<String>,
+    /// Human-facing workflow description.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// Number of graph nodes, used as a rough cost signal.
+    #[serde(default)]
+    pub node_count: u64,
+    /// Whether the workflow is currently runnable.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub enabled: Option<bool>,
+    /// Backend-defined trigger family.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub trigger_kind: Option<String>,
+    /// Server-stamped agent provenance.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub agent_id: Option<String>,
+    /// Server-stamped workspace provenance.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub workspace_id: Option<String>,
+}
+
 // ---------------------------------------------------------------------------
 // Task program
 // ---------------------------------------------------------------------------
@@ -534,6 +567,12 @@ pub(crate) struct TaskSourcePayload {
 #[derive(Debug, Deserialize)]
 pub(crate) struct TaskSourceSyncPayload {
     pub(crate) result: TaskSourceSyncResult,
+}
+
+#[derive(Debug, Deserialize)]
+pub(crate) struct WorkflowsPayload {
+    #[serde(default)]
+    pub(crate) workflows: Vec<WorkflowDescriptor>,
 }
 
 /// Worker routing strategy configured on the backend
