@@ -33,6 +33,13 @@ let models = client.inference().list_models().await?;
 # }
 ```
 
+## Streaming
+
+The SDK includes a reconnecting Medulla SSE session stream and an authenticated
+Socket.IO client for the full live backend event catalog. The socket client has
+generic JSON/binary/ack primitives plus typed Medulla harness and workflow
+helpers. See [docs/streaming.md](docs/streaming.md).
+
 ## Development
 
 ```bash
