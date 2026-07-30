@@ -103,7 +103,7 @@ fn generated_rust_routes_match_the_public_manifest() {
     let rust_routes = PUBLIC_ROUTES.iter().copied().collect::<BTreeSet<_>>();
 
     assert_eq!(manifest["source"]["operationCount"], 196);
-    assert_eq!(manifest["source"]["supplementalOperationCount"], 5);
+    assert_eq!(manifest["source"]["supplementalOperationCount"], 14);
     assert_eq!(manifest["source"]["excludedAdminOperationCount"], 32);
     assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 12);
     assert_eq!(rust_routes.len(), 196);

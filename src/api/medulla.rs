@@ -164,7 +164,6 @@ impl<'a> MedullaApi<'a> {
         self.get(Method::GET, "/medulla/v1/routing/strategy", &[])
             .await
     }
-
     /// Persist the operator's worker routing strategy.
     pub async fn set_routing_strategy(&self, strategy: &str) -> Result<RoutingStrategy, Error> {
         self.body(
