@@ -33,6 +33,7 @@ const SUPPLEMENTAL_PUBLIC_OPERATIONS = [
   ["POST", "/agent-integrations/tinyfish/agent/run"],
   ["POST", "/agent-integrations/tinyfish/fetch"],
   ["POST", "/agent-integrations/tinyfish/search"],
+  ["GET", "/medulla/v1/workflows"],
   ["GET", "/orchestration/v1/steering"],
   ["PUT", "/teams/{teamId}"],
   ["DELETE", "/teams/{teamId}/members/{userId}"],

@@ -72,6 +72,38 @@ async fn medulla_task_status_serializes_in_camel_case() {
 }
 
 #[tokio::test]
+async fn medulla_workflows_returns_advertised_catalog() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/medulla/v1/workflows"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {
+                "workflows": [{
+                    "id": "release",
+                    "name": "Release",
+                    "nodeCount": 4,
+                    "enabled": true,
+                    "agentId": "agent-1"
+                }]
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let workflows = TinyHumansClient::new(server.uri())
+        .medulla()
+        .workflows()
+        .await
+        .unwrap();
+
+    assert_eq!(workflows.len(), 1);
+    assert_eq!(workflows[0].id, "release");
+    assert_eq!(workflows[0].node_count, 4);
+    assert_eq!(workflows[0].agent_id.as_deref(), Some("agent-1"));
+}
+
+#[tokio::test]
 async fn path_segments_are_encoded_on_new_namespaces() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))
@@ -102,11 +134,11 @@ fn generated_rust_routes_match_the_public_manifest() {
         .collect::<BTreeSet<_>>();
     let rust_routes = PUBLIC_ROUTES.iter().copied().collect::<BTreeSet<_>>();
 
-    assert_eq!(manifest["source"]["operationCount"], 196);
-    assert_eq!(manifest["source"]["supplementalOperationCount"], 14);
+    assert_eq!(manifest["source"]["operationCount"], 197);
+    assert_eq!(manifest["source"]["supplementalOperationCount"], 15);
     assert_eq!(manifest["source"]["excludedAdminOperationCount"], 32);
     assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 12);
-    assert_eq!(rust_routes.len(), 196);
+    assert_eq!(rust_routes.len(), 197);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()

@@ -11,6 +11,7 @@ use serde_json::Value;
 
 use super::medulla_types::{
     TaskPayload, TaskSourcePayload, TaskSourceSyncPayload, TaskSourcesPayload, TasksPayload,
+    WorkflowsPayload,
 };
 use crate::{enc, Error, HttpClient, QueryParam};
 
@@ -18,7 +19,7 @@ pub use super::medulla_types::{
     AbortResult, Deleted, EventEnvelope, EventKind, GithubIssueState, Message, Role, Roster,
     RosterBudget, RosterWorker, RoutingStrategy, SendResult, SessionArchived, SessionCreated,
     SessionDetail, SessionStatus, SessionSummary, Task, TaskRecurrence, TaskRecurrenceFrequency,
-    TaskSource, TaskSourceRef, TaskSourceSyncResult,
+    TaskSource, TaskSourceRef, TaskSourceSyncResult, WorkflowDescriptor,
 };
 
 /// One workspace root's authored `MEDULLA.md`, attached to a session mint.
@@ -157,6 +158,15 @@ impl<'a> MedullaApi<'a> {
     pub async fn roster(&self) -> Result<Vec<RosterWorker>, Error> {
         let roster: Roster = self.get(Method::GET, "/medulla/v1/roster", &[]).await?;
         Ok(roster.workers)
+    }
+
+    /// Read the saved workflow adverts published by connected harnesses.
+    ///
+    /// The catalog is connection-scoped and contains descriptors only. Workflow
+    /// graphs remain on the owning harness and are requested over Socket.IO.
+    pub async fn workflows(&self) -> Result<Vec<WorkflowDescriptor>, Error> {
+        let payload: WorkflowsPayload = self.get(Method::GET, "/medulla/v1/workflows", &[]).await?;
+        Ok(payload.workflows)
     }
 
     /// Read the backend's configured worker routing strategy.
