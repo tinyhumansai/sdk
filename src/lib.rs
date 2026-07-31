@@ -297,6 +297,13 @@ impl HttpClient {
         self.send(Method::POST, path, &[], Some(body), true).await
     }
 
+    /// POST a `multipart/form-data` body.
+    ///
+    /// The JSON `Content-Type` from [`Self::headers`] is dropped first: only
+    /// reqwest knows the boundary, and `.multipart()` sets its header by
+    /// *appending*, so inheriting it would put two `Content-Type` lines on the
+    /// wire. Node/Express keeps the first (RFC 7230 §3.2.2) and parsed every
+    /// upload body as JSON — see tinyhumansai/backend#1179.
     pub async fn post_multipart(
         &self,
         path: &str,
@@ -304,10 +311,12 @@ impl HttpClient {
     ) -> Result<Value, Error> {
         reject_unexposed_route(&Method::POST, path)?;
         let url = self.url(path, &[])?;
+        let mut headers = self.headers()?;
+        headers.remove(CONTENT_TYPE);
         let response = self
             .client
             .post(url)
-            .headers(self.headers()?)
+            .headers(headers)
             .multipart(form)
             .send()
             .await?;
@@ -366,6 +375,12 @@ impl HttpClient {
         Ok(url)
     }
 
+    /// Credential and static headers shared by every request.
+    ///
+    /// The `Content-Type: application/json` here suits the crate's JSON routes.
+    /// A caller whose body carries its own content type must remove it first —
+    /// reqwest's body builders append rather than replace (see
+    /// [`Self::post_multipart`]).
     fn headers(&self) -> Result<HeaderMap, Error> {
         // Host-supplied headers go in first so the SDK's own headers below
         // overwrite them on conflict — see `with_default_headers`.
