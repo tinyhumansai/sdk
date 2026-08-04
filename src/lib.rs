@@ -277,10 +277,19 @@ impl HttpClient {
     ) -> Result<Value, Error> {
         reject_unexposed_route(&Method::POST, path)?;
         let url = self.url(path, &[])?;
+        // A multipart request's `Content-Type` (`multipart/form-data; boundary=…`)
+        // is owned by reqwest's `.multipart(form)`. Our shared `headers()` sets a
+        // fixed `application/json`; left in place it wins over the multipart type,
+        // so the backend JSON-parses the multipart body and 500s with
+        // `Unexpected token '-', "--<boundary>"... is not valid JSON`. Drop the
+        // `Content-Type` here (only for this multipart path — every other verb is
+        // unchanged) so `.multipart()` can set the correct one.
+        let mut headers = self.headers()?;
+        headers.remove(CONTENT_TYPE);
         let response = self
             .client
             .post(url)
-            .headers(self.headers()?)
+            .headers(headers)
             .multipart(form)
             .send()
             .await?;
