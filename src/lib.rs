@@ -14,6 +14,7 @@ use url::Url;
 pub mod api;
 pub mod generated_public_routes;
 pub mod jwt;
+#[cfg(feature = "socket")]
 pub mod socket;
 pub mod sse;
 
@@ -50,14 +51,19 @@ pub enum Error {
     Header(#[from] reqwest::header::InvalidHeaderValue),
     #[error("response decoding failed: {0}")]
     Decode(#[from] serde_json::Error),
+    #[cfg(feature = "socket")]
     #[error("socket.io transport failed: {0}")]
     Socket(Box<rust_socketio::Error>),
+    #[cfg(feature = "socket")]
     #[error("a bearer token is required for socket.io connections")]
     MissingSocketToken,
+    #[cfg(feature = "socket")]
     #[error("socket event {0} did not carry a JSON payload")]
     UnexpectedSocketPayload(String),
+    #[cfg(feature = "socket")]
     #[error("socket acknowledgement timed out")]
     SocketAckTimeout,
+    #[cfg(feature = "socket")]
     #[error("socket acknowledgement channel closed")]
     SocketAckClosed,
     #[error("route is intentionally not exposed by the SDK: {0} {1}")]
@@ -75,6 +81,7 @@ pub enum Error {
     },
 }
 
+#[cfg(feature = "socket")]
 impl From<rust_socketio::Error> for Error {
     fn from(error: rust_socketio::Error) -> Self {
         Self::Socket(Box::new(error))
@@ -208,6 +215,7 @@ impl TinyHumansClient {
     /// The returned connection receives every public socket event through one
     /// generic stream and also exposes typed helpers for the Medulla harness
     /// and workflow protocol.
+    #[cfg(feature = "socket")]
     pub async fn connect_socket(&self) -> Result<socket::SocketConnection, Error> {
         let token = self.http.token.clone().ok_or(Error::MissingSocketToken)?;
         socket::SocketConnection::connect(self.http.base_url.clone(), token).await
