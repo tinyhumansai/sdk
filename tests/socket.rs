@@ -1,3 +1,5 @@
+#![cfg(feature = "socket")]
+
 use serde_json::json;
 use tinyhumans_sdk::socket::medulla::{
     CapabilitiesRequest, RegisterWorkflows, TaskRun, WorkflowRequest, WorkflowRequestOp,

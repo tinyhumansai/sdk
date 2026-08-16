@@ -6,6 +6,10 @@ license = "GPL-3.0-or-later"
 description = "Rust SDK for the TinyHumans backend"
 repository = "https://github.com/tinyhumansai/sdk"
 
+[features]
+default = ["socket"]
+socket = ["dep:rust_socketio"]
+
 [dependencies]
 base64 = "0.22"
 # `stream` is for the SSE session stream in `src/sse.rs`; every other route
@@ -21,7 +25,7 @@ percent-encoding = "2"
 # what earns these two their place in an otherwise dependency-light crate.
 futures = "0.3"
 # Socket.IO is a distinct framed protocol over Engine.IO, not a raw WebSocket.
-rust_socketio = { version = "0.6", features = ["async"] }
+rust_socketio = { version = "0.6", features = ["async"], optional = true }
 tokio = { version = "1", features = ["sync", "time"] }
 
 [dev-dependencies]
