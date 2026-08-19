@@ -8,12 +8,12 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 205,
-    "totalOperationCount": 235,
-    "operationCount": 187,
+    "pathCount": 214,
+    "totalOperationCount": 242,
+    "operationCount": 207,
     "supplementalOperationCount": 5,
-    "excludedAdminOperationCount": 35,
-    "excludedWebhookOperationCount": 18,
+    "excludedAdminOperationCount": 38,
+    "excludedWebhookOperationCount": 2,
     "servers": [
       "https://api.tinyhumans.ai/",
       "https://staging-api.tinyhumans.ai/",
@@ -119,14 +119,15 @@
       "name": "apiKeys",
       "basePath": "/api-keys",
       "auth": "bearer",
-      "operationCount": 3,
+      "operationCount": 4,
       "tags": [
         "API Keys"
       ],
       "routes": [
         "DELETE /api-keys/{keyId}",
         "GET /api-keys",
-        "POST /api-keys"
+        "POST /api-keys",
+        "PUT /api-keys/{keyId}/spend-caps"
       ]
     },
     {
@@ -201,7 +202,7 @@
       "name": "feedback",
       "basePath": "/feedback",
       "auth": "bearer",
-      "operationCount": 6,
+      "operationCount": 7,
       "tags": [
         "Feedback"
       ],
@@ -210,6 +211,7 @@
         "GET /feedback/{id}",
         "POST /feedback",
         "POST /feedback/ingest",
+        "POST /feedback/validate",
         "POST /feedback/{id}/comments",
         "POST /feedback/{id}/vote"
       ]
@@ -278,14 +280,17 @@
       "name": "medulla",
       "basePath": "/medulla",
       "auth": "bearer",
-      "operationCount": 20,
+      "operationCount": 26,
       "tags": [
         "Medulla"
       ],
       "routes": [
+        "DELETE /medulla/v1/hosts/{id}",
         "DELETE /medulla/v1/sessions/{id}",
         "DELETE /medulla/v1/tasks/sources/{id}",
         "DELETE /medulla/v1/tasks/{id}",
+        "GET /medulla/v1/hosts",
+        "GET /medulla/v1/hosts/entitlements",
         "GET /medulla/v1/roster",
         "GET /medulla/v1/routing/strategy",
         "GET /medulla/v1/sessions",
@@ -295,7 +300,10 @@
         "GET /medulla/v1/sessions/{id}/stream",
         "GET /medulla/v1/tasks",
         "GET /medulla/v1/tasks/sources",
+        "GET /medulla/v1/workflows",
         "PATCH /medulla/v1/tasks/{id}",
+        "POST /medulla/v1/hosts/enroll",
+        "POST /medulla/v1/hosts/invite",
         "POST /medulla/v1/sessions",
         "POST /medulla/v1/sessions/{id}/abort",
         "POST /medulla/v1/sessions/{id}/messages",
@@ -416,6 +424,19 @@
       ]
     },
     {
+      "name": "spendCaps",
+      "basePath": "/spend-caps",
+      "auth": "bearer",
+      "operationCount": 2,
+      "tags": [
+        "Spend Caps"
+      ],
+      "routes": [
+        "GET /spend-caps",
+        "PUT /spend-caps"
+      ]
+    },
+    {
       "name": "teams",
       "basePath": "/teams",
       "auth": "bearer",
@@ -438,6 +459,38 @@
         "POST /teams/{teamId}/invites/email",
         "POST /teams/{teamId}/leave",
         "POST /teams/{teamId}/switch"
+      ]
+    },
+    {
+      "name": "voiceAgent",
+      "basePath": "/voice-agent",
+      "auth": "mixed",
+      "operationCount": 2,
+      "tags": [
+        "VoiceAgent"
+      ],
+      "routes": [
+        "GET /voice-agent/get-signed-url",
+        "POST /voice-agent/chat/completions"
+      ]
+    },
+    {
+      "name": "waitlist",
+      "basePath": "/waitlist",
+      "auth": "none",
+      "operationCount": 8,
+      "tags": [
+        "Waitlist"
+      ],
+      "routes": [
+        "GET /waitlist/download/{token}",
+        "GET /waitlist/me",
+        "GET /waitlist/stats",
+        "POST /waitlist/join",
+        "POST /waitlist/tasks/download",
+        "POST /waitlist/tasks/download/confirm",
+        "POST /waitlist/tasks/shoutout",
+        "POST /waitlist/tasks/shoutout/click"
       ]
     }
   ]
