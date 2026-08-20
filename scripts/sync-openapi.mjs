@@ -79,6 +79,11 @@ function isWebhookOperation(path) {
   return path.split("/").includes("webhooks");
 }
 
+function isCustomLlmSecretOperation(operation) {
+  const security = operation.security ?? [];
+  return security.some((entry) => Object.hasOwn(entry, "customLlmSecret"));
+}
+
 function namespaceFor(path) {
   if (path === "/") return "health";
   const segment = path.split("/")[1];
