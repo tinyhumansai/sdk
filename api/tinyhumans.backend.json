@@ -8,12 +8,12 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 228,
-    "totalOperationCount": 259,
-    "operationCount": 206,
-    "supplementalOperationCount": 5,
-    "excludedAdminOperationCount": 40,
-    "excludedWebhookOperationCount": 18,
+    "pathCount": 177,
+    "totalOperationCount": 198,
+    "operationCount": 212,
+    "supplementalOperationCount": 14,
+    "excludedAdminOperationCount": 32,
+    "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
       "https://staging-api.tinyhumans.ai/",
@@ -119,15 +119,14 @@
       "name": "apiKeys",
       "basePath": "/api-keys",
       "auth": "bearer",
-      "operationCount": 4,
+      "operationCount": 3,
       "tags": [
         "API Keys"
       ],
       "routes": [
         "DELETE /api-keys/{keyId}",
         "GET /api-keys",
-        "POST /api-keys",
-        "PUT /api-keys/{keyId}/spend-caps"
+        "POST /api-keys"
       ]
     },
     {
@@ -424,28 +423,17 @@
       ]
     },
     {
-      "name": "spendCaps",
-      "basePath": "/spend-caps",
-      "auth": "bearer",
-      "operationCount": 2,
-      "tags": [
-        "Spend Caps"
-      ],
-      "routes": [
-        "GET /spend-caps",
-        "PUT /spend-caps"
-      ]
-    },
-    {
       "name": "teams",
       "basePath": "/teams",
       "auth": "bearer",
-      "operationCount": 14,
+      "operationCount": 17,
       "tags": [
+        "OpenHuman parity",
         "Teams"
       ],
       "routes": [
         "DELETE /teams/{teamId}/invites/{inviteId}",
+        "DELETE /teams/{teamId}/members/{userId}",
         "GET /teams",
         "GET /teams/me/usage",
         "GET /teams/{teamId}",
@@ -458,7 +446,9 @@
         "POST /teams/{teamId}/invites",
         "POST /teams/{teamId}/invites/email",
         "POST /teams/{teamId}/leave",
-        "POST /teams/{teamId}/switch"
+        "POST /teams/{teamId}/switch",
+        "PUT /teams/{teamId}",
+        "PUT /teams/{teamId}/members/{userId}/role"
       ]
     },
     {
@@ -490,6 +480,23 @@
         "POST /waitlist/tasks/download/confirm",
         "POST /waitlist/tasks/shoutout",
         "POST /waitlist/tasks/shoutout/click"
+      ]
+    },
+    {
+      "name": "webhooks",
+      "basePath": "/webhooks",
+      "auth": "bearer",
+      "operationCount": 6,
+      "tags": [
+        "OpenHuman parity"
+      ],
+      "routes": [
+        "DELETE /webhooks/core/{id}",
+        "GET /webhooks/core",
+        "GET /webhooks/core/bandwidth",
+        "GET /webhooks/core/{id}",
+        "PATCH /webhooks/core/{id}",
+        "POST /webhooks/core"
       ]
     }
   ]
