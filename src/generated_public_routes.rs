@@ -254,6 +254,7 @@ pub(crate) const UNEXPOSED_ROUTES: &[(&str, &str)] = &[
     ("PUT", "/teams/{teamId}"),
     ("DELETE", "/teams/{teamId}/members/{userId}"),
     ("PUT", "/teams/{teamId}/members/{userId}/role"),
+    ("POST", "/voice-agent/chat/completions"),
     ("POST", "/webhooks/composio"),
     ("GET", "/webhooks/core"),
     ("POST", "/webhooks/core"),
