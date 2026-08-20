@@ -135,6 +135,11 @@ function buildManifest(spec) {
         excludedOperations.push({ method: method.toUpperCase(), path });
         continue;
       }
+      if (isCustomLlmSecretOperation(operation)) {
+        excludedAdminOperationCount += 1;
+        excludedOperations.push({ method: method.toUpperCase(), path });
+        continue;
+      }
       publicOperations.push({
         method: method.toUpperCase(),
         namespace: namespaceFor(path),
