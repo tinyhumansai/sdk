@@ -230,6 +230,7 @@ pub(crate) const UNEXPOSED_ROUTES: &[(&str, &str)] = &[
     ("PATCH", "/admin/settings/{key}"),
     ("POST", "/admin/users/{userId}/credits"),
     ("PATCH", "/admin/users/{userId}/medulla-access"),
+    ("PATCH", "/admin/users/{userId}/spend-caps"),
     ("DELETE", "/admin/users/{userId}/subscription"),
     ("POST", "/admin/users/{userId}/subscription"),
     ("POST", "/admin/users/credits/bulk"),
