@@ -134,11 +134,11 @@ fn generated_rust_routes_match_the_public_manifest() {
         .collect::<BTreeSet<_>>();
     let rust_routes = PUBLIC_ROUTES.iter().copied().collect::<BTreeSet<_>>();
 
-    assert_eq!(manifest["source"]["operationCount"], 215);
+    assert_eq!(manifest["source"]["operationCount"], 218);
     assert_eq!(manifest["source"]["supplementalOperationCount"], 14);
     assert_eq!(manifest["source"]["excludedAdminOperationCount"], 37);
     assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 12);
-    assert_eq!(rust_routes.len(), 215);
+    assert_eq!(rust_routes.len(), 218);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()
