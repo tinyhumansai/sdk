@@ -8,11 +8,11 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 177,
-    "totalOperationCount": 198,
-    "operationCount": 212,
+    "pathCount": 228,
+    "totalOperationCount": 259,
+    "operationCount": 215,
     "supplementalOperationCount": 14,
-    "excludedAdminOperationCount": 32,
+    "excludedAdminOperationCount": 37,
     "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
@@ -119,14 +119,15 @@
       "name": "apiKeys",
       "basePath": "/api-keys",
       "auth": "bearer",
-      "operationCount": 3,
+      "operationCount": 4,
       "tags": [
         "API Keys"
       ],
       "routes": [
         "DELETE /api-keys/{keyId}",
         "GET /api-keys",
-        "POST /api-keys"
+        "POST /api-keys",
+        "PUT /api-keys/{keyId}/spend-caps"
       ]
     },
     {
@@ -423,12 +424,24 @@
       ]
     },
     {
+      "name": "spendCaps",
+      "basePath": "/spend-caps",
+      "auth": "bearer",
+      "operationCount": 2,
+      "tags": [
+        "Spend Caps"
+      ],
+      "routes": [
+        "GET /spend-caps",
+        "PUT /spend-caps"
+      ]
+    },
+    {
       "name": "teams",
       "basePath": "/teams",
       "auth": "bearer",
       "operationCount": 17,
       "tags": [
-        "OpenHuman parity",
         "Teams"
       ],
       "routes": [
@@ -488,7 +501,7 @@
       "auth": "bearer",
       "operationCount": 6,
       "tags": [
-        "OpenHuman parity"
+        "Webhooks"
       ],
       "routes": [
         "DELETE /webhooks/core/{id}",
