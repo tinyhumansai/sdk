@@ -10,9 +10,9 @@
     "version": "1.0.0",
     "pathCount": 228,
     "totalOperationCount": 259,
-    "operationCount": 207,
+    "operationCount": 206,
     "supplementalOperationCount": 5,
-    "excludedAdminOperationCount": 39,
+    "excludedAdminOperationCount": 40,
     "excludedWebhookOperationCount": 18,
     "servers": [
       "https://api.tinyhumans.ai/",
