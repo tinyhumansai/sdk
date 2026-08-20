@@ -8,12 +8,12 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 178,
-    "totalOperationCount": 199,
-    "operationCount": 204,
+    "pathCount": 227,
+    "totalOperationCount": 258,
+    "operationCount": 207,
     "supplementalOperationCount": 5,
-    "excludedAdminOperationCount": 0,
-    "excludedWebhookOperationCount": 0,
+    "excludedAdminOperationCount": 38,
+    "excludedWebhookOperationCount": 18,
     "servers": [
       "https://api.tinyhumans.ai/",
       "https://staging-api.tinyhumans.ai/",
@@ -119,14 +119,15 @@
       "name": "apiKeys",
       "basePath": "/api-keys",
       "auth": "bearer",
-      "operationCount": 3,
+      "operationCount": 4,
       "tags": [
         "API Keys"
       ],
       "routes": [
         "DELETE /api-keys/{keyId}",
         "GET /api-keys",
-        "POST /api-keys"
+        "POST /api-keys",
+        "PUT /api-keys/{keyId}/spend-caps"
       ]
     },
     {
@@ -420,6 +421,19 @@
         "DELETE /rewards/discord",
         "GET /rewards/me",
         "POST /rewards/claim"
+      ]
+    },
+    {
+      "name": "spendCaps",
+      "basePath": "/spend-caps",
+      "auth": "bearer",
+      "operationCount": 2,
+      "tags": [
+        "Spend Caps"
+      ],
+      "routes": [
+        "GET /spend-caps",
+        "PUT /spend-caps"
       ]
     },
     {
