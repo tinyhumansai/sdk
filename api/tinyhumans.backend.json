@@ -8,9 +8,9 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 167,
-    "totalOperationCount": 188,
-    "operationCount": 202,
+    "pathCount": 177,
+    "totalOperationCount": 198,
+    "operationCount": 212,
     "supplementalOperationCount": 14,
     "excludedAdminOperationCount": 32,
     "excludedWebhookOperationCount": 12,
@@ -201,7 +201,7 @@
       "name": "feedback",
       "basePath": "/feedback",
       "auth": "bearer",
-      "operationCount": 6,
+      "operationCount": 7,
       "tags": [
         "Feedback"
       ],
@@ -210,6 +210,7 @@
         "GET /feedback/{id}",
         "POST /feedback",
         "POST /feedback/ingest",
+        "POST /feedback/validate",
         "POST /feedback/{id}/comments",
         "POST /feedback/{id}/vote"
       ]
@@ -448,6 +449,37 @@
         "POST /teams/{teamId}/switch",
         "PUT /teams/{teamId}",
         "PUT /teams/{teamId}/members/{userId}/role"
+      ]
+    },
+    {
+      "name": "voiceAgent",
+      "basePath": "/voice-agent",
+      "auth": "bearer",
+      "operationCount": 1,
+      "tags": [
+        "VoiceAgent"
+      ],
+      "routes": [
+        "GET /voice-agent/get-signed-url"
+      ]
+    },
+    {
+      "name": "waitlist",
+      "basePath": "/waitlist",
+      "auth": "none",
+      "operationCount": 8,
+      "tags": [
+        "Waitlist"
+      ],
+      "routes": [
+        "GET /waitlist/download/{token}",
+        "GET /waitlist/me",
+        "GET /waitlist/stats",
+        "POST /waitlist/join",
+        "POST /waitlist/tasks/download",
+        "POST /waitlist/tasks/download/confirm",
+        "POST /waitlist/tasks/shoutout",
+        "POST /waitlist/tasks/shoutout/click"
       ]
     },
     {

@@ -491,6 +491,9 @@ mod exclusion_tests {
 
     #[test]
     fn every_admin_and_webhook_route_is_rejected_by_the_raw_transport_gate() {
+        // Pinned so the list can only ever be reviewed upward. A regenerated
+        // spec that stopped describing admin or webhook routes would otherwise
+        // shrink this list and silently unblock them at the raw transport.
         assert_eq!(UNEXPOSED_ROUTES.len(), 44);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
