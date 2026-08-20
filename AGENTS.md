@@ -126,6 +126,15 @@ including legacy paths outside `/admin` whose summary, description, or 403
 response marks them as admin-only. `node scripts/sync-openapi.mjs` must retain that filter
 and regenerate both the manifest and Rust public-route registry.
 
+`sync-openapi.mjs` defaults to fetching the deployed spec. When syncing a backend
+branch that adds or changes routes, dump that checkout's spec first and pass it
+with `--input` (`cd ../backend && npm run swagger -- /tmp/spec.json`); a bare run
+regenerates from production and reverts the branch's routes back out. Feed it the
+RAW document, never the filtered one served at `/swagger.json` — this script does
+its own admin/webhook exclusion and derives `UNEXPOSED_ROUTES` from what it sees,
+so a pre-filtered input shrinks that denylist and unblocks the routes it exists to
+block. `UNEXPOSED_ROUTES.len()` is pinned in `src/lib.rs` to catch exactly that.
+
 ## Git and PR Expectations
 
 - Keep changes small and coherent.
