@@ -464,14 +464,13 @@
     {
       "name": "voiceAgent",
       "basePath": "/voice-agent",
-      "auth": "mixed",
-      "operationCount": 2,
+      "auth": "bearer",
+      "operationCount": 1,
       "tags": [
         "VoiceAgent"
       ],
       "routes": [
-        "GET /voice-agent/get-signed-url",
-        "POST /voice-agent/chat/completions"
+        "GET /voice-agent/get-signed-url"
       ]
     },
     {
