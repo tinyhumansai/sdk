@@ -199,7 +199,6 @@ pub const PUBLIC_ROUTES: &[(&str, &str)] = &[
     ("POST", "/teams/{teamId}/switch"),
     ("POST", "/teams/join"),
     ("GET", "/teams/me/usage"),
-    ("POST", "/voice-agent/chat/completions"),
     ("GET", "/voice-agent/get-signed-url"),
     ("GET", "/waitlist/download/{token}"),
     ("POST", "/waitlist/join"),
