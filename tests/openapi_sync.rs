@@ -42,7 +42,19 @@ async fn medulla_task_status_serializes_in_camel_case() {
     Mock::given(method("POST"))
         .and(path("/medulla/v1/tasks"))
         .and(body_json(json!({"title":"Ship","status":"inProgress"})))
-        .respond_with(ok())
+        // `create_task` now decodes a typed `Task`, so the stub returns the
+        // route's real `{"task": {...}}` payload rather than a placeholder.
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": { "task": {
+                "id": "task-1",
+                "title": "Ship",
+                "description": "",
+                "status": "inProgress",
+                "createdAt": "2026-07-29T00:00:00Z",
+                "updatedAt": "2026-07-29T00:00:00Z",
+            }},
+        })))
         .mount(&server)
         .await;
     let request = CreateTaskRequest {
@@ -51,11 +63,44 @@ async fn medulla_task_status_serializes_in_camel_case() {
         status: Some(TaskStatus::InProgress),
         recurrence: None,
     };
-    TinyHumansClient::new(server.uri())
+    let task = TinyHumansClient::new(server.uri())
         .medulla()
         .create_task(&request)
         .await
         .unwrap();
+    assert_eq!(task.status, TaskStatus::InProgress);
+}
+
+#[tokio::test]
+async fn medulla_workflows_returns_advertised_catalog() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/medulla/v1/workflows"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {
+                "workflows": [{
+                    "id": "release",
+                    "name": "Release",
+                    "nodeCount": 4,
+                    "enabled": true,
+                    "agentId": "agent-1"
+                }]
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let workflows = TinyHumansClient::new(server.uri())
+        .medulla()
+        .workflows()
+        .await
+        .unwrap();
+
+    assert_eq!(workflows.len(), 1);
+    assert_eq!(workflows[0].id, "release");
+    assert_eq!(workflows[0].node_count, 4);
+    assert_eq!(workflows[0].agent_id.as_deref(), Some("agent-1"));
 }
 
 #[tokio::test]
@@ -98,7 +143,14 @@ fn generated_rust_routes_match_the_public_manifest() {
     assert!(rust_routes
         .iter()
         .all(|(_, path)| !path.split('/').any(|segment| segment == "admin")));
-    assert!(rust_routes
-        .iter()
-        .all(|(_, path)| !path.split('/').any(|segment| segment == "webhooks")));
+    // Webhook *receivers* stay out of the public surface: they are provider
+    // callbacks authenticated by signature, so an SDK caller invoking one would
+    // be forging provider traffic. The user-owned tunnel CRUD under
+    // `/webhooks/core` is ordinary bearer-authenticated user-facing API and is
+    // the one permitted exception under this prefix.
+    assert!(rust_routes.iter().all(|(_, path)| {
+        !path.split('/').any(|segment| segment == "webhooks")
+            || *path == "/webhooks/core"
+            || path.starts_with("/webhooks/core/")
+    }));
 }

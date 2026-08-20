@@ -6,14 +6,28 @@ license = "GPL-3.0-or-later"
 description = "Rust SDK for the TinyHumans backend"
 repository = "https://github.com/tinyhumansai/sdk"
 
+[features]
+default = ["socket"]
+socket = ["dep:rust_socketio"]
+
 [dependencies]
-reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls"] }
+base64 = "0.22"
+# `stream` is for the SSE session stream in `src/sse.rs`; every other route
+# buffers its body.
+reqwest = { version = "0.12", default-features = false, features = ["json", "multipart", "rustls-tls", "stream"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 thiserror = "2"
 url = "2"
 percent-encoding = "2"
+# The SSE session stream. Server-Sent Events framing plus reconnect-with-cursor
+# is real protocol complexity a caller should not have to reimplement, which is
+# what earns these two their place in an otherwise dependency-light crate.
+futures = "0.3"
+# Socket.IO is a distinct framed protocol over Engine.IO, not a raw WebSocket.
+rust_socketio = { version = "0.6", features = ["async"], optional = true }
+tokio = { version = "1", features = ["sync", "time"] }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread"] }
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "net", "io-util"] }
 wiremock = "0.6"

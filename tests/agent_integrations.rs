@@ -1,7 +1,7 @@
 use serde_json::json;
 use tinyhumans_sdk::api::agent_integration_types::{
-    ComposioGithubReposResponse, TinyFishAgentRunRequest, TinyFishFetchRequest,
-    TinyFishSearchRequest,
+    ComposioConnectionsResponse, ComposioGithubReposResponse, TinyFishAgentRunRequest,
+    TinyFishFetchRequest, TinyFishSearchRequest,
 };
 use tinyhumans_sdk::TinyHumansClient;
 use wiremock::matchers::{body_json, method, path, query_param};
@@ -231,6 +231,47 @@ async fn list_composio_connections_unwraps_envelope() {
         .unwrap();
 
     let _ = result;
+}
+
+#[tokio::test]
+async fn list_composio_connections_surfaces_status_reason_and_is_disabled() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/agent-integrations/composio/connections"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": [
+                {"id": "c1", "toolkit": "gmail", "status": "EXPIRED",
+                 "statusReason": "refresh token revoked"},
+                {"id": "c2", "toolkit": "notion", "status": "INACTIVE", "isDisabled": true},
+                {"id": "c3", "toolkit": "slack", "status": "ACTIVE"}
+            ]
+        })))
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let connections = match client
+        .agent_integrations()
+        .list_composio_connections()
+        .await
+        .unwrap()
+    {
+        ComposioConnectionsResponse::List(c) => c,
+        ComposioConnectionsResponse::Object { connections } => connections,
+    };
+
+    // camelCase wire names bind to the snake_case fields.
+    assert_eq!(
+        connections[0].status_reason.as_deref(),
+        Some("refresh token revoked")
+    );
+    assert_eq!(connections[0].is_disabled, None);
+    assert_eq!(connections[1].is_disabled, Some(true));
+
+    // A backend that predates backend#1209 omits both and still deserializes.
+    assert_eq!(connections[2].status_reason, None);
+    assert_eq!(connections[2].is_disabled, None);
 }
 
 #[tokio::test]

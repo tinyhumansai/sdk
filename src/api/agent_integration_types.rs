@@ -93,6 +93,13 @@ pub struct ComposioConnection {
     pub status: String,
     #[serde(default)]
     pub created_at: Option<String>,
+    /// The backend's explanation for a non-`ACTIVE` `status`, when Composio
+    /// supplies one (e.g. why a token refresh failed).
+    #[serde(default)]
+    pub status_reason: Option<String>,
+    /// `true` when the connection was explicitly disabled rather than expired.
+    #[serde(default)]
+    pub is_disabled: Option<bool>,
     #[serde(default)]
     pub account_email: Option<String>,
     #[serde(default)]

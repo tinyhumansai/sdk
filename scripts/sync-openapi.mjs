@@ -34,6 +34,68 @@ const SUPPLEMENTAL_PUBLIC_OPERATIONS = [
   ["POST", "/agent-integrations/tinyfish/fetch"],
   ["POST", "/agent-integrations/tinyfish/search"],
   ["GET", "/orchestration/v1/steering"],
+  ["PUT", "/teams/{teamId}"],
+  ["DELETE", "/teams/{teamId}/members/{userId}"],
+  ["PUT", "/teams/{teamId}/members/{userId}/role"],
+  ["GET", "/webhooks/core"],
+  ["POST", "/webhooks/core"],
+  ["DELETE", "/webhooks/core/{id}"],
+  ["GET", "/webhooks/core/{id}"],
+  ["PATCH", "/webhooks/core/{id}"],
+  ["GET", "/webhooks/core/bandwidth"],
+];
+
+// Admin and webhook operations the SDK must keep unreachable through both the
+// typed and the raw APIs. The backend now serves a PRE-FILTERED public
+// Swagger document (`src/config/swagger.ts` -> `publicSwaggerSpec`), so these
+// operations no longer appear in the deployed spec at all and can no longer be
+// derived from it. They are declared here so regeneration retains the filter
+// instead of silently emptying the denylist and opening the raw transport.
+const RETAINED_UNEXPOSED_ROUTES = [
+  ["POST", "/admin/announcements"],
+  ["DELETE", "/admin/announcements/{announcementId}"],
+  ["PATCH", "/admin/announcements/{announcementId}"],
+  ["POST", "/admin/coupons"],
+  ["DELETE", "/admin/coupons/{couponId}"],
+  ["PATCH", "/admin/coupons/{couponId}"],
+  ["POST", "/admin/coupons/bulk"],
+  ["PATCH", "/admin/feedback/triage/{feedbackId}"],
+  ["POST", "/admin/feedback/triage/{feedbackId}/approve"],
+  ["POST", "/admin/feedback/triage/{feedbackId}/merge"],
+  ["POST", "/admin/feedback/triage/{feedbackId}/reject"],
+  ["POST", "/admin/feedback/triage/{feedbackId}/reprocess"],
+  ["POST", "/admin/users/{userId}/credits"],
+  ["PATCH", "/admin/users/{userId}/medulla-access"],
+  ["DELETE", "/admin/users/{userId}/subscription"],
+  ["POST", "/admin/users/{userId}/subscription"],
+  ["POST", "/admin/users/credits/bulk"],
+  ["POST", "/agent-integrations/composio/toolkits/refresh"],
+  ["POST", "/agent-integrations/twilio/webhooks/incoming-call/{userId}"],
+  ["POST", "/agent-integrations/twilio/webhooks/status/{userId}"],
+  ["GET", "/coupons/admin"],
+  ["POST", "/coupons/admin"],
+  ["DELETE", "/coupons/admin/{couponId}"],
+  ["PATCH", "/feedback/{id}/status"],
+  ["GET", "/feedback/admin/triage"],
+  ["GET", "/feedback/admin/triage/{id}"],
+  ["POST", "/feedback/admin/triage/{id}/approve"],
+  ["PATCH", "/feedback/admin/triage/{id}/draft"],
+  ["POST", "/feedback/admin/triage/{id}/merge"],
+  ["POST", "/feedback/admin/triage/{id}/reject"],
+  ["POST", "/feedback/admin/triage/{id}/reprocess"],
+  ["GET", "/invite/campaign"],
+  ["POST", "/invite/campaign"],
+  ["DELETE", "/invite/campaign/{codeId}"],
+  ["POST", "/webhooks/composio"],
+  ["POST", "/webhooks/discord"],
+  ["POST", "/webhooks/github"],
+  ["POST", "/webhooks/ingress/{uuid}"],
+  ["POST", "/webhooks/ingress/{uuid}/{path}"],
+  ["POST", "/webhooks/payments/coinbase"],
+  ["POST", "/webhooks/payments/stripe"],
+  ["POST", "/webhooks/sentry"],
+  ["POST", "/webhooks/telegram"],
+  ["POST", "/webhooks/telegram/managed/{botId}"],
 ];
 
 function parseArgs(argv) {
@@ -52,7 +114,29 @@ function parseArgs(argv) {
   return options;
 }
 
-function isAdminOperation(path, operation) {
+// Operations gated by a role *within a resource the caller belongs to*, not by
+// platform administrator rights.
+//
+// Their OpenAPI summaries read "(admin only)", which the heuristic below would
+// otherwise treat as platform-admin and exclude. But the "admin" here is the
+// team-admin role: any user who creates a team holds it, the routes take an
+// ordinary `bearerAuth` user token, they are scoped to a team the caller is a
+// member of, and their 403s read "Only admins can remove members" — meaning
+// admins *of that team*. Platform-administrator operations live under an
+// `/admin` path segment and are excluded by path above.
+//
+// Excluding these broke OpenHuman's team-management UI: `team_remove_member`
+// failed with "route is intentionally not exposed by the SDK".
+const TEAM_ROLE_GATED_OPERATIONS = new Set([
+  "PUT /teams/{teamId}",
+  "DELETE /teams/{teamId}/members/{userId}",
+  "PUT /teams/{teamId}/members/{userId}/role",
+]);
+
+function isAdminOperation(path, operation, method) {
+  if (TEAM_ROLE_GATED_OPERATIONS.has(`${method.toUpperCase()} ${path}`)) {
+    return false;
+  }
   if (
     path === "/admin" ||
     path.startsWith("/admin/") ||
@@ -75,7 +159,30 @@ function isAdminOperation(path, operation) {
   );
 }
 
-function isWebhookOperation(path) {
+// Exclude webhook *receivers* — the endpoints providers call into (Stripe,
+// Telegram, Discord, GitHub, Composio, Coinbase, Sentry, Twilio, and the
+// tunnel ingress routes). They are authenticated by provider signature rather
+// than by a user bearer token, so an SDK caller has nothing to send and no
+// reason to invoke them.
+//
+// Matching on the path segment alone also swept in `/webhooks/core*`, the
+// user-owned webhook *tunnel* CRUD surface — list/create/read/update/delete a
+// tunnel plus its bandwidth budget. Those are ordinary authenticated
+// user-facing operations that happen to live under `/webhooks`, and OpenHuman
+// drives all six of them from its `webhooks` RPC namespace. Blocking them left
+// that feature with no SDK path at all, not even through the raw escape hatch,
+// which `reject_unexposed_route` gates on this same list.
+//
+// `bearerAuth` is the discriminator rather than a hardcoded `/webhooks/core`
+// allowlist: it is the property that actually distinguishes the two families,
+// so a future user-facing webhook-management route is classified correctly
+// without another edit here.
+function isWebhookOperation(path, operation) {
+  if (!isWebhookPath(path)) return false;
+  return operationAuth(operation) !== "bearer";
+}
+
+function isWebhookPath(path) {
   return path.split("/").includes("webhooks");
 }
 
@@ -116,8 +223,6 @@ function buildManifest(spec) {
   const publicOperations = [];
   const excludedOperations = [];
   let totalOperationCount = 0;
-  let excludedAdminOperationCount = 0;
-  let excludedWebhookOperationCount = 0;
 
   for (const path of Object.keys(spec.paths ?? {}).sort()) {
     const pathItem = spec.paths[path];
@@ -125,13 +230,11 @@ function buildManifest(spec) {
       if (!HTTP_METHODS.has(method)) continue;
       totalOperationCount += 1;
       const operation = pathItem[method];
-      if (isAdminOperation(path, operation)) {
-        excludedAdminOperationCount += 1;
+      if (isAdminOperation(path, operation, method)) {
         excludedOperations.push({ method: method.toUpperCase(), path });
         continue;
       }
-      if (isWebhookOperation(path)) {
-        excludedWebhookOperationCount += 1;
+      if (isWebhookOperation(path, operation)) {
         excludedOperations.push({ method: method.toUpperCase(), path });
         continue;
       }
@@ -148,6 +251,20 @@ function buildManifest(spec) {
       });
     }
   }
+
+  // Retain the declared denylist on top of whatever the spec still describes, so
+  // a spec that stops documenting its admin/webhook surface cannot widen the SDK.
+  for (const [method, path] of RETAINED_UNEXPOSED_ROUTES) {
+    if (excludedOperations.some((entry) => entry.method === method && entry.path === path)) {
+      continue;
+    }
+    excludedOperations.push({ method, path });
+  }
+  const excludedWebhookOperationCount = excludedOperations.filter(({ path }) =>
+    isWebhookPath(path)
+  ).length;
+  const excludedAdminOperationCount = excludedOperations.length -
+    excludedWebhookOperationCount;
 
   for (const [method, path] of SUPPLEMENTAL_PUBLIC_OPERATIONS) {
     publicOperations.push({
