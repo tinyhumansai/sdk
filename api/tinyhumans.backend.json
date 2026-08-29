@@ -8,11 +8,11 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 228,
-    "totalOperationCount": 259,
-    "operationCount": 215,
+    "pathCount": 231,
+    "totalOperationCount": 263,
+    "operationCount": 218,
     "supplementalOperationCount": 14,
-    "excludedAdminOperationCount": 37,
+    "excludedAdminOperationCount": 38,
     "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
@@ -119,7 +119,7 @@
       "name": "apiKeys",
       "basePath": "/api-keys",
       "auth": "bearer",
-      "operationCount": 4,
+      "operationCount": 5,
       "tags": [
         "API Keys"
       ],
@@ -127,7 +127,8 @@
         "DELETE /api-keys/{keyId}",
         "GET /api-keys",
         "POST /api-keys",
-        "PUT /api-keys/{keyId}/spend-caps"
+        "PUT /api-keys/{keyId}/spend-caps",
+        "PUT /api-keys/{keyId}/spend-policy"
       ]
     },
     {
@@ -434,6 +435,19 @@
       "routes": [
         "GET /spend-caps",
         "PUT /spend-caps"
+      ]
+    },
+    {
+      "name": "spendPolicy",
+      "basePath": "/spend-policy",
+      "auth": "bearer",
+      "operationCount": 2,
+      "tags": [
+        "Spend Policy"
+      ],
+      "routes": [
+        "GET /spend-policy",
+        "PUT /spend-policy"
       ]
     },
     {

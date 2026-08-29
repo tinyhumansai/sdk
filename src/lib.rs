@@ -494,7 +494,7 @@ mod exclusion_tests {
         // Pinned so the list can only ever be reviewed upward. A regenerated
         // spec that stopped describing admin or webhook routes would otherwise
         // shrink this list and silently unblock them at the raw transport.
-        assert_eq!(UNEXPOSED_ROUTES.len(), 49);
+        assert_eq!(UNEXPOSED_ROUTES.len(), 50);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
