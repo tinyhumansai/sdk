@@ -513,6 +513,20 @@ mod exclusion_tests {
         // Pinned so the list can only ever be reviewed upward. A regenerated
         // spec that stopped describing admin or webhook routes would otherwise
         // shrink this list and silently unblock them at the raw transport.
+        //
+        // 50 -> 49: the prior resync (from main's spend-policy PR) had synced
+        // against a spec that documented four `*/spend-policy` routes
+        // (`GET /spend-policy`, `PUT /spend-policy`,
+        // `PUT /api-keys/{keyId}/spend-policy`, and the admin
+        // `PATCH /admin/users/{userId}/spend-policy` counted here) that the
+        // backend never actually implements — it only has `spend-caps`
+        // (`src/routes/spendCaps.ts` et al. in the backend repo; a full-text
+        // search for `spend-policy` there finds zero matches). Resyncing
+        // against a fresh, accurate spec dropped the one phantom admin entry,
+        // taking this count from 50 back down to 49. The other three
+        // `spend-policy` routes were never in this admin/webhook list to begin
+        // with, since only `/admin/**` and undocumented `/webhooks/**` routes
+        // land here.
         assert_eq!(UNEXPOSED_ROUTES.len(), 49);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
