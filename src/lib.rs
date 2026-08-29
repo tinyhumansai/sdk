@@ -346,10 +346,23 @@ impl HttpClient {
 
     /// Send a request whose successful response is binary rather than JSON.
     pub async fn send_bytes(&self, method: Method, path: &str) -> Result<Vec<u8>, Error> {
+        self.send_bytes_query(method, path, &[]).await
+    }
+
+    /// [`Self::send_bytes`] with query parameters. Kept separate so the query
+    /// goes through [`Self::url`] rather than being appended to `path`, which
+    /// would defeat the unexposed-route check — that matches on path segments,
+    /// and a trailing `?...` would make the last segment miss its template.
+    pub async fn send_bytes_query(
+        &self,
+        method: Method,
+        path: &str,
+        query: &[QueryParam],
+    ) -> Result<Vec<u8>, Error> {
         reject_unexposed_route(&method, path)?;
         let response = self
             .client
-            .request(method, self.url(path, &[])?)
+            .request(method, self.url(path, query)?)
             .headers(self.headers()?)
             .send()
             .await?;

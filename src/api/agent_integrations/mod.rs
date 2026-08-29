@@ -20,6 +20,7 @@ pub mod financial_apis;
 pub mod google_places;
 pub mod history_rewards;
 pub mod media_generation;
+pub mod openrouter;
 pub mod parallel;
 pub mod pricing;
 pub mod recall_calendar;
@@ -35,6 +36,7 @@ pub use financial_apis::*;
 pub use google_places::*;
 pub use history_rewards::*;
 pub use media_generation::*;
+pub use openrouter::*;
 pub use parallel::*;
 pub use pricing::*;
 pub use recall_calendar::*;
@@ -72,5 +74,29 @@ impl<'a> AgentIntegrationsApi<'a> {
     ) -> Result<Response, Error> {
         let body = serde_json::to_value(request)?;
         self.send(Method::POST, path, &[], Some(&body), true).await
+    }
+
+    /// POST to a route that returns the upstream provider's payload verbatim
+    /// rather than the `{ success, data }` envelope, so the response must not
+    /// be unwrapped.
+    async fn passthrough<Request: Serialize>(
+        &self,
+        path: &str,
+        request: &Request,
+    ) -> Result<crate::api::types::DynamicResponse, Error> {
+        let body = serde_json::to_value(request)?;
+        self.http
+            .send(Method::POST, path, &[], Some(&body), false)
+            .await
+            .map(Into::into)
+    }
+
+    async fn bytes_query(
+        &self,
+        method: Method,
+        path: &str,
+        query: &[QueryParam],
+    ) -> Result<Vec<u8>, Error> {
+        self.http.send_bytes_query(method, path, query).await
     }
 }
