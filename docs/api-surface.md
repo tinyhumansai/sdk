@@ -29,7 +29,7 @@ namespace.
 | `health` | `/` | none | `check()` liveness |
 | `auth` | `/auth` | bearer | email login, OAuth, `me()`, integration tokens |
 | `inference` | `/openai` | bearer | `GET /v1/models`, chat completions, responses, transcription |
-| `agentIntegrations` | `/agent-integrations` | bearer | Composio, Parallel, media generation, maps, Apify, Twilio, crypto |
+| `agentIntegrations` | `/agent-integrations` | bearer | Composio, Parallel, media generation, maps, Apify, Twilio, crypto, OpenRouter |
 | `apiKeys` | `/api-keys` | bearer | create, list, and revoke user API keys |
 | `budgets` | `/budgets` | bearer | team budgets and seat allocations |
 | `medulla` | `/medulla` | bearer | roster, workflow adverts, routing, sessions, messages, tasks, and sources |

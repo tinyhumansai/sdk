@@ -68,6 +68,12 @@ pub enum Error {
     SocketAckClosed,
     #[error("route is intentionally not exposed by the SDK: {0} {1}")]
     RouteNotExposed(String, String),
+    /// A caller set `stream: true` on a route whose transport buffers the
+    /// whole response body (see [`HttpClient::send`]) rather than yielding
+    /// incremental events, so streaming it would silently hand back one
+    /// SSE-shaped string instead of the structured payload the caller wants.
+    #[error("{0} does not support streaming yet: this transport buffers the full response body, so `stream: true` would not yield incremental events")]
+    StreamingNotSupported(String),
     /// The response carried a `{success:false, ...}` envelope.
     ///
     /// The backend does not always pair an unsuccessful envelope with a
@@ -346,10 +352,23 @@ impl HttpClient {
 
     /// Send a request whose successful response is binary rather than JSON.
     pub async fn send_bytes(&self, method: Method, path: &str) -> Result<Vec<u8>, Error> {
+        self.send_bytes_query(method, path, &[]).await
+    }
+
+    /// [`Self::send_bytes`] with query parameters. Kept separate so the query
+    /// goes through [`Self::url`] rather than being appended to `path`, which
+    /// would defeat the unexposed-route check — that matches on path segments,
+    /// and a trailing `?...` would make the last segment miss its template.
+    pub async fn send_bytes_query(
+        &self,
+        method: Method,
+        path: &str,
+        query: &[QueryParam],
+    ) -> Result<Vec<u8>, Error> {
         reject_unexposed_route(&method, path)?;
         let response = self
             .client
-            .request(method, self.url(path, &[])?)
+            .request(method, self.url(path, query)?)
             .headers(self.headers()?)
             .send()
             .await?;
@@ -494,7 +513,21 @@ mod exclusion_tests {
         // Pinned so the list can only ever be reviewed upward. A regenerated
         // spec that stopped describing admin or webhook routes would otherwise
         // shrink this list and silently unblock them at the raw transport.
-        assert_eq!(UNEXPOSED_ROUTES.len(), 50);
+        //
+        // 50 -> 49: the prior resync (from main's spend-policy PR) had synced
+        // against a spec that documented four `*/spend-policy` routes
+        // (`GET /spend-policy`, `PUT /spend-policy`,
+        // `PUT /api-keys/{keyId}/spend-policy`, and the admin
+        // `PATCH /admin/users/{userId}/spend-policy` counted here) that the
+        // backend never actually implements — it only has `spend-caps`
+        // (`src/routes/spendCaps.ts` et al. in the backend repo; a full-text
+        // search for `spend-policy` there finds zero matches). Resyncing
+        // against a fresh, accurate spec dropped the one phantom admin entry,
+        // taking this count from 50 back down to 49. The other three
+        // `spend-policy` routes were never in this admin/webhook list to begin
+        // with, since only `/admin/**` and undocumented `/webhooks/**` routes
+        // land here.
+        assert_eq!(UNEXPOSED_ROUTES.len(), 49);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')

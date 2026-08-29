@@ -8,11 +8,11 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 231,
-    "totalOperationCount": 263,
-    "operationCount": 218,
+    "pathCount": 240,
+    "totalOperationCount": 271,
+    "operationCount": 227,
     "supplementalOperationCount": 14,
-    "excludedAdminOperationCount": 38,
+    "excludedAdminOperationCount": 37,
     "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
@@ -34,7 +34,7 @@
       "name": "agentIntegrations",
       "basePath": "/agent-integrations",
       "auth": "mixed",
-      "operationCount": 61,
+      "operationCount": 73,
       "tags": [
         "Agent Integrations",
         "OpenHuman parity"
@@ -60,6 +60,12 @@
         "GET /agent-integrations/history-rewards/status",
         "GET /agent-integrations/media-generation/models",
         "GET /agent-integrations/media-generation/requests/{requestId}",
+        "GET /agent-integrations/openrouter/embeddings/models",
+        "GET /agent-integrations/openrouter/images/models",
+        "GET /agent-integrations/openrouter/models",
+        "GET /agent-integrations/openrouter/videos/models",
+        "GET /agent-integrations/openrouter/videos/{jobId}",
+        "GET /agent-integrations/openrouter/videos/{jobId}/content",
         "GET /agent-integrations/parallel/dataset/{findallId}",
         "GET /agent-integrations/parallel/dataset/{findallId}/result",
         "GET /agent-integrations/parallel/research/{runId}",
@@ -88,6 +94,12 @@
         "POST /agent-integrations/history-rewards/uploads",
         "POST /agent-integrations/media-generation/images",
         "POST /agent-integrations/media-generation/videos",
+        "POST /agent-integrations/openrouter/chat/completions",
+        "POST /agent-integrations/openrouter/completions",
+        "POST /agent-integrations/openrouter/embeddings",
+        "POST /agent-integrations/openrouter/images",
+        "POST /agent-integrations/openrouter/messages",
+        "POST /agent-integrations/openrouter/videos",
         "POST /agent-integrations/parallel/chat",
         "POST /agent-integrations/parallel/dataset",
         "POST /agent-integrations/parallel/enrich",
@@ -119,7 +131,7 @@
       "name": "apiKeys",
       "basePath": "/api-keys",
       "auth": "bearer",
-      "operationCount": 5,
+      "operationCount": 4,
       "tags": [
         "API Keys"
       ],
@@ -127,8 +139,7 @@
         "DELETE /api-keys/{keyId}",
         "GET /api-keys",
         "POST /api-keys",
-        "PUT /api-keys/{keyId}/spend-caps",
-        "PUT /api-keys/{keyId}/spend-policy"
+        "PUT /api-keys/{keyId}/spend-caps"
       ]
     },
     {
@@ -435,19 +446,6 @@
       "routes": [
         "GET /spend-caps",
         "PUT /spend-caps"
-      ]
-    },
-    {
-      "name": "spendPolicy",
-      "basePath": "/spend-policy",
-      "auth": "bearer",
-      "operationCount": 2,
-      "tags": [
-        "Spend Policy"
-      ],
-      "routes": [
-        "GET /spend-policy",
-        "PUT /spend-policy"
       ]
     },
     {

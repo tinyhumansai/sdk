@@ -29,7 +29,8 @@ agent-integration platform. The SDK should expose these API families cleanly:
 - Team-scoped billing, credits, Stripe, and Coinbase routes under `/teams/*`
   and `/payments/*`.
 - Agent integrations under `/agent-integrations/*` for Composio, Parallel,
-  media generation, financial APIs, maps, Apify, Tenor, Twilio, and crypto.
+  media generation, financial APIs, maps, Apify, Tenor, Twilio, crypto, and
+  the direct OpenRouter proxy.
 - Telegram/Discord channel integration routes under `/channels/*`.
 - Feedback, invites, referrals, rewards, announcements, mascots, Medulla,
   OpenCompany, and orchestration routes.
