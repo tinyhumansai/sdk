@@ -139,8 +139,13 @@ impl AgentIntegrationsApi<'_> {
 
     /// Create a chat completion straight against OpenRouter.
     ///
-    /// Set `stream: true` in the request for an SSE stream; use the raw
-    /// transport to consume it, as this method buffers a single JSON response.
+    /// `stream: true` is rejected with [`Error::StreamingNotSupported`]: this
+    /// method's transport buffers the full response body (there is no
+    /// incremental transport exposed for this route yet, including through
+    /// [`crate::TinyHumansClient::raw`], which buffers the same way), so a
+    /// streamed request would come back as one opaque non-JSON string rather
+    /// than the events a streaming caller wants. Omit `stream` (or set it to
+    /// `false`) to get the buffered JSON response.
     pub async fn openrouter_chat_completion(
         &self,
         request: &impl Serialize,
@@ -150,6 +155,10 @@ impl AgentIntegrationsApi<'_> {
     }
 
     /// Create a text completion straight against OpenRouter.
+    ///
+    /// `stream: true` is rejected the same as on
+    /// [`Self::openrouter_chat_completion`] — no incremental transport is
+    /// exposed for it yet.
     pub async fn openrouter_completion(
         &self,
         request: &impl Serialize,
@@ -162,8 +171,9 @@ impl AgentIntegrationsApi<'_> {
     ///
     /// Request and response are Anthropic-shaped, not OpenAI-shaped: `system`
     /// is a top-level field and the reply is a `type: "message"` envelope with
-    /// a `content` block array. Streaming emits named Anthropic events with no
-    /// `[DONE]` sentinel.
+    /// a `content` block array. `stream: true` is rejected the same as on
+    /// [`Self::openrouter_chat_completion`] — no incremental transport is
+    /// exposed for it yet.
     pub async fn openrouter_message(
         &self,
         request: &impl Serialize,

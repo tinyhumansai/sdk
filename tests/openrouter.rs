@@ -118,6 +118,68 @@ async fn arbitrary_openrouter_parameters_are_forwarded() {
 }
 
 #[tokio::test]
+async fn streaming_is_rejected_before_it_reaches_the_wire() {
+    // `HttpClient::send` (the transport `passthrough` uses) awaits
+    // `response.text()` and buffers the whole body, so a `stream: true`
+    // request would come back as one opaque non-JSON string instead of
+    // incremental SSE events. No mock is registered for any of these routes,
+    // so a `Status`/`Http` error (rather than `StreamingNotSupported`) would
+    // mean the guard let the request reach the wire.
+    let server = MockServer::start().await;
+    let client = TinyHumansClient::new(server.uri());
+
+    let chat = client
+        .agent_integrations()
+        .openrouter_chat_completion(
+            &json!({"model": "anthropic/claude-sonnet-4.5", "stream": true}),
+        )
+        .await
+        .unwrap_err();
+    assert!(
+        matches!(chat, tinyhumans_sdk::Error::StreamingNotSupported(ref path) if path == "/agent-integrations/openrouter/chat/completions"),
+        "unexpected error: {chat:?}"
+    );
+
+    let completion = client
+        .agent_integrations()
+        .openrouter_completion(&json!({"model": "anthropic/claude-sonnet-4.5", "stream": true}))
+        .await
+        .unwrap_err();
+    assert!(matches!(
+        completion,
+        tinyhumans_sdk::Error::StreamingNotSupported(_)
+    ));
+
+    let message = client
+        .agent_integrations()
+        .openrouter_message(&json!({"model": "anthropic/claude-sonnet-4.5", "stream": true}))
+        .await
+        .unwrap_err();
+    assert!(matches!(
+        message,
+        tinyhumans_sdk::Error::StreamingNotSupported(_)
+    ));
+
+    // `stream: false` (and omitting it) is unaffected — still reaches the wire.
+    Mock::given(method("POST"))
+        .and(path("/agent-integrations/openrouter/chat/completions"))
+        .and(body_json(
+            json!({"model": "anthropic/claude-sonnet-4.5", "stream": false}),
+        ))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({"id": "gen-3"})))
+        .mount(&server)
+        .await;
+    let response = client
+        .agent_integrations()
+        .openrouter_chat_completion(
+            &json!({"model": "anthropic/claude-sonnet-4.5", "stream": false}),
+        )
+        .await
+        .unwrap();
+    assert_eq!(response["id"], "gen-3");
+}
+
+#[tokio::test]
 async fn messages_speaks_the_anthropic_shape() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))

@@ -79,12 +79,22 @@ impl<'a> AgentIntegrationsApi<'a> {
     /// POST to a route that returns the upstream provider's payload verbatim
     /// rather than the `{ success, data }` envelope, so the response must not
     /// be unwrapped.
+    ///
+    /// Rejects `stream: true` up front: [`HttpClient::send`] awaits
+    /// `response.text()` and buffers the whole body before returning, so a
+    /// streamed SSE response would come back as one opaque, non-JSON string
+    /// instead of incremental events. The SDK does not yet expose an
+    /// incremental transport for this surface, so failing fast here is safer
+    /// than silently handing back a payload nothing can consume as intended.
     async fn passthrough<Request: Serialize>(
         &self,
         path: &str,
         request: &Request,
     ) -> Result<crate::api::types::DynamicResponse, Error> {
         let body = serde_json::to_value(request)?;
+        if matches!(body.get("stream"), Some(Value::Bool(true))) {
+            return Err(Error::StreamingNotSupported(path.to_owned()));
+        }
         self.http
             .send(Method::POST, path, &[], Some(&body), false)
             .await

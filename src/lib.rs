@@ -68,6 +68,12 @@ pub enum Error {
     SocketAckClosed,
     #[error("route is intentionally not exposed by the SDK: {0} {1}")]
     RouteNotExposed(String, String),
+    /// A caller set `stream: true` on a route whose transport buffers the
+    /// whole response body (see [`HttpClient::send`]) rather than yielding
+    /// incremental events, so streaming it would silently hand back one
+    /// SSE-shaped string instead of the structured payload the caller wants.
+    #[error("{0} does not support streaming yet: this transport buffers the full response body, so `stream: true` would not yield incremental events")]
+    StreamingNotSupported(String),
     /// The response carried a `{success:false, ...}` envelope.
     ///
     /// The backend does not always pair an unsuccessful envelope with a
