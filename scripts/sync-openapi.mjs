@@ -52,6 +52,14 @@ const SUPPLEMENTAL_PUBLIC_OPERATIONS = [
 // derived from it. They are declared here so regeneration retains the filter
 // instead of silently emptying the denylist and opening the raw transport.
 const RETAINED_UNEXPOSED_ROUTES = [
+  // Service-token operations. `isServiceTokenOperation` catches these when the
+  // spec still describes them -- a `--input` run against a local checkout's RAW
+  // document. A bare run fetches the DEPLOYED spec, where `publicSwaggerSpec`
+  // has already stripped them, so there is nothing left to detect and the
+  // denylist would quietly lose them: exactly the regression the rest of this
+  // list exists to prevent. Declared here so both paths agree.
+  ["POST", "/opencompany/instances/{slug}/inference-key"],
+  ["DELETE", "/opencompany/instances/{slug}/inference-key"],
   ["POST", "/admin/announcements"],
   ["DELETE", "/admin/announcements/{announcementId}"],
   ["PATCH", "/admin/announcements/{announcementId}"],
@@ -191,6 +199,18 @@ function isCustomLlmSecretOperation(operation) {
   return security.some((entry) => Object.hasOwn(entry, "customLlmSecret"));
 }
 
+/**
+ * Secured by the shared service token two backend services hold in common
+ * (`OPENCOMPANY_SERVICE_TOKEN`), not by anything a user of this SDK can obtain.
+ * Same category as `customLlmSecret` above: a caller of this client cannot
+ * authenticate to it, so generating a method for it describes a surface that
+ * can only 401.
+ */
+function isServiceTokenOperation(operation) {
+  const security = operation.security ?? [];
+  return security.some((entry) => Object.hasOwn(entry, "serviceToken"));
+}
+
 function namespaceFor(path) {
   if (path === "/") return "health";
   const segment = path.split("/")[1];
@@ -243,6 +263,10 @@ function buildManifest(spec) {
       // with the admin exclusions below, which are derived from
       // `excludedOperations` rather than tallied here.
       if (isCustomLlmSecretOperation(operation)) {
+        excludedOperations.push({ method: method.toUpperCase(), path });
+        continue;
+      }
+      if (isServiceTokenOperation(operation)) {
         excludedOperations.push({ method: method.toUpperCase(), path });
         continue;
       }

@@ -527,7 +527,12 @@ mod exclusion_tests {
         // `spend-policy` routes were never in this admin/webhook list to begin
         // with, since only `/admin/**` and undocumented `/webhooks/**` routes
         // land here.
-        assert_eq!(UNEXPOSED_ROUTES.len(), 49);
+        //
+        // 49 -> 51: the two service-token operations on
+        // `/opencompany/instances/{slug}/inference-key`. The orchestrator calls
+        // them with a shared secret no SDK user holds, so they are excluded
+        // from the client and blocked at the raw transport.
+        assert_eq!(UNEXPOSED_ROUTES.len(), 51);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
