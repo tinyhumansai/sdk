@@ -8,11 +8,11 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 241,
-    "totalOperationCount": 273,
-    "operationCount": 227,
+    "pathCount": 245,
+    "totalOperationCount": 278,
+    "operationCount": 229,
     "supplementalOperationCount": 14,
-    "excludedAdminOperationCount": 39,
+    "excludedAdminOperationCount": 42,
     "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
@@ -162,6 +162,19 @@
         "POST /auth/email/send-link",
         "POST /auth/integrations/{integrationId}/tokens",
         "POST /auth/login-token/consume"
+      ]
+    },
+    {
+      "name": "blog",
+      "basePath": "/blog",
+      "auth": "none",
+      "operationCount": 2,
+      "tags": [
+        "Blog"
+      ],
+      "routes": [
+        "GET /blog/posts",
+        "GET /blog/posts/{slug}"
       ]
     },
     {
