@@ -532,7 +532,12 @@ mod exclusion_tests {
         // `/opencompany/instances/{slug}/inference-key`. The orchestrator calls
         // them with a shared secret no SDK user holds, so they are excluded
         // from the client and blocked at the raw transport.
-        assert_eq!(UNEXPOSED_ROUTES.len(), 51);
+        //
+        // 51 -> 54: the three write operations on `/admin/blog-posts`, which
+        // the admin dashboard drives with the admin service token. The two
+        // public `/blog/posts` reads that arrived with them are ordinary
+        // user-facing API and are exposed; only the authoring side is blocked.
+        assert_eq!(UNEXPOSED_ROUTES.len(), 54);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
