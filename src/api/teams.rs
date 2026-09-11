@@ -1,5 +1,7 @@
-//! Team-scoped membership and access: listing teams, usage insights, invites,
-//! joining/leaving/switching teams, member management, and billing plan helpers.
+//! The `/teams/*` surface: a compatibility view over the caller's personal
+//! team (teams were folded into users on the backend). Listing, detail, usage,
+//! switching and billing helpers work; the membership and invite helpers are
+//! kept so the contract stays whole but the backend answers them `410 Gone`.
 
 use reqwest::Method;
 use serde_json::Value;
