@@ -527,7 +527,13 @@ mod exclusion_tests {
         // `spend-policy` routes were never in this admin/webhook list to begin
         // with, since only `/admin/**` and undocumented `/webhooks/**` routes
         // land here.
-        assert_eq!(UNEXPOSED_ROUTES.len(), 49);
+        //
+        // 49 -> 52: resynced against the backend's teams-removal branch, which
+        // also shipped three admin blog-post routes (`POST /admin/blog-posts`,
+        // `PATCH`/`DELETE /admin/blog-posts/{blogPostId}`). No admin or
+        // webhook route was dropped; the team membership/invite routes stay
+        // public (deprecated, answering 410) so they never enter this list.
+        assert_eq!(UNEXPOSED_ROUTES.len(), 52);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
