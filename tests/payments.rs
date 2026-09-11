@@ -10,6 +10,37 @@ use wiremock::matchers::{body_json, method, path, query_param};
 use wiremock::{Mock, MockServer, ResponseTemplate};
 
 #[tokio::test]
+async fn get_summary_unwraps_billing_state() {
+    let server = MockServer::start().await;
+    let summary = json!({
+        "credits": {
+            "promotionBalanceUsd": 4.5,
+            "teamTopupUsd": 10.0,
+            "totalUsd": 14.5
+        },
+        "plan": { "plan": "PRO" },
+        "links": {
+            "topUpUrl": "https://tinyhumans.ai/dashboard?tab=billing",
+            "manageUrl": "https://tinyhumans.ai/dashboard",
+            "apiKeysUrl": "https://tinyhumans.ai/dashboard?tab=api-keys"
+        }
+    });
+    Mock::given(method("GET"))
+        .and(path("/payments/summary"))
+        .respond_with(
+            ResponseTemplate::new(200)
+                .set_body_json(json!({"success": true, "data": summary.clone()})),
+        )
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let result = client.payments().get_summary().await.unwrap();
+
+    assert_eq!(result, summary);
+}
+
+#[tokio::test]
 async fn create_coinbase_charge_posts_body() {
     let server = MockServer::start().await;
     Mock::given(method("POST"))

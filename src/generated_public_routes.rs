@@ -191,6 +191,7 @@ pub const PUBLIC_ROUTES: &[(&str, &str)] = &[
     ("POST", "/payments/stripe/portal"),
     ("GET", "/payments/stripe/portal/return"),
     ("POST", "/payments/stripe/purchasePlan"),
+    ("GET", "/payments/summary"),
     ("GET", "/r/{code}"),
     ("POST", "/referral/claim"),
     ("GET", "/referral/stats"),
