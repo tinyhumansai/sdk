@@ -8,11 +8,11 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 240,
-    "totalOperationCount": 271,
-    "operationCount": 227,
+    "pathCount": 250,
+    "totalOperationCount": 283,
+    "operationCount": 236,
     "supplementalOperationCount": 14,
-    "excludedAdminOperationCount": 37,
+    "excludedAdminOperationCount": 40,
     "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
@@ -146,7 +146,7 @@
       "name": "auth",
       "basePath": "/auth",
       "auth": "mixed",
-      "operationCount": 11,
+      "operationCount": 15,
       "tags": [
         "Auth"
       ],
@@ -154,6 +154,8 @@
         "DELETE /auth/integrations/{integrationId}",
         "GET /auth/email/verify",
         "GET /auth/integrations",
+        "GET /auth/key",
+        "GET /auth/key/grant/{code}",
         "GET /auth/me",
         "GET /auth/{provider}/callback",
         "GET /auth/{provider}/connect",
@@ -161,7 +163,22 @@
         "POST /auth/channels/{channel}/link-token",
         "POST /auth/email/send-link",
         "POST /auth/integrations/{integrationId}/tokens",
+        "POST /auth/key/grant/{code}/issue",
+        "POST /auth/keys",
         "POST /auth/login-token/consume"
+      ]
+    },
+    {
+      "name": "blog",
+      "basePath": "/blog",
+      "auth": "none",
+      "operationCount": 2,
+      "tags": [
+        "Blog"
+      ],
+      "routes": [
+        "GET /blog/posts",
+        "GET /blog/posts/{slug}"
       ]
     },
     {
@@ -328,17 +345,19 @@
     {
       "name": "openCompany",
       "basePath": "/opencompany",
-      "auth": "bearer",
-      "operationCount": 8,
+      "auth": "mixed",
+      "operationCount": 10,
       "tags": [
         "OpenCompany"
       ],
       "routes": [
         "DELETE /opencompany/instances/{slug}",
         "DELETE /opencompany/instances/{slug}/custom-domain",
+        "DELETE /opencompany/instances/{slug}/inference-key",
         "GET /opencompany/instances",
         "POST /opencompany/instances",
         "POST /opencompany/instances/{slug}/custom-domain/verify",
+        "POST /opencompany/instances/{slug}/inference-key",
         "POST /opencompany/instances/{slug}/resume",
         "POST /opencompany/instances/{slug}/suspend",
         "PUT /opencompany/instances/{slug}/custom-domain"
@@ -369,10 +388,11 @@
       "name": "payments",
       "basePath": "/payments",
       "auth": "mixed",
-      "operationCount": 19,
+      "operationCount": 20,
       "tags": [
         "Credits",
-        "Payment"
+        "Payment",
+        "Payments"
       ],
       "routes": [
         "DELETE /payments/credits/auto-recharge/cards/{paymentMethodId}",
@@ -387,6 +407,7 @@
         "GET /payments/stripe/currentPlan",
         "GET /payments/stripe/plans",
         "GET /payments/stripe/portal/return",
+        "GET /payments/summary",
         "PATCH /payments/credits/auto-recharge",
         "PATCH /payments/credits/auto-recharge/cards/{paymentMethodId}",
         "POST /payments/coinbase/charge",
