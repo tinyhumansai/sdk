@@ -20,13 +20,14 @@ surface should follow the deployed spec first.
 
 ## Backend Model
 
-TinyHumans is an OpenAI-compatible inference proxy plus a team-billing and
+TinyHumans is an OpenAI-compatible inference proxy plus a per-user billing and
 agent-integration platform. The SDK should expose these API families cleanly:
 
 - OpenAI-compatible inference under `/openai/*`.
 - Auth and account state under `/auth/*`.
 - User API key management under `/api-keys/*`.
-- Team-scoped billing, credits, Stripe, and Coinbase routes under `/teams/*`
+- Billing, credits, Stripe, and Coinbase routes under `/teams/*` (a compatibility
+  view over the caller's personal team — see the backend's `docs/TEAMS_REMOVAL.md`)
   and `/payments/*`.
 - Agent integrations under `/agent-integrations/*` for Composio, Parallel,
   media generation, financial APIs, maps, Apify, Tenor, Twilio, crypto, and
@@ -44,11 +45,13 @@ them through the raw transport.
 *within a resource the caller belongs to* is ordinary user-facing API, even when
 its summary says "(admin only)". The three team-management routes (`PUT
 /teams/{teamId}`, `DELETE /teams/{teamId}/members/{userId}`, `PUT
-/teams/{teamId}/members/{userId}/role`) are gated by the **team-admin role**,
-which any user who creates a team holds; they take an ordinary user token and are
-scoped to a team the caller is a member of. Excluding them broke OpenHuman's
-team-management UI. They are carved out in `TEAM_ROLE_GATED_OPERATIONS` in
-`scripts/sync-openapi.mjs`; extend that set rather than loosening the heuristic.
+/teams/{teamId}/members/{userId}/role`) were gated by the **team-admin role**,
+which every user holds over their own personal team; they take an ordinary user
+token. Excluding them broke OpenHuman's team-management UI. They are carved out
+in `TEAM_ROLE_GATED_OPERATIONS` in `scripts/sync-openapi.mjs`; extend that set
+rather than loosening the heuristic. Since teams were folded into users the
+membership and invite routes answer `410 Gone`; they stay in the contract (marked
+deprecated) so older clients get a deliberate error rather than a 404.
 
 The webhook exclusion targets receivers specifically — the endpoints providers
 call into (Stripe, Telegram, Discord, GitHub, Composio, Coinbase, Sentry,

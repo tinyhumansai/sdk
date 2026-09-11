@@ -13,8 +13,10 @@ they are admin-only.
 gated by a role within a resource the caller belongs to: `PUT /teams/{teamId}`,
 `DELETE /teams/{teamId}/members/{userId}`, and
 `PUT /teams/{teamId}/members/{userId}/role` say "(admin only)" in the contract,
-but that is the **team-admin role** — held by any user who creates a team — not
-platform administrator rights. They are exposed on the `teams` namespace.
+but that is the **team-admin role** — held by every user over their own personal
+team — not platform administrator rights. They are exposed on the `teams`
+namespace. Teams were folded into users on the backend; the membership and
+invite operations are deprecated in the contract and answer `410 Gone`.
 
 "Webhook" exclusion means webhook *receivers* — the endpoints providers call
 into (Stripe, Telegram, Discord, GitHub, Composio, Coinbase, Sentry, Twilio,
@@ -37,7 +39,7 @@ namespace.
 | `orchestration` | `/orchestration` | bearer | runs, events, sessions, state, and world diffs |
 | `payments` | `/payments` | bearer | Stripe, Coinbase, credits, transactions, plans |
 | `feedback` | `/feedback` | bearer | create, ingest, list, detail, vote, and comments |
-| `teams` | `/teams` | bearer | team list/detail, usage, invites, join, leave, and billing |
+| `teams` | `/teams` | bearer | personal-team detail, usage, and billing; membership/invite routes are retired (`410`) |
 | `channels` | `/channels` | bearer | messages, reactions, typing, threads |
 | `mascots` | `/mascots` | mixed | catalog, render streams, meetings, Rive assets |
 | `announcements` | `/announcements` | bearer | latest active announcement |

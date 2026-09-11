@@ -8,9 +8,9 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 245,
-    "totalOperationCount": 278,
-    "operationCount": 230,
+    "pathCount": 250,
+    "totalOperationCount": 283,
+    "operationCount": 234,
     "supplementalOperationCount": 14,
     "excludedAdminOperationCount": 42,
     "excludedWebhookOperationCount": 12,
@@ -146,7 +146,7 @@
       "name": "auth",
       "basePath": "/auth",
       "auth": "mixed",
-      "operationCount": 11,
+      "operationCount": 15,
       "tags": [
         "Auth"
       ],
@@ -154,6 +154,8 @@
         "DELETE /auth/integrations/{integrationId}",
         "GET /auth/email/verify",
         "GET /auth/integrations",
+        "GET /auth/key",
+        "GET /auth/key/grant/{code}",
         "GET /auth/me",
         "GET /auth/{provider}/callback",
         "GET /auth/{provider}/connect",
@@ -161,6 +163,8 @@
         "POST /auth/channels/{channel}/link-token",
         "POST /auth/email/send-link",
         "POST /auth/integrations/{integrationId}/tokens",
+        "POST /auth/key/grant/{code}/issue",
+        "POST /auth/keys",
         "POST /auth/login-token/consume"
       ]
     },
