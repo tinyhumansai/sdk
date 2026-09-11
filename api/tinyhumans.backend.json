@@ -10,9 +10,9 @@
     "version": "1.0.0",
     "pathCount": 250,
     "totalOperationCount": 283,
-    "operationCount": 236,
+    "operationCount": 234,
     "supplementalOperationCount": 14,
-    "excludedAdminOperationCount": 40,
+    "excludedAdminOperationCount": 42,
     "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
@@ -345,19 +345,17 @@
     {
       "name": "openCompany",
       "basePath": "/opencompany",
-      "auth": "mixed",
-      "operationCount": 10,
+      "auth": "bearer",
+      "operationCount": 8,
       "tags": [
         "OpenCompany"
       ],
       "routes": [
         "DELETE /opencompany/instances/{slug}",
         "DELETE /opencompany/instances/{slug}/custom-domain",
-        "DELETE /opencompany/instances/{slug}/inference-key",
         "GET /opencompany/instances",
         "POST /opencompany/instances",
         "POST /opencompany/instances/{slug}/custom-domain/verify",
-        "POST /opencompany/instances/{slug}/inference-key",
         "POST /opencompany/instances/{slug}/resume",
         "POST /opencompany/instances/{slug}/suspend",
         "PUT /opencompany/instances/{slug}/custom-domain"

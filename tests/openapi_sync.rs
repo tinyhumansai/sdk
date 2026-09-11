@@ -134,11 +134,24 @@ fn generated_rust_routes_match_the_public_manifest() {
         .collect::<BTreeSet<_>>();
     let rust_routes = PUBLIC_ROUTES.iter().copied().collect::<BTreeSet<_>>();
 
-    assert_eq!(manifest["source"]["operationCount"], 227);
+    // 227 -> 229: the two public blog reads. 229 -> 230: the authenticated
+    // billing summary used by clients to render account credit state.
+    // 230 -> 234: the four `/auth/key*` grant routes (key issuance for
+    // desktop/harness clients), picked up when resyncing against the
+    // backend's teams-removal spec.
+    assert_eq!(manifest["source"]["operationCount"], 234);
     assert_eq!(manifest["source"]["supplementalOperationCount"], 14);
-    assert_eq!(manifest["source"]["excludedAdminOperationCount"], 37);
+    // 37 -> 39: the two service-token operations on
+    // `/opencompany/instances/{slug}/inference-key`. They are counted with the
+    // admin exclusions because that tally is derived from `excludedOperations`,
+    // which now holds every non-webhook exclusion including these.
+    //
+    // 39 -> 42: the three `/admin/blog-posts` writes that arrived with those
+    // reads. Same change, opposite side of the line: the reads are ordinary
+    // user-facing API, the writes take the admin service token.
+    assert_eq!(manifest["source"]["excludedAdminOperationCount"], 42);
     assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 12);
-    assert_eq!(rust_routes.len(), 227);
+    assert_eq!(rust_routes.len(), 234);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()

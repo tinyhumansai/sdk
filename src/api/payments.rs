@@ -80,6 +80,13 @@ impl<'a> PaymentsApi<'a> {
         Self { http }
     }
 
+    /// Get the authenticated account's credits, current plan, and billing links.
+    pub async fn get_summary(&self) -> Result<DynamicResponse, Error> {
+        self.http
+            .send_typed(Method::GET, "/payments/summary", &[], None, true)
+            .await
+    }
+
     /// Create a Coinbase Commerce charge.
     pub async fn create_coinbase_charge(
         &self,
