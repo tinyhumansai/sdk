@@ -10,7 +10,7 @@
     "version": "1.0.0",
     "pathCount": 245,
     "totalOperationCount": 278,
-    "operationCount": 229,
+    "operationCount": 230,
     "supplementalOperationCount": 14,
     "excludedAdminOperationCount": 42,
     "excludedWebhookOperationCount": 12,
@@ -382,10 +382,11 @@
       "name": "payments",
       "basePath": "/payments",
       "auth": "mixed",
-      "operationCount": 19,
+      "operationCount": 20,
       "tags": [
         "Credits",
-        "Payment"
+        "Payment",
+        "Payments"
       ],
       "routes": [
         "DELETE /payments/credits/auto-recharge/cards/{paymentMethodId}",
@@ -400,6 +401,7 @@
         "GET /payments/stripe/currentPlan",
         "GET /payments/stripe/plans",
         "GET /payments/stripe/portal/return",
+        "GET /payments/summary",
         "PATCH /payments/credits/auto-recharge",
         "PATCH /payments/credits/auto-recharge/cards/{paymentMethodId}",
         "POST /payments/coinbase/charge",
