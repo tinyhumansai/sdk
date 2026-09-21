@@ -8,11 +8,11 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 230,
-    "totalOperationCount": 255,
-    "operationCount": 203,
+    "pathCount": 238,
+    "totalOperationCount": 263,
+    "operationCount": 208,
     "supplementalOperationCount": 13,
-    "excludedAdminOperationCount": 44,
+    "excludedAdminOperationCount": 47,
     "excludedWebhookOperationCount": 12,
     "servers": [
       "https://api.tinyhumans.ai/",
@@ -34,7 +34,7 @@
       "name": "agentIntegrations",
       "basePath": "/agent-integrations",
       "auth": "mixed",
-      "operationCount": 73,
+      "operationCount": 75,
       "tags": [
         "Agent Integrations",
         "OpenHuman parity"
@@ -99,6 +99,8 @@
         "POST /agent-integrations/openrouter/embeddings",
         "POST /agent-integrations/openrouter/images",
         "POST /agent-integrations/openrouter/messages",
+        "POST /agent-integrations/openrouter/systemone",
+        "POST /agent-integrations/openrouter/v1/systemone",
         "POST /agent-integrations/openrouter/videos",
         "POST /agent-integrations/parallel/chat",
         "POST /agent-integrations/parallel/dataset",
@@ -146,7 +148,7 @@
       "name": "auth",
       "basePath": "/auth",
       "auth": "mixed",
-      "operationCount": 15,
+      "operationCount": 16,
       "tags": [
         "Auth"
       ],
@@ -162,6 +164,7 @@
         "GET /auth/{provider}/login",
         "POST /auth/channels/{channel}/link-token",
         "POST /auth/email/send-link",
+        "POST /auth/guild/link-token",
         "POST /auth/integrations/{integrationId}/tokens",
         "POST /auth/key/grant/{code}/issue",
         "POST /auth/keys",
@@ -309,19 +312,21 @@
       "name": "openCompany",
       "basePath": "/opencompany",
       "auth": "bearer",
-      "operationCount": 9,
+      "operationCount": 11,
       "tags": [
         "OpenCompany"
       ],
       "routes": [
         "DELETE /opencompany/instances/{slug}",
         "DELETE /opencompany/instances/{slug}/custom-domain",
+        "GET /opencompany/companies",
         "GET /opencompany/instances",
         "GET /opencompany/instances/usage",
         "POST /opencompany/instances",
         "POST /opencompany/instances/{slug}/custom-domain/verify",
         "POST /opencompany/instances/{slug}/resume",
         "POST /opencompany/instances/{slug}/suspend",
+        "POST /opencompany/instances/{slug}/update",
         "PUT /opencompany/instances/{slug}/custom-domain"
       ]
     },
