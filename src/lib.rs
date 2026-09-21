@@ -548,7 +548,14 @@ mod exclusion_tests {
         // 55 -> 56: `POST /admin/blog-images`, the multipart upload the
         // dashboard uses for a post's cover and body figures. Same service
         // token as the other blog writes, so it is blocked alongside them.
-        assert_eq!(UNEXPOSED_ROUTES.len(), 56);
+        //
+        // 56 -> 59: the three `/internal/**` callbacks the teeny Discord
+        // service (the guild) makes with `GUILD_SERVICE_TOKEN`: recording
+        // and dropping a Discord link, and turning points redeemed on the
+        // guild dashboard into promotional credit (`POST
+        // /internal/guild/credit`). Service-token authenticated like the
+        // orchestrator routes above, so no SDK consumer can call them.
+        assert_eq!(UNEXPOSED_ROUTES.len(), 59);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
