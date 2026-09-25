@@ -93,6 +93,23 @@ rates plus a 10% premium:
 - `gemini_live_session(id)` returns a session's status, turn count, charged
   amount and usage totals.
 
+Live billing notes:
+
+- Each turn is billed from the `usageMetadata` Google sends on `turnComplete`.
+  Its prompt count is the turn's full context, so long sessions cost more per
+  turn.
+- `Transcribe` sessions get no usage reports from Google. The backend bills the
+  PCM audio the client streams (32 tokens per second) plus the final transcript
+  text.
+- A `Conversation` with `GeminiTool::google_search()` bills one search query per
+  turn, because Live does not report its searches.
+- For function calling, answer each `toolCall.functionCalls[]` entry with a
+  `toolResponse` frame carrying the same `id` and `name`. The relay forwards it
+  unchanged.
+- Gemini 2.5 text models are not offered, because Google no longer serves them
+  to new keys. `gemini-2.5-flash-native-audio-preview-12-2025` remains available
+  for Live.
+
 The crate has no raw WebSocket client dependency, so the relay connection is
 left to the caller's WebSocket library of choice.
 
