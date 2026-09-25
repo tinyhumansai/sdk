@@ -1198,3 +1198,154 @@ async fn twilio_call_posts_body() {
 
     let _ = result;
 }
+
+#[tokio::test]
+async fn gemini_generate_content_sends_native_body_and_reads_grounding() {
+    use tinyhumans_sdk::api::agent_integration_types::{
+        GeminiContent, GeminiGenerateContentRequest, GeminiLatLng, GeminiRetrievalConfig,
+        GeminiTool, GeminiToolConfig,
+    };
+
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path(
+            "/agent-integrations/gemini/models/gemini-3.8-flash/generate-content",
+        ))
+        .and(body_json(json!({
+            "contents": [{"role": "user", "parts": [{"text": "coffee near me"}]}],
+            "tools": [{"googleSearch": {}}, {"googleMaps": {}}],
+            "toolConfig": {"retrievalConfig": {"latLng": {"latitude": 1.5, "longitude": 2.5}}}
+        })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {
+                "candidates": [{
+                    "content": {"role": "model", "parts": [{"text": "Try "}, {"text": "Blue Bottle."}]},
+                    "groundingMetadata": {"webSearchQueries": ["coffee near me"]}
+                }],
+                "usageMetadata": {"promptTokenCount": 10, "candidatesTokenCount": 5},
+                "costUsd": 0.0155
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let response = TinyHumansClient::new(server.uri())
+        .agent_integrations()
+        .gemini_generate_content(
+            "gemini-3.8-flash",
+            &GeminiGenerateContentRequest {
+                contents: vec![GeminiContent::user_text("coffee near me")],
+                tools: Some(vec![GeminiTool::google_search(), GeminiTool::google_maps()]),
+                tool_config: Some(GeminiToolConfig {
+                    retrieval_config: Some(GeminiRetrievalConfig {
+                        lat_lng: Some(GeminiLatLng {
+                            latitude: 1.5,
+                            longitude: 2.5,
+                        }),
+                        language_code: None,
+                    }),
+                    function_calling_config: None,
+                }),
+                ..Default::default()
+            },
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(response.text(), "Try Blue Bottle.");
+    assert_eq!(response.cost_usd, 0.0155);
+    assert_eq!(
+        response.usage_metadata.unwrap().candidates_token_count,
+        Some(5)
+    );
+    assert_eq!(
+        response.candidates[0].grounding_metadata.as_ref().unwrap()["webSearchQueries"][0],
+        "coffee near me"
+    );
+}
+
+#[tokio::test]
+async fn gemini_live_session_routes_are_typed() {
+    use tinyhumans_sdk::api::agent_integration_types::{
+        GeminiLiveConversation, GeminiLiveSessionRequest, GeminiLiveTranscription, GeminiTool,
+    };
+
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/agent-integrations/gemini/live/sessions"))
+        .and(body_json(json!({
+            "mode": "conversation",
+            "model": "gemini-3.8-live",
+            "tools": [{"googleSearch": {}}]
+        })))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {
+                "sessionId": "s1", "ticket": "t1",
+                "wsUrl": "wss://api.example.com/agent-integrations/gemini/live/ws?ticket=t1",
+                "ticketExpiresAt": "2026-09-25T00:01:00.000Z",
+                "model": "gemini-3.8-live", "mode": "conversation",
+                "maxMinutes": 30, "reserveUsd": 1
+            }
+        })))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/agent-integrations/gemini/live/sessions"))
+        .and(body_json(json!({"mode": "transcribe", "languageCodes": ["en-US"]})))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {
+                "sessionId": "s2", "ticket": "t2", "wsUrl": "wss://x/ws?ticket=t2",
+                "ticketExpiresAt": "2026-09-25T00:01:00.000Z",
+                "model": "gemini-3.5-transcribe-live", "mode": "transcribe", "maxMinutes": 30
+            }
+        })))
+        .mount(&server)
+        .await;
+    Mock::given(method("GET"))
+        .and(path("/agent-integrations/gemini/live/sessions/s1"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {
+                "sessionId": "s1", "mode": "conversation", "model": "gemini-3.8-live",
+                "status": "CLOSED", "maxMinutes": 30, "turnCount": 3, "chargedUsd": 0.042,
+                "closeReason": "client_closed",
+                "usageTotals": {"promptTokens": 900, "outputTokens": 300, "searchQueries": 1}
+            }
+        })))
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let api = client.agent_integrations();
+    let ticket = api
+        .gemini_create_live_session(&GeminiLiveSessionRequest::Conversation(
+            GeminiLiveConversation {
+                model: "gemini-3.8-live".into(),
+                tools: Some(vec![GeminiTool::google_search()]),
+                ..Default::default()
+            },
+        ))
+        .await
+        .unwrap();
+    assert!(ticket.ws_url.ends_with("ticket=t1"));
+    assert_eq!(ticket.reserve_usd, 1.0);
+
+    let transcribe = api
+        .gemini_create_live_session(&GeminiLiveSessionRequest::Transcribe(
+            GeminiLiveTranscription {
+                language_codes: Some(vec!["en-US".into()]),
+                ..Default::default()
+            },
+        ))
+        .await
+        .unwrap();
+    assert_eq!(transcribe.model, "gemini-3.5-transcribe-live");
+
+    let session = api.gemini_live_session("s1").await.unwrap();
+    assert_eq!(session.status, "CLOSED");
+    assert_eq!(session.turn_count, 3);
+    assert_eq!(session.usage_totals.search_queries, 1);
+}
