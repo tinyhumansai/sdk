@@ -9,6 +9,7 @@ pub use super::agent_integrations::composio::*;
 pub use super::agent_integrations::crypto::*;
 pub use super::agent_integrations::file_storage::*;
 pub use super::agent_integrations::financial_apis::*;
+pub use super::agent_integrations::gemini::*;
 pub use super::agent_integrations::google_places::*;
 pub use super::agent_integrations::history_rewards::*;
 pub use super::agent_integrations::media_generation::*;

@@ -17,6 +17,7 @@ fn every_provider_has_its_own_module() {
     assert_named::<split::crypto::CryptoSwapRequest>(std::marker::PhantomData);
     assert_named::<split::file_storage::FileMetadata>(std::marker::PhantomData);
     assert_named::<split::financial_apis::QuoteResponse>(std::marker::PhantomData);
+    assert_named::<split::gemini::GeminiGenerateContentRequest>(std::marker::PhantomData);
     assert_named::<split::google_places::GooglePlacesSearchRequest>(std::marker::PhantomData);
     assert_named::<split::history_rewards::HistoryRewardsStatus>(std::marker::PhantomData);
     assert_named::<split::media_generation::ImageGenerationRequest>(std::marker::PhantomData);

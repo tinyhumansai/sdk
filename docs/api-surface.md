@@ -68,6 +68,51 @@ Most JSON responses use the hosted-backend envelope:
 SDK request helpers unwrap this envelope by default. The raw helper can return the
 full response body when callers need status metadata or non-standard payloads.
 
+## Gemini
+
+`agent_integrations::gemini` covers the Gemini API, billed at Google's paid-tier
+rates plus a 10% premium:
+
+- `gemini_generate_content(model, &GeminiGenerateContentRequest)` posts a native
+  Gemini `generateContent` body to
+  `/agent-integrations/gemini/models/{model}/generate-content`. Tools are limited
+  to `GeminiTool::google_search()`, `GeminiTool::google_maps()` (with
+  `GeminiToolConfig.retrieval_config.lat_lng`) and `GeminiTool::functions(..)`.
+  The response is Google's `GenerateContentResponse`, including
+  `groundingMetadata`, plus `cost_usd`.
+- `gemini_create_live_session(&GeminiLiveSessionRequest)` opens a metered Live
+  session: `Conversation` (native audio, Google Search and function calling) or
+  `Transcribe` (`gemini-3.5-transcribe-live`). It returns a single-use ticket and
+  a `ws_url`. Connect a plain WebSocket to `ws_url` within 60 seconds and speak
+  the Gemini Live protocol (`realtimeInput`, `clientContent`, `toolResponse`).
+  The session setup is fixed at mint time and a client `setup` frame is ignored.
+  The backend relays the socket and meters every turn server-side. Close codes
+  are exported as `GEMINI_LIVE_CLOSE_*`: 4401 bad ticket, 4402 insufficient
+  credits (each open session reserves a minimum balance), 4408 idle or max
+  duration, 1011 upstream failure.
+- `gemini_live_session(id)` returns a session's status, turn count, charged
+  amount and usage totals.
+
+Live billing notes:
+
+- Each turn is billed from the `usageMetadata` Google sends on `turnComplete`.
+  Its prompt count is the turn's full context, so long sessions cost more per
+  turn.
+- `Transcribe` sessions get no usage reports from Google. The backend bills the
+  PCM audio the client streams (32 tokens per second) plus the final transcript
+  text.
+- A `Conversation` with `GeminiTool::google_search()` bills one search query per
+  turn, because Live does not report its searches.
+- For function calling, answer each `toolCall.functionCalls[]` entry with a
+  `toolResponse` frame carrying the same `id` and `name`. The relay forwards it
+  unchanged.
+- Gemini 2.5 text models are not offered, because Google no longer serves them
+  to new keys. `gemini-2.5-flash-native-audio-preview-12-2025` remains available
+  for Live.
+
+The crate has no raw WebSocket client dependency, so the relay connection is
+left to the caller's WebSocket library of choice.
+
 ## OpenRouter media generation
 
 `agent_integrations::openrouter` exposes the direct OpenRouter proxy under
