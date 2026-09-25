@@ -579,11 +579,15 @@ mod exclusion_tests {
         // orchestrator's own service-token-authenticated callback (same shape
         // as the two `inference-key` operations and `.../usage` above), added
         // alongside `POST /opencompany/instances/{slug}/usage`.
+        //
+        // 59 -> 61: `PUT` and `DELETE /opencompany/orchestrators/{id}/token`,
+        // the fleet's service-token-authenticated orchestrator token
+        // registration, first synced alongside the Gemini routes.
         // Note: This assertion reflects the count when synced against the
         // deployed OpenAPI spec. When the backend branch adds routes that
         // aren't yet deployed, the local count may differ; the RETAINED_UNEXPOSED_ROUTES
         // in sync-openapi.mjs preserves admin/webhook operations regardless.
-        assert_eq!(UNEXPOSED_ROUTES.len(), 59);
+        assert_eq!(UNEXPOSED_ROUTES.len(), 61);
         for (method, template) in UNEXPOSED_ROUTES {
             let concrete_path = template
                 .split('/')
