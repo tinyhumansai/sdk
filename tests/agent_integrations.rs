@@ -1293,7 +1293,9 @@ async fn gemini_live_session_routes_are_typed() {
         .await;
     Mock::given(method("POST"))
         .and(path("/agent-integrations/gemini/live/sessions"))
-        .and(body_json(json!({"mode": "transcribe", "languageCodes": ["en-US"]})))
+        .and(body_json(
+            json!({"mode": "transcribe", "languageCodes": ["en-US"]}),
+        ))
         .respond_with(ResponseTemplate::new(200).set_body_json(json!({
             "success": true,
             "data": {
