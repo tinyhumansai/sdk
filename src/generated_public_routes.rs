@@ -150,6 +150,7 @@ pub const PUBLIC_ROUTES: &[(&str, &str)] = &[
     ("POST", "/opencompany/instances/{slug}/suspend"),
     ("POST", "/opencompany/instances/{slug}/update"),
     ("GET", "/opencompany/instances/usage"),
+    ("GET", "/orchestration/v1/sessions"),
     ("POST", "/payments/coinbase/charge"),
     ("GET", "/payments/coinbase/charge/{gatewayTransactionId}"),
     ("GET", "/payments/credits/auto-recharge"),

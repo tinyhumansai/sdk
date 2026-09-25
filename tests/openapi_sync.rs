@@ -151,8 +151,8 @@ fn generated_rust_routes_match_the_public_manifest() {
     //
     // 237 -> 202: the `/medulla/v1/*` and `/orchestration/v1/*` families are
     // gone with the orchestration model. The backend's part in Medulla is now
-    // the plan entitlement on `/auth/me`; nothing under those prefixes is
-    // served any more.
+    // the plan entitlement on `/auth/me`, apart from the authenticated empty
+    // session list kept for older OpenHuman clients.
     // 202 -> 203: `GET /payments/credits/lots`, the caller's live credit lots
     // and their expiries (subscription credit no longer rolls over; top-ups
     // last a year).
@@ -166,7 +166,8 @@ fn generated_rust_routes_match_the_public_manifest() {
     // them).
     // 208 -> 211: the Gemini integration — `POST .../gemini/models/{model}/generate-content`,
     // `POST .../gemini/live/sessions` and `GET .../gemini/live/sessions/{sessionId}`.
-    assert_eq!(manifest["source"]["operationCount"], 211);
+    // 211 -> 212: the retired orchestration session-list compatibility route.
+    assert_eq!(manifest["source"]["operationCount"], 212);
     // 14 -> 13: `GET /orchestration/v1/steering` left with that family.
     assert_eq!(manifest["source"]["supplementalOperationCount"], 13);
     // 37 -> 39: the two service-token operations on
@@ -206,7 +207,8 @@ fn generated_rust_routes_match_the_public_manifest() {
     // 206 -> 208: the two new public opencompany routes above
     // (`GET /opencompany/companies` and `POST /opencompany/instances/{slug}/update`).
     // 208 -> 211: the three Gemini routes.
-    assert_eq!(rust_routes.len(), 211);
+    // 211 -> 212: the retired orchestration session-list compatibility route.
+    assert_eq!(rust_routes.len(), 212);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()

@@ -8,9 +8,9 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 242,
-    "totalOperationCount": 268,
-    "operationCount": 211,
+    "pathCount": 243,
+    "totalOperationCount": 269,
+    "operationCount": 212,
     "supplementalOperationCount": 13,
     "excludedAdminOperationCount": 49,
     "excludedWebhookOperationCount": 12,
@@ -331,6 +331,18 @@
         "POST /opencompany/instances/{slug}/suspend",
         "POST /opencompany/instances/{slug}/update",
         "PUT /opencompany/instances/{slug}/custom-domain"
+      ]
+    },
+    {
+      "name": "orchestration",
+      "basePath": "/orchestration",
+      "auth": "bearer",
+      "operationCount": 1,
+      "tags": [
+        "Orchestration"
+      ],
+      "routes": [
+        "GET /orchestration/v1/sessions"
       ]
     },
     {
