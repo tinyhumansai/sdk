@@ -1323,13 +1323,13 @@ async fn gemini_live_session_routes_are_typed() {
     let client = TinyHumansClient::new(server.uri());
     let api = client.agent_integrations();
     let ticket = api
-        .gemini_create_live_session(&GeminiLiveSessionRequest::Conversation(
+        .gemini_create_live_session(&GeminiLiveSessionRequest::Conversation(Box::new(
             GeminiLiveConversation {
                 model: "gemini-3.8-live".into(),
                 tools: Some(vec![GeminiTool::google_search()]),
                 ..Default::default()
             },
-        ))
+        )))
         .await
         .unwrap();
     assert!(ticket.ws_url.ends_with("ticket=t1"));

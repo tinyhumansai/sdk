@@ -164,7 +164,9 @@ fn generated_rust_routes_match_the_public_manifest() {
     // "update to latest" — both are served by the backend `main` this syncs
     // against (sdk main had been generated from the deployed spec that predated
     // them).
-    assert_eq!(manifest["source"]["operationCount"], 208);
+    // 208 -> 211: the Gemini integration — `POST .../gemini/models/{model}/generate-content`,
+    // `POST .../gemini/live/sessions` and `GET .../gemini/live/sessions/{sessionId}`.
+    assert_eq!(manifest["source"]["operationCount"], 211);
     // 14 -> 13: `GET /orchestration/v1/steering` left with that family.
     assert_eq!(manifest["source"]["supplementalOperationCount"], 13);
     // 37 -> 39: the two service-token operations on
@@ -195,11 +197,16 @@ fn generated_rust_routes_match_the_public_manifest() {
     // 46 -> 47: `PUT /opencompany/instances/{slug}/orchestrator`, the
     // orchestrator's own service-token callback (same shape as the two
     // `inference-key` operations and `.../usage` above).
-    assert_eq!(manifest["source"]["excludedAdminOperationCount"], 47);
+    //
+    // 47 -> 49: `PUT` and `DELETE /opencompany/orchestrators/{id}/token`, the
+    // fleet's service-token orchestrator token registration, already on
+    // backend `main` and first synced with the Gemini routes.
+    assert_eq!(manifest["source"]["excludedAdminOperationCount"], 49);
     assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 12);
     // 206 -> 208: the two new public opencompany routes above
     // (`GET /opencompany/companies` and `POST /opencompany/instances/{slug}/update`).
-    assert_eq!(rust_routes.len(), 208);
+    // 208 -> 211: the three Gemini routes.
+    assert_eq!(rust_routes.len(), 211);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()

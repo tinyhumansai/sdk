@@ -283,7 +283,7 @@ pub struct GeminiLiveTranscription {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(tag = "mode", rename_all = "lowercase")]
 pub enum GeminiLiveSessionRequest {
-    Conversation(GeminiLiveConversation),
+    Conversation(Box<GeminiLiveConversation>),
     Transcribe(GeminiLiveTranscription),
 }
 
