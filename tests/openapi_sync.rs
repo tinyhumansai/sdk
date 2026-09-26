@@ -167,7 +167,10 @@ fn generated_rust_routes_match_the_public_manifest() {
     // 208 -> 211: the Gemini integration — `POST .../gemini/models/{model}/generate-content`,
     // `POST .../gemini/live/sessions` and `GET .../gemini/live/sessions/{sessionId}`.
     // 211 -> 212: the retired orchestration session-list compatibility route.
-    assert_eq!(manifest["source"]["operationCount"], 212);
+    // 212 -> 214: Exa search plus the authenticated Langfuse telemetry route.
+    // 214 -> 229: the remaining priced Exa Contents, Answer, Find Similar,
+    // Agent run, and Batch operations.
+    assert_eq!(manifest["source"]["operationCount"], 229);
     // 14 -> 13: `GET /orchestration/v1/steering` left with that family.
     assert_eq!(manifest["source"]["supplementalOperationCount"], 13);
     // 37 -> 39: the two service-token operations on
@@ -208,7 +211,10 @@ fn generated_rust_routes_match_the_public_manifest() {
     // (`GET /opencompany/companies` and `POST /opencompany/instances/{slug}/update`).
     // 208 -> 211: the three Gemini routes.
     // 211 -> 212: the retired orchestration session-list compatibility route.
-    assert_eq!(rust_routes.len(), 212);
+    // 212 -> 214: Exa search plus the authenticated Langfuse telemetry route.
+    // 214 -> 229: the remaining priced Exa Contents, Answer, Find Similar,
+    // Agent run, and Batch operations.
+    assert_eq!(rust_routes.len(), 229);
     assert_eq!(rust_routes, manifest_routes);
     assert!(rust_routes
         .iter()
