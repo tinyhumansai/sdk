@@ -8,9 +8,9 @@
     "url": "https://api.tinyhumans.ai/swagger.json",
     "title": "TinyHumans API",
     "version": "1.0.0",
-    "pathCount": 243,
-    "totalOperationCount": 269,
-    "operationCount": 212,
+    "pathCount": 245,
+    "totalOperationCount": 271,
+    "operationCount": 214,
     "supplementalOperationCount": 13,
     "excludedAdminOperationCount": 49,
     "excludedWebhookOperationCount": 12,
@@ -34,7 +34,7 @@
       "name": "agentIntegrations",
       "basePath": "/agent-integrations",
       "auth": "mixed",
-      "operationCount": 78,
+      "operationCount": 79,
       "tags": [
         "Agent Integrations",
         "OpenHuman parity"
@@ -82,6 +82,7 @@
         "POST /agent-integrations/composio/triggers",
         "POST /agent-integrations/crypto/bridge",
         "POST /agent-integrations/crypto/swap",
+        "POST /agent-integrations/exa/search",
         "POST /agent-integrations/file-storage/files",
         "POST /agent-integrations/file-storage/files/{fileId}/link",
         "POST /agent-integrations/financial-apis/commodity",
@@ -459,6 +460,18 @@
         "POST /teams/{teamId}/switch",
         "PUT /teams/{teamId}",
         "PUT /teams/{teamId}/members/{userId}/role"
+      ]
+    },
+    {
+      "name": "telemetry",
+      "basePath": "/telemetry",
+      "auth": "bearer",
+      "operationCount": 1,
+      "tags": [
+        "Telemetry"
+      ],
+      "routes": [
+        "POST /telemetry/langfuse/otel/v1/traces"
       ]
     },
     {
