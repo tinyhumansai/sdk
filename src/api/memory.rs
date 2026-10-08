@@ -1,6 +1,6 @@
 //! Hosted agent memory: write experiences, recall, answer questions, list and
 //! read events, read the derived layers (facts, beliefs, understanding), upload
-//! files, forget, list scopes.
+//! files, forget, erase a scope for good, list scopes.
 //!
 //! Every call runs as the caller's own memory tenant and is billed from the
 //! caller's credits. Most bodies are passed through to the memory service, so
@@ -57,6 +57,24 @@ impl<'a> MemoryApi<'a> {
     pub async fn forget(&self, body: &Value) -> Result<DynamicResponse, Error> {
         self.http
             .send_typed(Method::POST, "/memory/forget", &[], Some(body), true)
+            .await
+    }
+
+    /// Erase one scope for good (`{scope, audit_note?}`): raw events, derived
+    /// layers and blobs, and everything below the scope. Served by the
+    /// `/memory/v1` surface, so the answer is memory-api's own body, not a
+    /// `{success,data}` envelope.
+    pub async fn erase_scope(&self, body: &Value) -> Result<DynamicResponse, Error> {
+        self.http
+            .send_typed(Method::POST, "/memory/v1/erasures", &[], Some(body), true)
+            .await
+    }
+
+    /// Read the status of an erasure started with [`MemoryApi::erase_scope`].
+    pub async fn erasure_status(&self, id: &str) -> Result<DynamicResponse, Error> {
+        let path = format!("/memory/v1/erasures/{}", enc(id));
+        self.http
+            .send_typed(Method::GET, &path, &[], None, true)
             .await
     }
 
