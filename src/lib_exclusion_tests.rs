@@ -63,7 +63,11 @@ fn every_admin_and_webhook_route_is_rejected_by_the_raw_transport_gate() {
     // The telemetry ingestion endpoint (OTEL / Langfuse) does NOT belong
     // here: it takes a normal user bearer token, not a service token, so
     // it stays in PUBLIC_ROUTES.
-    assert_eq!(UNEXPOSED_ROUTES.len(), 59);
+    // 59 -> 64: the five `GET /admin/memory/*` reads (`overview`, `storage`,
+    // `top-tenants`, `tenants/{userId}` and the new `model-usage`). The first
+    // four were already on backend `main` but never synced here; admin-only,
+    // so blocked at the raw transport and given no typed method.
+    assert_eq!(UNEXPOSED_ROUTES.len(), 64);
     for (method, template) in UNEXPOSED_ROUTES {
         let concrete_path = template
             .split('/')
