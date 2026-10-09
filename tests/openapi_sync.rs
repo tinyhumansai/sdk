@@ -244,7 +244,12 @@ fn generated_rust_routes_match_the_public_manifest() {
     // not name them — and the SDK refuses that whole prefix structurally. The
     // Langfuse telemetry receiver is not counted here: it is ordinary public
     // API (user bearer token), so it stays in the public surface above.
-    assert_eq!(manifest["source"]["excludedAdminOperationCount"], 47);
+    //
+    // 47 -> 52: the five `GET /admin/memory/*` reads (`overview`, `storage`,
+    // `top-tenants`, `tenants/{userId}`, and the new `model-usage`), the
+    // admin service token's memory aggregates. Four were already on backend
+    // `main` but never synced; none is public.
+    assert_eq!(manifest["source"]["excludedAdminOperationCount"], 52);
     assert_eq!(manifest["source"]["excludedWebhookOperationCount"], 12);
     // 206 -> 208: the two new public opencompany routes above
     // (`GET /opencompany/companies` and `POST /opencompany/instances/{slug}/update`).
