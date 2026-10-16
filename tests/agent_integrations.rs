@@ -27,6 +27,39 @@ async fn file_download_returns_binary_bytes() {
 }
 
 #[tokio::test]
+async fn file_link_can_ask_for_an_inline_disposition() {
+    let server = MockServer::start().await;
+    Mock::given(method("POST"))
+        .and(path("/agent-integrations/file-storage/files/file_1/link"))
+        .and(body_json(json!({"expiresInSeconds": 300, "disposition": "inline"})))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {"url": "https://s3.example/f", "expiresAt": "2030-01-01T00:00:00.000Z", "costUsd": 0.0}
+        })))
+        .mount(&server)
+        .await;
+    Mock::given(method("POST"))
+        .and(path("/agent-integrations/file-storage/files/file_2/link"))
+        .and(body_json(json!({})))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true, "data": {"url": "https://s3.example/g", "costUsd": 0.0}
+        })))
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let api = client.agent_integrations();
+    let inline = api
+        .create_file_link_with_disposition("file_1", Some(300), "inline")
+        .await
+        .unwrap();
+    assert_eq!(inline.url, "https://s3.example/f");
+    // The plain call sends no disposition, as before.
+    let plain = api.create_file_link("file_2", None).await.unwrap();
+    assert_eq!(plain.url, "https://s3.example/g");
+}
+
+#[tokio::test]
 async fn list_composio_github_repos_is_typed() {
     let server = MockServer::start().await;
     Mock::given(method("GET"))

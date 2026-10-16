@@ -78,6 +78,10 @@ pub struct CreateFileLinkRequest {
     /// Link lifetime; the backend caps it at 900 seconds.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub expires_in_seconds: Option<u32>,
+    /// `inline` asks the browser to show the file, `attachment` (the backend's
+    /// default) to save it.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub disposition: Option<String>,
 }
 
 impl AgentIntegrationsApi<'_> {
@@ -194,7 +198,30 @@ impl AgentIntegrationsApi<'_> {
                 "/agent-integrations/file-storage/files/{}/link",
                 enc(file_id)
             ),
-            &CreateFileLinkRequest { expires_in_seconds },
+            &CreateFileLinkRequest {
+                expires_in_seconds,
+                disposition: None,
+            },
+        )
+        .await
+    }
+    /// [`Self::create_file_link`] asking for a `disposition`: `inline` to show
+    /// the file in the browser, `attachment` to save it.
+    pub async fn create_file_link_with_disposition(
+        &self,
+        file_id: &str,
+        expires_in_seconds: Option<u32>,
+        disposition: &str,
+    ) -> Result<FileLinkResponse, Error> {
+        self.post(
+            &format!(
+                "/agent-integrations/file-storage/files/{}/link",
+                enc(file_id)
+            ),
+            &CreateFileLinkRequest {
+                expires_in_seconds,
+                disposition: Some(disposition.to_owned()),
+            },
         )
         .await
     }
