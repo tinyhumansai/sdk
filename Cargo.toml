@@ -8,7 +8,7 @@ repository = "https://github.com/tinyhumansai/sdk"
 
 [features]
 default = ["socket"]
-socket = ["dep:rust_socketio"]
+socket = ["dep:tokio-tungstenite"]
 
 [dependencies]
 base64 = "0.22"
@@ -25,9 +25,11 @@ percent-encoding = "2"
 # what earns these two their place in an otherwise dependency-light crate.
 futures = "0.3"
 # Socket.IO is a distinct framed protocol over Engine.IO, not a raw WebSocket.
-rust_socketio = { version = "0.6", features = ["async"], optional = true }
-tokio = { version = "1", features = ["sync", "time"] }
+# The SDK owns the Engine.IO session/reconnect lifecycle so credentials and
+# queued emits remain under its connection policy.
+tokio-tungstenite = { version = "0.21", features = ["rustls-tls-webpki-roots"], optional = true }
+tokio = { version = "1", features = ["sync", "time", "net", "rt", "macros"] }
 
 [dev-dependencies]
-tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "net", "io-util"] }
+tokio = { version = "1", features = ["macros", "rt", "rt-multi-thread", "net", "io-util", "test-util"] }
 wiremock = "0.6"

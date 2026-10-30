@@ -55,11 +55,17 @@ pub enum Error {
     #[error("response exceeds {max_bytes} bytes")]
     ResponseTooLarge { max_bytes: usize },
     #[cfg(feature = "socket")]
-    #[error("socket.io transport failed: {0}")]
-    Socket(Box<rust_socketio::Error>),
-    #[cfg(feature = "socket")]
     #[error("a bearer token is required for socket.io connections")]
     MissingSocketToken,
+    #[cfg(feature = "socket")]
+    #[error("socket endpoint must use TLS, except for loopback development endpoints")]
+    UnsafeSocketEndpoint,
+    #[cfg(feature = "socket")]
+    #[error("socket connection or CONNECT acknowledgement timed out")]
+    SocketConnectTimeout,
+    #[cfg(feature = "socket")]
+    #[error("socket redirect changed origin; refusing to forward connection credentials")]
+    CrossOriginSocketRedirect,
     #[cfg(feature = "socket")]
     #[error("socket event {0} did not carry a JSON payload")]
     UnexpectedSocketPayload(String),
@@ -95,13 +101,6 @@ pub enum Error {
         error_code: Option<String>,
         details: Value,
     },
-}
-
-#[cfg(feature = "socket")]
-impl From<rust_socketio::Error> for Error {
-    fn from(error: rust_socketio::Error) -> Self {
-        Self::Socket(Box::new(error))
-    }
 }
 
 #[derive(Clone)]
@@ -232,7 +231,25 @@ impl TinyHumansClient {
     #[cfg(feature = "socket")]
     pub async fn connect_socket(&self) -> Result<socket::SocketConnection, Error> {
         let token = self.http.token.clone().ok_or(Error::MissingSocketToken)?;
-        socket::SocketConnection::connect(self.http.base_url.clone(), token).await
+        self.connect_socket_with_token_provider(move || Some(token.clone()))
+            .await
+    }
+
+    /// Connect with a token provider that is called for the initial connection
+    /// and before each reconnect attempt.
+    #[cfg(feature = "socket")]
+    pub async fn connect_socket_with_token_provider<F>(
+        &self,
+        token_provider: F,
+    ) -> Result<socket::SocketConnection, Error>
+    where
+        F: Fn() -> Option<String> + Send + Sync + 'static,
+    {
+        socket::SocketConnection::connect(
+            self.http.base_url.clone(),
+            std::sync::Arc::new(token_provider),
+        )
+        .await
     }
 }
 
