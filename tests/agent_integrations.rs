@@ -193,7 +193,63 @@ async fn list_composio_connections_unwraps_envelope() {
         .await
         .unwrap();
 
-    let _ = result;
+    match result {
+        ComposioConnectionsResponse::List(connections) => {
+            assert_eq!(connections.len(), 1);
+            assert_eq!(connections[0].id, "c1");
+        }
+        other => panic!("expected the bare-array shape, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn list_composio_connections_reads_the_connections_object() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/agent-integrations/composio/connections"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {"connections": [{"id": "c1"}, {"id": "c2"}]}
+        })))
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let result = client
+        .agent_integrations()
+        .list_composio_connections()
+        .await
+        .unwrap();
+
+    match result {
+        ComposioConnectionsResponse::Object { connections } => {
+            let ids: Vec<_> = connections.iter().map(|c| c.id.as_str()).collect();
+            assert_eq!(ids, ["c1", "c2"]);
+        }
+        other => panic!("expected the connections object, got {other:?}"),
+    }
+}
+
+#[tokio::test]
+async fn list_composio_connections_rejects_an_unknown_object_shape() {
+    let server = MockServer::start().await;
+    Mock::given(method("GET"))
+        .and(path("/agent-integrations/composio/connections"))
+        .respond_with(ResponseTemplate::new(200).set_body_json(json!({
+            "success": true,
+            "data": {"items": [{"id": "c1"}]}
+        })))
+        .mount(&server)
+        .await;
+
+    let client = TinyHumansClient::new(server.uri());
+    let result = client
+        .agent_integrations()
+        .list_composio_connections()
+        .await;
+
+    // Not an empty list: an unrecognised shape must not read as "nothing connected".
+    assert!(result.is_err(), "unknown shape decoded as {result:?}");
 }
 
 #[tokio::test]
