@@ -75,12 +75,15 @@ pub struct ComposioConnection {
 }
 
 /// The backend has emitted both a bare array and `{ connections: [...] }`.
+///
+/// `connections` is required: an object without it is a shape this SDK does
+/// not know, and decoding it as an empty list would read as "no integrations
+/// connected".
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(untagged)]
 pub enum ComposioConnectionsResponse {
     List(Vec<ComposioConnection>),
     Object {
-        #[serde(default)]
         connections: Vec<ComposioConnection>,
     },
 }
